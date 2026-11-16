@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>REVEAL</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one centred play column; a stage card with a draining time bar, flip tiles, hint, and guess bar. */
+:root{
+  --bg:#e6e9f2; --surface:#ffffff; --ink:#1b2140; --muted:#5d6584;
+  --tile:#232b52; --tile-ink:#ffffff; --hidden:#d3d8e8; --hidden-mark:#9aa3c2;
+  --accent:#f2a516; --accent-ink:#2a1a00; --good:#1f9d6b; --bad:#d6453d; --line:#cfd4e4;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Figtree",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11152a; --surface:#1a2040; --ink:#eef0fa; --muted:#a2a9c8;
+  --tile:#f2a516; --tile-ink:#2a1a00; --hidden:#262d55; --hidden-mark:#4b5487;
+  --accent:#f2a516; --accent-ink:#2a1a00; --good:#3ccf93; --bad:#ff6b62; --line:#2f3765; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11152a; --surface:#1a2040; --ink:#eef0fa; --muted:#a2a9c8;
+  --tile:#f2a516; --tile-ink:#2a1a00; --hidden:#262d55; --hidden-mark:#4b5487;
+  --accent:#f2a516; --accent-ink:#2a1a00; --good:#3ccf93; --bad:#ff6b62; --line:#2f3765; color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+.wrap{max-width:560px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:18px;
+  padding-block:20px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{font-family:var(--f-display);font-weight:800;font-size:1.6rem;letter-spacing:.14em;display:flex;gap:3px}
+.logo span{display:inline-grid;place-items:center;width:1.45em;height:1.6em;border-radius:6px;background:var(--hidden);color:transparent}
+.logo span.on{background:var(--tile);color:var(--tile-ink)}
+.stats{display:flex;gap:14px;font-family:var(--f-mono);font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.stats b{color:var(--ink);font-weight:700}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px 18px;display:flex;flex-direction:column;gap:18px;box-shadow:0 10px 30px -18px rgba(20,25,60,.35)}
+h1,h2{font-family:var(--f-display);font-weight:800;margin:0;text-wrap:balance;line-height:1.1}
+h1{font-size:clamp(1.7rem,6vw,2.3rem)}
+h2{font-size:1.25rem}
+p{margin:0}
+.lead{color:var(--muted)}
+.eyebrow{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+
+/* time bar */
+.timebar{height:10px;border-radius:99px;background:var(--hidden);overflow:hidden;position:relative}
+.timebar i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:99px;width:100%}
+.timebar.low i{background:var(--bad)}
+.toprow{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.clock{font-family:var(--f-mono);font-weight:700;font-size:1.9rem;font-variant-numeric:tabular-nums;line-height:1}
+.clock.low{color:var(--bad)}
+.next{font-size:.85rem;color:var(--muted)}
+
+/* tiles */
+.tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.t{--s:clamp(30px,9.5vw,46px);width:var(--s);height:calc(var(--s)*1.18);perspective:400px}
+.t .in{position:relative;width:100%;height:100%;transition:transform .45s cubic-bezier(.3,1.4,.5,1);transform-style:preserve-3d}
+.t.open .in{transform:rotateX(180deg)}
+.t .f,.t .b{position:absolute;inset:0;border-radius:8px;display:grid;place-items:center;backface-visibility:hidden;
+  font-family:var(--f-display);font-weight:800;font-size:calc(var(--s)*.58)}
+.t .f{background:var(--hidden);color:var(--hidden-mark)}
+.t .f::after{content:"";width:28%;height:4px;border-radius:2px;background:var(--hidden-mark)}
+.t .b{background:var(--tile);color:var(--tile-ink);transform:rotateX(180deg)}
+.t.beat .b{background:var(--good);color:#fff}
+.t.missed .b{background:var(--bad);color:#fff}
+
+.hint{display:flex;gap:12px;align-items:flex-start;background:var(--bg);border-radius:12px;padding:12px 14px}
+.hint .tag{flex:none;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:3px 7px;margin-top:2px}
+.hint p{font-weight:600;font-size:1.05rem}
+.lang{font-family:var(--f-mono);font-size:.7rem;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:1px 5px;margin-left:6px;vertical-align:2px}
+
+form.guess{display:flex;gap:8px}
+input[type=text]{flex:1;min-width:0;font:700 1.15rem var(--f-mono);letter-spacing:.12em;text-transform:uppercase;padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:var(--surface);color:var(--ink)}
+input[type=text]:focus{outline:none;border-color:var(--accent)}
+.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+button{font:700 1rem var(--f-body);border:0;border-radius:12px;padding:12px 18px;cursor:pointer;background:var(--ink);color:var(--surface)}
+button.primary{background:var(--accent);color:var(--accent-ink)}
+button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+button:focus-visible,.seg label:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.msg{min-height:1.5em;font-weight:600;text-align:center}
+.msg.good{color:var(--good)} .msg.bad{color:var(--bad)}
+
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{flex:1;min-width:90px;cursor:pointer;border:2px solid var(--line);border-radius:12px;padding:10px 12px;text-align:center;font-weight:700}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.seg small{display:block;font-weight:400;color:var(--muted);font-size:.78rem}
+
+ol.rules{margin:0;padding-left:1.2em;display:grid;gap:6px;color:var(--muted)}
+ol.rules b{color:var(--ink)}
+.score-big{font-family:var(--f-mono);font-size:3rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.pop{font-family:var(--f-mono);font-weight:700;color:var(--good)}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+td{padding:7px 4px;border-top:1px solid var(--line)}
+td:last-child{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+td .w{font-family:var(--f-display);font-weight:800;letter-spacing:.06em}
+.foot{font-size:.8rem;color:var(--muted);text-align:center}
+@media (prefers-reduced-motion:reduce){.t .in{transition:none}.shake{animation:none}}
+</style>
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="logo" aria-label="REVEAL"><span class="on">R</span><span>E</span><span class="on">V</span><span>E</span><span class="on">A</span><span>L</span></div>
+    <div class="stats" id="stats" hidden><span><span data-i="round"></span> <b id="rn">1</b>/<b id="rt">10</b></span><span><span data-i="pts"></span> <b id="sc">0</b></span></div>
+  </header>
+
+  <!-- START -->
+  <section class="card" id="start">
+    <div style="display:grid;gap:8px">
+      <p class="eyebrow" data-i="tag"></p>
+      <h1 data-i="title"></h1>
+      <p class="lead" data-i="lead"></p>
+    </div>
+    <div class="tiles" id="demo" aria-hidden="true"></div>
+    <div style="display:grid;gap:8px">
+      <p class="eyebrow" data-i="langPick"></p>
+      <div class="seg" role="radiogroup">
+        <label><input type="radio" name="lang" id="lang-ms" value="ms" checked>Bahasa Melayu<small>Kata &amp; hint BM</small></label>
+        <label><input type="radio" name="lang" id="lang-en" value="en">English<small>Words &amp; hints in English</small></label>
+        <label><input type="radio" name="lang" id="lang-mix" value="mix">Campur / Both<small>BM + English</small></label>
+      </div>
+    </div>
+    <div style="display:grid;gap:8px">
+      <p class="eyebrow" data-i="timePick"></p>
+      <div class="seg" role="radiogroup">
+        <label><input type="radio" name="time" id="time-45" value="45"><span data-i="fast"></span><small>45 s</small></label>
+        <label><input type="radio" name="time" id="time-60" value="60" checked><span data-i="normal"></span><small>60 s</small></label>
+        <label><input type="radio" name="time" id="time-90" value="90"><span data-i="relaxed"></span><small>90 s</small></label>
+      </div>
+    </div>
+    <ol class="rules" id="rules"></ol>
+    <button class="primary" id="go" data-i="start"></button>
+    <p class="foot"><span data-i="best"></span> <b id="best">0</b></p>
+  </section>
+
+  <!-- PLAY -->
+  <section class="card" id="play" hidden>
+    <div class="toprow">
+      <span class="clock" id="clock">60</span>
+      <span class="next" id="next"></span>
+    </div>
+    <div class="timebar" id="bar"><i id="fill"></i></div>
+    <div class="tiles" id="tiles"></div>
+    <div class="hint"><span class="tag">Hint</span><p id="hint"></p></div>
+    <form class="guess" id="form" autocomplete="off">
+      <input type="text" id="guess" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="go" aria-label="Your guess">
+      <button class="primary" type="submit" id="submit" data-i="guessBtn"></button>
+    </form>
+    <p class="msg" id="msg" aria-live="polite"></p>
+    <div class="row">
+      <button class="ghost" type="button" id="skip" data-i="skip"></button>
+      <button type="button" id="nextBtn" hidden data-i="nextWord"></button>
+    </div>
+  </section>
+
+  <!-- END -->
+  <section class="card" id="end" hidden>
+    <div style="display:grid;gap:6px">
+      <p class="eyebrow" data-i="final"></p>
+      <div class="score-big" id="final">0</div>
+      <p class="lead" id="endNote"></p>
+    </div>
+    <table id="log"></table>
+    <div class="row">
+      <button class="ghost" id="menu" data-i="menu"></button>
+      <button class="primary" id="again" data-i="again"></button>
+    </div>
+  </section>
+</div>
+
+<script>
+const WORDS = {
+  ms: [
+    ["KUCING","Haiwan peliharaan yang suka mengiau"],
+    ["PISANG","Buah panjang berkulit kuning"],
+    ["SEKOLAH","Tempat murid belajar setiap hari"],
+    ["PAYUNG","Dibuka apabila hujan turun"],
+    ["JAMBATAN","Merentangi sungai supaya kita boleh menyeberang"],
+    ["KETUPAT","Dianyam daripada daun kelapa, dihidang pada Hari Raya"],
+    ["DURIAN","Raja segala buah, kulitnya berduri"],
+    ["GASING","Permainan tradisional yang berputar laju"],
+    ["BULAN","Bersinar di langit pada waktu malam"],
+    ["PELANGI","Muncul selepas hujan dengan tujuh warna"],
+    ["PERPUSTAKAAN","Tempat meminjam buku"],
+    ["HARIMAU","Haiwan berbelang, lambang negara"],
+    ["RENDANG","Lauk daging bersantan yang dimasak lama"],
+    ["WAU","Layang-layang tradisional dari Pantai Timur"],
+    ["BATIK","Kain bercorak yang dilukis dengan lilin"],
+    ["TELEFON","Alat untuk bercakap dengan orang yang jauh"],
+    ["KASUT","Dipakai di kaki sebelum keluar rumah"],
+    ["GURU","Orang yang mengajar di sekolah"],
+    ["HOSPITAL","Tempat doktor merawat pesakit"],
+    ["PANTAI","Tempat pasir bertemu laut"],
+    ["BOMBA","Pasukan yang memadam kebakaran"],
+    ["KERETAPI","Kenderaan panjang yang bergerak di atas landasan"],
+    ["SAMBAL","Pedas, dibuat daripada cili yang ditumbuk"],
+    ["CERMIN","Memantulkan wajah kita"],
+    ["ANGKASAWAN","Orang yang pergi ke angkasa lepas"],
+    ["KELAPA","Buah berair yang tumbuh di pokok tinggi tepi pantai"],
+    ["SONGKOK","Dipakai di kepala ketika majlis rasmi"],
+    ["PENYU","Bertelur di pantai, berenang di laut"],
+  ],
+  en: [
+    ["PENGUIN","A bird that cannot fly but swims very well"],
+    ["VOLCANO","A mountain that can erupt with lava"],
+    ["LIBRARY","You borrow books here"],
+    ["UMBRELLA","Keeps you dry in the rain"],
+    ["ORCHESTRA","Many musicians playing together"],
+    ["PASSPORT","You need this to travel to another country"],
+    ["GIRAFFE","The tallest animal on land"],
+    ["BICYCLE","Two wheels, pedals, no engine"],
+    ["CACTUS","A desert plant covered in spines"],
+    ["TELESCOPE","Helps you see faraway stars"],
+    ["PYRAMID","Ancient tomb with four triangular sides"],
+    ["KEYBOARD","You type on it"],
+    ["DIAMOND","The hardest natural stone"],
+    ["SANDWICH","Bread with a filling in the middle"],
+    ["ISLAND","Land surrounded by water"],
+    ["LIGHTHOUSE","A tower that guides ships at night"],
+    ["COMPASS","Its needle always points north"],
+    ["HONEY","Sweet and sticky, made by bees"],
+    ["CANDLE","Wax and a wick"],
+    ["PILLOW","Rest your head on it at night"],
+    ["ANCHOR","Keeps a ship from drifting away"],
+    ["GLACIER","A slow river of ice"],
+    ["BALLOON","Fill it with air or helium"],
+    ["KANGAROO","Hops around and carries its baby in a pouch"],
+    ["SNOWMAN","Built in winter with a carrot nose"],
+    ["DENTIST","The doctor who checks your teeth"],
+  ]
+};
+
+const UI = {
+  ms:{round:"Pusingan",pts:"Mata",tag:"Teka sebelum terbongkar",title:"Satu perkataan. Satu hint. Masa berjalan.",
+    lead:"Setiap beberapa saat, satu huruf dibuka. Teka awal untuk mata lebih tinggi.",
+    langPick:"Bahasa perkataan",timePick:"Masa setiap perkataan",fast:"Pantas",normal:"Biasa",relaxed:"Santai",
+    rules:["<b>Baca hint</b> dan lihat berapa huruf perkataan itu.","<b>Huruf terbuka satu demi satu</b> apabila masa berjalan.","<b>Teka bila-bila masa.</b> Lebih awal, lebih banyak mata.","Salah teka? <b>Tolak 3 saat.</b>"],
+    start:"Mula main",best:"Skor terbaik:",guessBtn:"Teka",skip:"Langkau",nextWord:"Perkataan seterusnya",
+    nextIn:s=>`Huruf seterusnya dalam ${s}s`,lastHidden:"Huruf terakhir kekal tersembunyi",
+    right:(p)=>`Betul! +${p} mata`,wrong:"Bukan itu. −3 saat",timeup:w=>`Masa tamat. Jawapannya ${w}.`,skipped:w=>`Dilangkau. Jawapannya ${w}.`,
+    final:"Jumlah mata",menu:"Menu",again:"Main lagi",seeResults:"Lihat keputusan",
+    endNote:(c,n)=>`Anda teka ${c} daripada ${n} perkataan.`,newBest:" Skor terbaik baharu!",short:"Terlalu pendek"},
+  en:{round:"Round",pts:"Points",tag:"Guess before it's revealed",title:"One word. One hint. The clock is running.",
+    lead:"Every few seconds a letter flips open. Guess early to score more.",
+    langPick:"Word language",timePick:"Time per word",fast:"Fast",normal:"Normal",relaxed:"Relaxed",
+    rules:["<b>Read the hint</b> and count the letters.","<b>Letters flip open one by one</b> as time runs.","<b>Guess any time.</b> The earlier, the more points.","Wrong guess? <b>Lose 3 seconds.</b>"],
+    start:"Start game",best:"Best score:",guessBtn:"Guess",skip:"Skip",nextWord:"Next word",
+    nextIn:s=>`Next letter in ${s}s`,lastHidden:"The last letter stays hidden",
+    right:(p)=>`Correct! +${p} points`,wrong:"Not it. −3 seconds",timeup:w=>`Time's up. It was ${w}.`,skipped:w=>`Skipped. It was ${w}.`,
+    final:"Final score",menu:"Menu",again:"Play again",seeResults:"See results",
+    endNote:(c,n)=>`You guessed ${c} of ${n} words.`,newBest:" New best score!",short:"Too short"}
+};
+
+const ROUNDS = 10, PENALTY = 3;
+const $ = id => document.getElementById(id);
+const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}} };
+
+let uiLang = "ms", S = null, raf = 0;
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function t(k){return UI[uiLang][k]}
+
+function applyUI(){
+  document.querySelectorAll("[data-i]").forEach(el=>{const v=t(el.dataset.i); if(typeof v==="string") el.textContent=v;});
+  $("rules").innerHTML = t("rules").map(r=>`<li>${r}</li>`).join("");
+  $("best").textContent = store.get("reveal-best") || "0";
+  document.documentElement.lang = uiLang;
+}
+
+function tileHTML(ch, open){return `<div class="t${open?" open":""}"><div class="in"><div class="f"></div><div class="b">${ch}</div></div></div>`}
+
+// Demo tiles on the start screen, revealing themselves in a loop
+function demo(){
+  const w = uiLang==="en" ? "PENGUIN" : "PELANGI";
+  $("demo").innerHTML = [...w].map(c=>tileHTML(c,false)).join("");
+  const tiles=[...$("demo").children], order=shuffle(tiles.map((_,i)=>i));
+  [order[0],order[2],order[4]].forEach(i=>tiles[i].classList.add("open"));
+}
+
+document.querySelectorAll('input[name=lang]').forEach(r=>r.addEventListener("change",()=>{
+  const v=document.querySelector('input[name=lang]:checked').value;
+  uiLang = v==="en" ? "en" : "ms"; store.set("reveal-lang",v); applyUI(); demo();
+}));
+document.querySelectorAll('input[name=time]').forEach(r=>r.addEventListener("change",()=>store.set("reveal-time",document.querySelector('input[name=time]:checked').value)));
+
+function newGame(){
+  const lang=document.querySelector('input[name=lang]:checked').value;
+  const T=+document.querySelector('input[name=time]:checked').value;
+  let pool = lang==="mix" ? [...WORDS.ms.map(w=>[...w,"BM"]),...WORDS.en.map(w=>[...w,"EN"])] : WORDS[lang].map(w=>[...w,""]);
+  S = { T, words: shuffle(pool).slice(0,ROUNDS), i:-1, score:0, log:[] };
+  $("start").hidden=true; $("end").hidden=true; $("play").hidden=false; $("stats").hidden=false;
+  $("rt").textContent=S.words.length; $("sc").textContent=0;
+  nextWord();
+}
+
+function nextWord(){
+  S.i++;
+  if(S.i>=S.words.length) return endGame();
+  const [word,hint,tag]=S.words[S.i];
+  const n=word.length;
+  S.cur={word,hint,n,order:shuffle([...Array(n).keys()]),shown:0,start:performance.now(),penalty:0,done:false};
+  $("rn").textContent=S.i+1;
+  $("tiles").innerHTML=[...word].map(c=>tileHTML(c,false)).join("");
+  $("hint").innerHTML = hint.replace(/</g,"&lt;") + (tag?`<span class="lang">${tag}</span>`:"");
+  $("msg").textContent=""; $("msg").className="msg";
+  $("guess").value=""; $("guess").disabled=false; $("submit").disabled=false;
+  $("guess").maxLength=n+4; $("guess").placeholder="_ ".repeat(n).trim();
+  $("skip").hidden=false; $("nextBtn").hidden=true;
+  $("guess").focus({preventScroll:true});
+  cancelAnimationFrame(raf); tick();
+}
+
+function tick(){
+  const c=S.cur; if(c.done) return;
+  const elapsed=(performance.now()-c.start)/1000 + c.penalty;
+  const left=Math.max(0,S.T-elapsed);
+  const step=S.T/c.n;                       // one letter per step; final letter stays hidden until time runs out
+  const target=Math.min(c.n-1,Math.floor(elapsed/step));
+  const tiles=$("tiles").children;
+  while(c.shown<target){tiles[c.order[c.shown]].classList.add("open");c.shown++;}
+  $("clock").textContent=Math.ceil(left);
+  const low=left<=10; $("clock").classList.toggle("low",low); $("bar").classList.toggle("low",low);
+  $("fill").style.width=(left/S.T*100)+"%";
+  $("next").textContent = c.shown<c.n-1 ? t("nextIn")(Math.max(1,Math.ceil((c.shown+1)*step-elapsed))) : t("lastHidden");
+  if(left<=0) return finish("timeup");
+  raf=requestAnimationFrame(tick);
+}
+
+function points(){
+  const c=S.cur, elapsed=(performance.now()-c.start)/1000+c.penalty;
+  const left=Math.max(0,S.T-elapsed), hidden=c.n-c.shown;
+  return Math.round(50 + left/S.T*100 + hidden*15);
+}
+
+function finish(kind){
+  const c=S.cur; if(c.done) return; c.done=true; cancelAnimationFrame(raf);
+  const tiles=[...$("tiles").children];
+  let pts=0;
+  if(kind==="right"){pts=points(); S.score+=pts; $("sc").textContent=S.score;}
+  tiles.forEach((el,i)=>{ if(!el.classList.contains("open")){ el.classList.add(kind==="right"?"beat":"missed"); setTimeout(()=>el.classList.add("open"), 60*i);} });
+  const m=$("msg");
+  m.className="msg "+(kind==="right"?"good":"bad");
+  m.textContent = kind==="right" ? t("right")(pts) : kind==="skip" ? t("skipped")(c.word) : t("timeup")(c.word);
+  S.log.push({word:c.word,pts,kind});
+  $("guess").disabled=true; $("submit").disabled=true; $("skip").hidden=true;
+  $("nextBtn").textContent = S.i+1>=S.words.length ? t("seeResults") : t("nextWord");
+  $("nextBtn").hidden=false; $("nextBtn").focus({preventScroll:true});
+  $("next").textContent="";
+}
+
+$("form").addEventListener("submit",e=>{
+  e.preventDefault(); const c=S&&S.cur; if(!c||c.done) return;
+  const g=$("guess").value.toUpperCase().replace(/[^A-Z]/g,"");
+  if(!g) return;
+  if(g===c.word) return finish("right");
+  c.penalty+=PENALTY;
+  const inp=$("guess"); inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake");
+  $("msg").className="msg bad"; $("msg").textContent = g.length<c.n ? `${t("short")} · ${t("wrong")}` : t("wrong");
+  inp.select();
+});
+$("skip").addEventListener("click",()=>finish("skip"));
+$("nextBtn").addEventListener("click",nextWord);
+
+function endGame(){
+  $("play").hidden=true; $("end").hidden=false; $("stats").hidden=true;
+  $("final").textContent=S.score;
+  const got=S.log.filter(l=>l.kind==="right").length;
+  const prev=+(store.get("reveal-best")||0);
+  let note=t("endNote")(got,S.log.length);
+  if(S.score>prev){store.set("reveal-best",S.score); note+=t("newBest");}
+  $("endNote").textContent=note;
+  $("log").innerHTML=S.log.map(l=>`<tr><td><span class="w">${l.word}</span></td><td>${l.kind==="right"?`<span class="pop">+${l.pts}</span>`:"—"}</td></tr>`).join("");
+}
+$("again").addEventListener("click",newGame);
+$("menu").addEventListener("click",()=>{$("end").hidden=true;$("start").hidden=false;applyUI();demo();});
+$("go").addEventListener("click",newGame);
+
+// restore remembered choices
+const savedLang=store.get("reveal-lang"), savedTime=store.get("reveal-time");
+if(savedLang&&$("lang-"+savedLang)){$("lang-"+savedLang).checked=true; uiLang=savedLang==="en"?"en":"ms";}
+if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
+applyUI(); demo();
+</script>
+</body>
+</html>
