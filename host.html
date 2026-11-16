@@ -6,8 +6,8 @@
 <title>REVEAL Big Screen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
-<link rel="stylesheet" href="party.css?v=20261116d">
-<link rel="stylesheet" href="stage.css?v=20261116d">
+<link rel="stylesheet" href="party.css?v=20261116f">
+<link rel="stylesheet" href="stage.css?v=20261116f">
 <style>
 /* Layout: TV-first. Main stage on the left, players rail on the right; stacks on narrow screens. */
 body{font-size:clamp(16px,1.25vw,22px)}
@@ -38,9 +38,9 @@ body{font-size:clamp(16px,1.25vw,22px)}
 .players .st.ok{background:var(--good);color:#fff}
 .players .st.bad{background:var(--bad);color:#fff}
 .players li.out{opacity:.45}
-.players .rk{font-family:var(--f-display);color:var(--lime,#c8f28a);min-width:1.2em;text-align:center}
-.players .tm{font-family:var(--f-mono);font-weight:700;color:var(--lime,#c8f28a);font-variant-numeric:tabular-nums}
-.players li.done{border-color:color-mix(in srgb,var(--lime,#c8f28a) 50%,transparent)}
+.players .rk{font-family:var(--f-display);color:var(--lime,#c7f58b);min-width:1.2em;text-align:center}
+.players .tm{font-family:var(--f-mono);font-weight:700;color:var(--lime,#c7f58b);font-variant-numeric:tabular-nums}
+.players li.done{border-color:color-mix(in srgb,var(--lime,#c7f58b) 50%,transparent)}
 .players li.out .nm{text-decoration:line-through}
 .players li.off .nm::after{content:" · offline";font-weight:400;color:var(--muted)}
 .empty{color:var(--muted);border:2px dashed var(--line);border-radius:12px;padding:16px;text-align:center}
@@ -56,13 +56,14 @@ body{font-size:clamp(16px,1.25vw,22px)}
 .pod .ps{color:var(--muted);font-weight:800;font-size:.9rem}
 .pod .block{width:100%;display:grid;place-items:start center;padding-top:12px;border-radius:14px 14px 4px 4px;background:var(--raised,#2a3831);border:1px solid var(--line)}
 .pod .block b{font-family:var(--f-display);font-weight:400;font-size:clamp(2rem,4vw,3.4rem);color:var(--muted)}
-.pod.p1 .block{height:clamp(140px,22vh,220px);background:var(--lime,#c8f28a);border-color:transparent}
+.pod.p1 .block{height:clamp(140px,22vh,220px);background:var(--lime,#c7f58b);border-color:transparent}
 .pod.p1 .block b{color:var(--lime-ink,#11200f)}
 .pod.p2 .block{height:clamp(100px,15vh,160px)}
 .pod.p3 .block{height:clamp(70px,10vh,110px)}
 #play.stage{--ring:clamp(110px,11vw,190px)}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261116d">
+<link rel="stylesheet" href="theme.css?v=20261116f">
+<link rel="stylesheet" href="drama.css?v=20261116f">
 </head>
 <body>
 <div class="screen">
@@ -154,10 +155,10 @@ body{font-size:clamp(16px,1.25vw,22px)}
 
 <script src="vendor/peerjs-1.5.4.min.js"></script>
 <script src="vendor/qrcode-generator-1.4.4.js"></script>
-<script src="words.js?v=20261116d"></script>
-<script src="net.js?v=20261116d"></script>
+<script src="words.js?v=20261116f"></script>
+<script src="net.js?v=20261116f"></script>
 <script>
-const PARTY_ROUNDS = 10, ROYALE_MAX = 12, COOLDOWN = 3, FIRST_BONUS = 25;
+const PARTY_ROUNDS = 10, ROYALE_MAX = 12, WRONG_COST = 50, FIRST_BONUS = 25;
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const shuffle = a => {a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -376,8 +377,8 @@ function onGuess(p, raw){
     p.rd.failed=true;
     send(p,{t:"result", ok:false, out:true});
   } else {
-    p.rd.cooldownUntil = now + COOLDOWN*1000;
-    send(p,{t:"result", ok:false, cooldown:COOLDOWN});
+    p.score = Math.max(0, p.score - WRONG_COST);
+    send(p,{t:"result", ok:false, cost:WRONG_COST, score:p.score});
   }
   renderPlayers(); checkRoundEnd();
 }
@@ -464,7 +465,7 @@ function celebrate(){
   let cv=card.querySelector("canvas.confetti"); if(!cv){ cv=document.createElement("canvas"); cv.className="confetti"; card.appendChild(cv); }
   const r=card.getBoundingClientRect(), dpr=Math.min(2,devicePixelRatio||1); cv.width=r.width*dpr; cv.height=r.height*dpr;
   const ctx=cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0);
-  const C=["#c8f28a","#e3fbbd","#ffffff","#8fb2ff","#ff8fa3","#f6b21b"];
+  const C=["#c7f58b","#e3fbbd","#ffffff","#8fb2ff","#ff8fa3","#f6b21b"];
   let parts=[...Array(220)].map((_,i)=>({x:Math.random()*r.width,y:-20-Math.random()*r.height*.6,vx:(Math.random()-.5)*2,vy:Math.random()*2+2,s:Math.random()*7+5,rot:Math.random()*6,vr:(Math.random()-.5)*.3,c:C[i%C.length]}));
   (function step(){ ctx.clearRect(0,0,r.width,r.height);
     parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore();});
@@ -478,6 +479,7 @@ window.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ") && doc
 
 openRoom(); renderPlayers();
 </script>
-<script src="stage.js?v=20261116d"></script>
+<script src="stage.js?v=20261116f"></script>
+<script src="drama.js?v=20261116f"></script>
 </body>
 </html>

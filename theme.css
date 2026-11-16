@@ -2,11 +2,11 @@
    One deliberate dark look for every screen. Loaded last on every page, so it overrides older tokens.
    `:root:not(#_)` beats the light/dark token blocks in the page styles. */
 :root:not(#_){
-  --bg:#121c17; --surface:#1a2620; --raised:#2a3831; --edge:rgba(255,255,255,.12);
-  --ink:#f3f1e8; --muted:#9fb0a6; --line:rgba(255,255,255,.12);
-  --lime:#c8f28a; --lime-ink:#11200f;
-  --tile:#c8f28a; --tile-ink:#11200f; --hidden:#2f3e36; --hidden-mark:#f3f1e8;
-  --accent:#c8f28a; --accent-ink:#11200f; --good:#c8f28a; --bad:#ff7a6b;
+  --bg:#17231d; --surface:#23372b; --raised:#2c4535; --edge:rgba(255,255,255,.12);
+  --ink:#f6f8f0; --muted:#a9bbac; --line:rgba(255,255,255,.12);
+  --lime:#c7f58b; --lime-ink:#11200f;
+  --tile:#c7f58b; --tile-ink:#11200f; --hidden:#2c4535; --hidden-mark:#f6f8f0;
+  --accent:#c7f58b; --accent-ink:#11200f; --good:#c7f58b; --bad:#ff7a6b;
   --f-display:"Archivo Black","Arial Black",Impact,system-ui,sans-serif;
   --f-body:"Nunito",ui-rounded,"SF Pro Rounded",system-ui,sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
@@ -53,24 +53,24 @@ button.ghost{background:transparent;color:var(--muted);border:1px solid var(--ed
 .hint .tag{background:var(--lime);color:var(--lime-ink);font-family:var(--f-body);font-weight:900}
 .hint p{font-family:var(--f-body);font-weight:700;color:var(--ink)}
 input[type=text]{background:#0e1712;color:var(--ink);border:2px solid var(--edge);border-radius:16px;font-family:var(--f-display);font-weight:400}
-input[type=text]:focus{border-color:var(--lime);box-shadow:0 0 0 4px rgba(200,242,138,.15)}
-input[type=text]::placeholder{color:rgba(243,241,232,.28)}
+input[type=text]:focus{border-color:var(--lime);box-shadow:0 0 0 4px rgba(199,245,139,.15)}
+input[type=text]::placeholder{color:rgba(246,248,240,.28)}
 .msg.good{color:var(--lime)} .msg.bad{color:var(--bad)}
 .stats{color:var(--muted)} .stats b{color:var(--ink)}
 .timebar{background:var(--raised)} .timebar i{background:var(--lime)}
 
 /* the guessing stage in brand colours */
-.stage{--st-bg0:#0b130f;--st-bg1:#17251e;--st-bg2:#2f5a3a;--st-ink:#f3f1e8;--st-muted:#a7b8ad;
-  --st-gold0:#e3fbbd;--st-gold1:#c8f28a;--st-gold-ink:#11200f;--st-good:#ffffff;--st-bad:#ff7a6b;--st-edge:rgba(255,255,255,.12);--st-glass:rgba(255,255,255,.05)}
-.stage::before,.stage::after{background:linear-gradient(180deg,rgba(200,242,138,.13),rgba(200,242,138,0) 70%)}
+.stage{--st-bg0:#0b130f;--st-bg1:#17251e;--st-bg2:#2f5a3a;--st-ink:#f6f8f0;--st-muted:#a9bbac;
+  --st-gold0:#e3fbbd;--st-gold1:#c7f58b;--st-gold-ink:#11200f;--st-good:#ffffff;--st-bad:#ff7a6b;--st-edge:rgba(255,255,255,.12);--st-glass:rgba(255,255,255,.05)}
+.stage::before,.stage::after{background:linear-gradient(180deg,rgba(199,245,139,.13),rgba(199,245,139,0) 70%)}
 .stage .t .f{background:linear-gradient(180deg,#34453c,#25332c);border:1px solid rgba(255,255,255,.14)}
-.stage .t .f::after{color:rgba(243,241,232,.85);background:none;height:auto}
-.stage .t .b{background:linear-gradient(180deg,var(--st-gold0),var(--st-gold1));box-shadow:0 0 18px rgba(200,242,138,.4)}
+.stage .t .f::after{color:rgba(246,248,240,.85);background:none;height:auto}
+.stage .t .b{background:linear-gradient(180deg,var(--st-gold0),var(--st-gold1));box-shadow:0 0 18px rgba(199,245,139,.4)}
 .stage .t.beat .b{background:linear-gradient(180deg,#ffffff,#e9f7d6);color:var(--lime-ink);box-shadow:0 0 22px rgba(255,255,255,.45)}
-.stage .ring .arc{filter:drop-shadow(0 0 6px rgba(200,242,138,.6))}
-.stage .msg.good{color:var(--lime);text-shadow:0 0 18px rgba(200,242,138,.4)}
+.stage .ring .arc{filter:drop-shadow(0 0 6px rgba(199,245,139,.6))}
+.stage .msg.good{color:var(--lime);text-shadow:0 0 18px rgba(199,245,139,.4)}
 .stage.flash-good{animation-name:goodflash-lime}
-@keyframes goodflash-lime{0%{box-shadow:inset 0 0 0 3px var(--lime),0 0 60px rgba(200,242,138,.5)}100%{box-shadow:inset 0 0 0 0 transparent,0 30px 60px -30px rgba(0,0,0,.7)}}
+@keyframes goodflash-lime{0%{box-shadow:inset 0 0 0 3px var(--lime),0 0 60px rgba(199,245,139,.5)}100%{box-shadow:inset 0 0 0 0 transparent,0 30px 60px -30px rgba(0,0,0,.7)}}
 .stage.lowtime{background-color:#2a0f0c}
 
 /* home screen */
@@ -84,7 +84,7 @@ input[type=text]::placeholder{color:rgba(243,241,232,.28)}
 .home .tiles .t{--s:clamp(48px,14vw,62px)}
 .stage .hint p{font-family:var(--f-body);font-weight:800}
 /* while guessing, hidden tiles show "_" so players can count the letters left */
-.stage .t .f::after{content:"_";font-family:var(--f-display);font-size:calc(var(--s)*.5);line-height:1;transform:translateY(-.12em);color:rgba(243,241,232,.75)}
+.stage .t .f::after{content:"_";font-family:var(--f-display);font-size:calc(var(--s)*.5);line-height:1;transform:translateY(-.12em);color:rgba(246,248,240,.75)}
 .stage input[type=text]{font-family:var(--f-body);font-weight:800;letter-spacing:.06em}
 .stage input[type=text]:placeholder-shown{letter-spacing:0;font-weight:600}
 /* answer slots: one "_" per letter, filled as you type */
@@ -93,7 +93,7 @@ input[type=text]::placeholder{color:rgba(243,241,232,.28)}
 .slotwrap input.slotted::placeholder{color:transparent}
 .slots{position:absolute;inset:2px 10px;display:flex;align-items:center;justify-content:center;gap:clamp(2px,1vw,6px);pointer-events:none;
   font-family:var(--f-display);container-type:inline-size}
-.slots .s{flex:0 1 auto;width:min(1.4em, calc((100cqw - (var(--n) - 1) * 4px) / var(--n)));text-align:center;color:rgba(243,241,232,.38);
+.slots .s{flex:0 1 auto;width:min(1.4em, calc((100cqw - (var(--n) - 1) * 4px) / var(--n)));text-align:center;color:rgba(246,248,240,.38);
   font-size:min(1.45rem, calc((100cqw - (var(--n) - 1) * 4px) / var(--n) * .85));line-height:1}
 .slots .s.on{color:var(--ink)}
 .slots .s.cur{color:var(--lime);animation:blink 1s steps(2) infinite}
@@ -116,3 +116,31 @@ input[type=text]::placeholder{color:rgba(243,241,232,.28)}
 .stage button.mute{background:rgba(0,0,0,.28);color:var(--st-muted);border:1px solid var(--st-edge);padding:6px 10px;font-size:.7rem}
 .stage button.mute[aria-pressed="false"]{color:var(--bad)}
 .seg4 label{padding-inline:6px}
+
+/* ---- Lin's palette v2 (2026-11-16): premium minimal, mobile first, high contrast ----
+   bg #17231D · lime #C7F58B · text #F6F8F0 · surfaces #23372B · muted #A9BBAC */
+.stage{--st-bg0:#121c17;--st-bg1:#17231d;--st-bg2:#23372b;--st-ink:#f6f8f0;--st-muted:#a9bbac;
+  --st-gold0:#c7f58b;--st-gold1:#c7f58b;--st-edge:rgba(246,248,240,.10);--st-glass:#23372b;
+  background:linear-gradient(180deg,#1b2a22 0%,#17231d 60%,#141f19 100%);border-color:rgba(246,248,240,.08);
+  box-shadow:0 24px 48px -32px rgba(0,0,0,.8)}
+.stage::before,.stage::after{opacity:.45}
+/* big, readable, flat tiles */
+.stage .t{--smax:60px}
+.stage .tiles{gap:7px}
+.stage .t .f{background:#23372b;border:1px solid rgba(246,248,240,.10);box-shadow:none}
+.stage .t .f::after{color:rgba(246,248,240,.55)}
+.stage .t .b{background:#c7f58b;box-shadow:0 8px 20px -10px rgba(199,245,139,.55);font-size:calc(var(--s)*.56)}
+.stage .t.beat .b{background:#f6f8f0;box-shadow:0 8px 20px -10px rgba(246,248,240,.5)}
+.stage .t .in{transition:transform .5s cubic-bezier(.2,1.25,.4,1)}
+/* clear hierarchy: hint is the headline, clock secondary */
+.stage .hint{background:#23372b;border:0;border-radius:18px;padding:16px 18px}
+.stage .hint p{font-size:clamp(1.15rem,4.4vw,1.5rem);line-height:1.3;color:#f6f8f0}
+.stage .ring .arc{stroke:#c7f58b;filter:none}
+.stage .ring .trk{stroke:rgba(246,248,240,.08)}
+.stage input[type=text]{background:#121c17;border:1.5px solid rgba(246,248,240,.12);border-radius:16px}
+.stage input[type=text]:focus{border-color:#c7f58b;box-shadow:0 0 0 3px rgba(199,245,139,.18)}
+.stage button.primary{background:#c7f58b;color:#11200f;box-shadow:none;transition:transform .12s ease,filter .2s}
+.stage button.primary:active,button.primary:active{transform:scale(.97)}
+.card{background:#1d2c24;border-color:rgba(246,248,240,.08)}
+button,.btn,.seg label{transition:transform .12s ease,background-color .2s,border-color .2s,filter .2s}
+.stage .t .b::after{display:none}

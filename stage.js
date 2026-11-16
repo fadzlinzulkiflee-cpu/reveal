@@ -144,8 +144,22 @@
     bad(){ tone(220,.25,"sawtooth",.09,0,140); buzz(160); },
     beep(final){ tone(final?988:660, final?.35:.14, "square", .1); buzz(final?60:20); },
     del(){ tone(340,.07,"triangle",.11,0,200); buzz(15); },
+    heart(){ tone(70,.16,"sine",.5,0,45); tone(62,.18,"sine",.4,.2,40); buzz([35,140,30]); },
+    roll(dur=1.1){ if(muted||!ctx) return; const n=Math.floor(dur/.045); for(let i=0;i<n;i++) noise(.05, .05+.12*i/n, i*.045, 900); },
+    crash(){ noise(.9,.22,0,3000); tone(98,.5,"sine",.3,0,60); buzz(90); },
+    whoosh(){ noise(.35,.12,0,1800); tone(300,.3,"sine",.08,0,1400); },
+    combo(n){ [659,784,988,1175].slice(0,Math.min(4,n)).forEach((f,i)=>tone(f,.1,"square",.07,.25+i*.06)); },
     fanfare(){ [392,523,659,784,659,784,1046].forEach((f,i)=>tone(f,.22,"triangle",.17,i*.11)); }
   };
+  function noise(dur, vol, when=0, hp=500){
+    if(muted || !ctx) return;
+    const len = Math.max(1, Math.floor(ctx.sampleRate*dur)), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i] = (Math.random()*2-1) * Math.pow(1-i/len, 2);
+    const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(), t0 = ctx.currentTime+when;
+    src.buffer = buf; f.type = "highpass"; f.frequency.value = hp; g.gain.setValueAtTime(vol, t0);
+    src.connect(f).connect(g).connect(ctx.destination); src.start(t0);
+  }
+  SFX.buzz = buzz; SFX.full = full;
   window.REVEAL_SFX = SFX;
 
   // mute button
@@ -174,9 +188,14 @@
     new MutationObserver(ms=>{ if(ms.some(m=>m.type==="attributes" && m.target.classList.contains("open") && !(m.oldValue||"").includes("open") && !m.target.classList.contains("beat") && !m.target.classList.contains("missed"))) SFX.pop(); })
       .observe(tiles,{subtree:true,attributes:true,attributeFilter:["class"],attributeOldValue:true});
   }
+  if(!full && clock){   // phones: no sound, but feel the heartbeat in the last seconds
+    let lastT = "";
+    new MutationObserver(()=>{ const v=clock.textContent; if(v!==lastT){ lastT=v; if(clock.classList.contains("low") && +v>0 && !stage.classList.contains("frozen")) buzz([35,140,30]); } })
+      .observe(clock,{childList:true,characterData:true,subtree:true});
+  }
   if(full && clock){
     let lastT = "";
-    new MutationObserver(()=>{ const v=clock.textContent; if(v!==lastT){ lastT=v; if(clock.classList.contains("low") && +v>0) SFX.tick(); } })
+    new MutationObserver(()=>{ const v=clock.textContent; if(v!==lastT){ lastT=v; if(clock.classList.contains("low") && +v>0 && !stage.classList.contains("frozen")) SFX.heart(); } })
       .observe(clock,{childList:true,characterData:true,subtree:true});
   }
   if(msg){

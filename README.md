@@ -16,8 +16,8 @@ For big-screen games, the files must be served from a web address (for example G
 
 - **Language:** English, aimed at adults and families.
 - **Modes:**
-  - *Solo:* chase your best score. A wrong guess costs 3 seconds.
-  - *Party (big screen):* everyone guesses the same word on their own phone. Every correct guess scores, faster scores more, and the first correct guess gets +25. A wrong guess locks that phone for 3 seconds. 10 words.
+  - *Solo:* chase your best score. A wrong guess costs 50 points.
+  - *Party (big screen):* everyone guesses the same word on their own phone. Every correct guess scores, faster scores more, and the first correct guess gets +25. A wrong guess costs 50 points (score never goes below 0). 10 words.
   - *Royale (big screen, 2–12 players):* same word for everyone. A wrong guess, or not answering before time runs out, disqualifies you, and so does the slowest correct answer. The TV shows a live ranking with answer times and how many players remain. If nobody gets it, nobody is out. Last one standing wins. When two players are left it becomes a **final showdown**: the first correct answer wins.
 
 - **Level:** Easy, Medium, Hard or Mixed. Words don't repeat on a device until every word at that level has been played.
@@ -26,7 +26,7 @@ For big-screen games, the files must be served from a web address (for example G
 - **Sound and vibration:** letter pops, a ticking last 5 seconds, right/wrong sounds; phones vibrate on right or wrong. Mute with the Sound button.
 - **Rounds:** 10 words per game, with 20, 30 (default) or 45 seconds per word.
 - **Reveal:** one letter opens every `time / letters` seconds, in random order. The last letter stays hidden until time runs out.
-- **Scoring:** `50 + 100 × (time left / total time) + 15 × hidden letters`. In Solo a wrong guess costs 3 seconds.
+- **Scoring:** `50 + 100 × (time left / total time) + 15 × hidden letters`. In Solo and Party a wrong guess costs 50 points.
 - **Best score** is kept in the browser's local storage.
 
 ## How big-screen mode connects
@@ -49,3 +49,11 @@ To use your own PeerJS server, add `?peerhost=HOST&peerport=PORT&peerpath=/PATH`
 ## Word list
 
 The starter words and hints live in `words.js` (334 words: 119 Easy, 116 Medium, 99 Hard), shared by every mode. Add a word as `["WORD", "Hint text", level]` (1 Easy, 2 Medium, 3 Hard), using letters A–Z only.
+
+## Drama and replay (drama.js, drama.css)
+- **Final 5 seconds:** heartbeat sound (vibration on phones), red pulsing edge, the tiles thump each second.
+- **Correct guess splash:** LIGHTNING! (75% of the time left), CLUTCH! (last 3 seconds), GENIUS! (half the letters still hidden), ON FIRE! (3+ streak), with the points flying up.
+- **Combo meter** from 2 in a row; it heats up in colour as the streak grows. Wrong guesses shake the stage; a missed word gets a drum roll and crash.
+- **End of Solo:** rank title (7 levels, from Warming Up to REVEAL Legend) with points to the next title, gap to your best ("So close!"), a result grid (⚡ fast, 🟩 right, 🟥 missed) and a Share button.
+- **End of Party/Royale on phones:** your title (Champion, On the podium, Last one standing…) and a Share button.
+- Palette (Lin, v2): background #17231D, lime #C7F58B, text #F6F8F0, surfaces #23372B, muted #A9BBAC.
