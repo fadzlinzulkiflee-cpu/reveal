@@ -40,31 +40,52 @@ window.REVEAL_DAILY = (function(){
   const online = () => !!(C.supabaseUrl && C.supabaseKey);
   const api = path => C.supabaseUrl.replace(/\/$/,"") + "/rest/v1/" + path;
   const headers = extra => Object.assign({ apikey:C.supabaseKey, "Content-Type":"application/json" }, extra||{});
+  const auth = token => token ? { Authorization:"Bearer " + token } : {};
   async function submit(row, token){
     if(!online()) return { ok:false, offline:true };
-    const h = { Prefer:"return=minimal" }; if(token) h.Authorization = "Bearer " + token;   // signed-in players post under their account
+    // signed-in players post under their account; we keep the new row's id to highlight it on the board
+    const h = Object.assign({ Prefer:"return=representation" }, auth(token));
     try{
-      const res = await fetch(api("daily_scores"), { method:"POST", headers:headers(h), body:JSON.stringify(row) });
+      const res = await fetch(api("daily_scores?select=id"), { method:"POST", headers:headers(h), body:JSON.stringify(row) });
       if(res.status===409) return { ok:true, already:true };
+      if(res.ok){ try{ const j = await res.json(); if(j && j[0]) store.set("reveal-daily-id-"+row.day, String(j[0].id)); }catch(e){} }
       return { ok:res.ok, status:res.status };
     }catch(e){ return { ok:false, error:String(e) }; }
   }
   async function board(day=today(), limit=50){
     if(!online()) return null;
     try{
-      const q = `daily_scores?select=name,score,solved,time_ms,device&day=eq.${day}&order=score.desc,time_ms.asc&limit=${limit}`;
+      const q = `daily_scores?select=id,name,score,solved,time_ms,user_id&day=eq.${day}&order=score.desc,time_ms.asc&limit=${limit}`;
       const res = await fetch(api(q), { headers:headers() });
       if(!res.ok) return null;
       return await res.json();
     }catch(e){ return null; }
   }
+  // One try per account: the account's row for a day, if it has one (null = none or unknown).
+  async function accountRow(uid, token, day=today()){
+    if(!online() || !uid) return null;
+    try{
+      const res = await fetch(api(`daily_scores?select=id,score,solved,time_ms&day=eq.${day}&user_id=eq.${uid}`), { headers:headers(auth(token)) });
+      if(!res.ok) return null;
+      const j = await res.json(); return j[0] || null;
+    }catch(e){ return null; }
+  }
+  // Move today's guest score (posted from this device) to the signed-in account.
+  async function claim(token, day=today()){
+    if(!online() || !token) return false;
+    try{
+      const res = await fetch(api("rpc/claim_daily"), { method:"POST", headers:headers(auth(token)), body:JSON.stringify({ p_day:day, p_device:device() }) });
+      return res.ok;
+    }catch(e){ return false; }
+  }
   const esc = s => String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   function renderBoard(el, rows, me){
     if(rows===null){ el.innerHTML = online() ? `<p class="lb-empty">Couldn't load the leaderboard. Check your connection.</p>` : `<p class="lb-empty">The online leaderboard opens soon.</p>`; return; }
     if(!rows.length){ el.innerHTML = `<p class="lb-empty">No scores yet today. Be the first!</p>`; return; }
-    const meIdx = rows.findIndex(r=>r.device===me);
+    const myId = store.get("reveal-daily-id-"+today()), uid = me && me.uid;
+    const meIdx = rows.findIndex(r=>(uid && r.user_id===uid) || (myId && String(r.id)===myId));
     el.innerHTML = `<ol class="lb">` + rows.map((r,i)=>`<li class="${i===meIdx?"me":""}${i<3?" top":""}"><span class="pos">${i+1}</span><span class="nm">${esc(r.name)}</span><span class="sv">${r.solved}/12</span><span class="tm">${(r.time_ms/1000).toFixed(1)}s</span><b class="sc">${r.score}</b></li>`).join("") + `</ol>`
       + (meIdx<0 && result() ? `<p class="lb-empty">You're not in the top ${rows.length} yet.</p>` : "");
   }
-  return { T, today, niceDate, msToReset, hms, words, device, result, saveResult, streak, submit, board, renderBoard, online, store };
+  return { T, today, niceDate, msToReset, hms, words, device, result, saveResult, streak, submit, board, accountRow, claim, renderBoard, online, store };
 })();
