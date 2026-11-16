@@ -48,7 +48,7 @@ To use your own PeerJS server, add `?peerhost=HOST&peerport=PORT&peerpath=/PATH`
 
 ## Word list
 
-The starter words and hints live in `words.js` (957 words: 119 Easy, 116 Medium, 99 Hard), shared by every mode. Add a word as `["WORD", "Hint text", level]` (1 Easy, 2 Medium, 3 Hard), using letters A–Z only.
+The starter words and hints live in `words.js` (957 words: 313 Easy, 320 Medium, 323 Hard), shared by every mode. Add a word as `["WORD", "Hint text", level]` (1 Easy, 2 Medium, 3 Hard), using letters A–Z only.
 
 ## Drama and replay (drama.js, drama.css)
 - **Final 5 seconds:** heartbeat sound (vibration on phones), red pulsing edge, the tiles thump each second.
