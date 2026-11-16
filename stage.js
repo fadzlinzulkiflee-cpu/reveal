@@ -125,9 +125,10 @@
       const cb = document.createElement("input"); cb.type = "checkbox"; cb.setAttribute("switch",""); cb.tabIndex = -1;
       hap.appendChild(cb); document.body.appendChild(hap);
     }
-    const keep = document.activeElement;
+    // never while typing: on iPhone the toggle can steal focus and close the keyboard
+    const a = document.activeElement;
+    if(a && (a.tagName==="INPUT" || a.tagName==="TEXTAREA") && a.type!=="checkbox") return;
     hap.click();
-    if(keep && keep !== document.activeElement && keep.focus) keep.focus({preventScroll:true});
   }
   const canVibrate = typeof navigator.vibrate === "function";
   let vibeOn = true;
@@ -221,15 +222,16 @@
   let cdTimer = 0;
   function countdown(cb, secs=3){
     clearInterval(cdTimer); let n = secs;
+    stage.classList.add("counting");
     ov.hidden=false; ov.innerHTML = `<span class="lbl">Get ready</span><b>${n}</b>`; SFX.beep(false);
     cdTimer = setInterval(()=>{
       n--;
       if(n>0){ ov.innerHTML = `<span class="lbl">Get ready</span><b>${n}</b>`; SFX.beep(false); }
       else if(n===0){ ov.innerHTML = `<b class="go">GO!</b>`; SFX.beep(true); }
-      else { clearInterval(cdTimer); ov.hidden=true; cb && cb(); }
+      else { clearInterval(cdTimer); ov.hidden=true; stage.classList.remove("counting"); cb && cb(); }
     }, reduce ? 700 : 800);
   }
-  function cancelCountdown(){ clearInterval(cdTimer); ov.hidden=true; }
+  function cancelCountdown(){ clearInterval(cdTimer); ov.hidden=true; stage.classList.remove("counting"); }
 
   // banner (e.g. Royale final showdown)
   const bn = document.createElement("div"); bn.className="banner"; bn.hidden=true; stage.insertBefore(bn, stage.firstChild);
