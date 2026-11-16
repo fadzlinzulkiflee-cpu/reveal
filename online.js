@@ -182,6 +182,7 @@
   });
   let shareText = "", overCounted = false;
   $("shareBtn").addEventListener("click", e=>REVEAL_END.share(shareText + "\nThink fast. Guess faster.", e.currentTarget));
+  addEventListener("DOMContentLoaded", ()=>$("shareBtn").after(REVEAL_END.bar(()=>shareText + "\nThink fast. Guess faster.")));
 
   // ============ MATCHMAKING ============
   let peers = [], searching = false, conn = null;
