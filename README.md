@@ -95,6 +95,6 @@ create policy "post for today only" on daily_scores for insert
 
 Test overrides: `?lobby=6&t=8&rv=2&size=8&bots=0` plus the usual `peerhost/peerport/peerpath/peersecure`.
 
-## Look v3 (playful, Cloud background)
+## Look v3 (playful, Lilac background)
 
-`look.css` loads last on every page. Phones and Solo use a light "Cloud" background (#E6EAF2) with chunky pressable buttons, the Lilita One display font, tile logo (one hidden tile), and one colour per mode: Daily sunshine, Solo lime, Play Locally sky, Ranked grape. Coral is only for wrong answers. The TV (`host.html`, `<html data-screen="tv">`) keeps the dark green background but shares the fonts, buttons and tiles. Style board: https://claude.ai/artifact/A971zhP6tkgwJShAcZ6fxK
+`look.css` loads last on every page. Phones and Solo use a light Lilac background (#ECE7F6) with chunky pressable buttons, the Lilita One display font, an italic "Frame" REVEAL wordmark (Archivo 900 italic, lime corner frame, lime dot), and one colour per mode: Daily sunshine, Solo lime, Play Locally sky, Ranked grape. Coral is only for wrong answers. The TV (`host.html`, `<html data-screen="tv">`) keeps the dark green background but shares the fonts, buttons and tiles. Style board: https://claude.ai/artifact/A971zhP6tkgwJShAcZ6fxK
