@@ -40,10 +40,11 @@ window.REVEAL_DAILY = (function(){
   const online = () => !!(C.supabaseUrl && C.supabaseKey);
   const api = path => C.supabaseUrl.replace(/\/$/,"") + "/rest/v1/" + path;
   const headers = extra => Object.assign({ apikey:C.supabaseKey, "Content-Type":"application/json" }, extra||{});
-  async function submit(row){
+  async function submit(row, token){
     if(!online()) return { ok:false, offline:true };
+    const h = { Prefer:"return=minimal" }; if(token) h.Authorization = "Bearer " + token;   // signed-in players post under their account
     try{
-      const res = await fetch(api("daily_scores"), { method:"POST", headers:headers({Prefer:"return=minimal"}), body:JSON.stringify(row) });
+      const res = await fetch(api("daily_scores"), { method:"POST", headers:headers(h), body:JSON.stringify(row) });
       if(res.status===409) return { ok:true, already:true };
       return { ok:res.ok, status:res.status };
     }catch(e){ return { ok:false, error:String(e) }; }
