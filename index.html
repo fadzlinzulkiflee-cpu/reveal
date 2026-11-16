@@ -119,10 +119,10 @@ header{min-height:36px}
 body:has(#start:not([hidden])) header{display:none}
 .seg4 label{min-width:70px}
 </style>
-<link rel="stylesheet" href="stage.css?v=20261116l">
+<link rel="stylesheet" href="stage.css?v=20261116m">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
-<link rel="stylesheet" href="theme.css?v=20261116l">
-<link rel="stylesheet" href="drama.css?v=20261116l">
+<link rel="stylesheet" href="theme.css?v=20261116m">
+<link rel="stylesheet" href="drama.css?v=20261116m">
 <style>#play.stage{--ring:80px}</style>
 </head>
 <body>
@@ -157,9 +157,8 @@ body:has(#start:not([hidden])) header{display:none}
     <div class="actions menu">
       <button class="btn primary playbtn" id="go"><span>Solo</span><small id="goSub">Mixed · 30 s</small></button>
       <a class="btn menu-item" href="host.html"><span>Play Locally</span><small>One TV, everyone on their phone</small></a>
-      <button class="btn menu-item soon" id="rankedBtn" type="button"><span>Ranked Play <em class="badge">Soon</em></span><small>Battle Royale · 3 to 20 players</small></button>
+      <a class="btn menu-item" id="rankedBtn" href="online.html"><span>Ranked Play <em class="badge">Beta</em></span><small>Online Battle Royale · last one standing</small></a>
     </div>
-    <p class="soon-note" id="soonNote" hidden>Ranked Battle Royale is coming soon. Sign in, get matched with players at your level, and be the last one standing to climb the ranks.</p>
     <button class="install" id="lbBtn" type="button">Today's leaderboard</button>
     <button class="install" id="install" type="button" hidden>Add REVEAL to your home screen</button>
     <p class="install-tip" id="installTip" hidden>On iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>.</p>
@@ -248,7 +247,7 @@ body:has(#start:not([hidden])) header{display:none}
   </section>
 </div>
 
-<script src="words.js?v=20261116l"></script>
+<script src="words.js?v=20261116m"></script>
 <script>
 
 const UI = {
@@ -489,7 +488,7 @@ function paintDaily(){
 }
 $("dailyBtn").addEventListener("click",()=>{ REVEAL_DAILY.result() ? openBoard() : newGame(true); });
 $("lbBtn").addEventListener("click",openBoard);
-$("rankedBtn").addEventListener("click",()=>{ $("soonNote").hidden = !$("soonNote").hidden; });
+
 $("lbBack").addEventListener("click",()=>{ $("lbView").hidden=true; $("start").hidden=false; applyUI(); });
 $("nickForm").addEventListener("submit",e=>{ e.preventDefault(); postDaily(); });
 function countUp(el, to){
@@ -511,8 +510,8 @@ const savedTime=store.get("reveal-time-v2");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
 applyUI(); demo();
 </script>
-<script src="stage.js?v=20261116l"></script>
-<script src="drama.js?v=20261116l"></script>
-<script src="daily.js?v=20261116l"></script>
+<script src="stage.js?v=20261116m"></script>
+<script src="drama.js?v=20261116m"></script>
+<script src="daily.js?v=20261116m"></script>
 </body>
 </html>

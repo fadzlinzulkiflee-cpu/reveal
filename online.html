@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>REVEAL Online Battle Royale</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#17231D">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="REVEAL">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="party.css?v=20261116m">
+<link rel="stylesheet" href="stage.css?v=20261116m">
+<style>
+.wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px;
+  padding-block:18px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+header a.back{color:var(--muted);text-decoration:none;font-weight:700;font-size:.9rem}
+.me{font-family:var(--f-mono);font-size:.85rem;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.me b{color:var(--ink)}
+form.find{display:grid;gap:10px}
+form.find input{width:100%}
+#tiles .t{--s:max(26px,var(--fit,46px))}
+.guess{display:flex;gap:8px}
+.guess input{flex:1;text-transform:uppercase}
+.toprow{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.big-msg{font-family:var(--f-display);font-weight:800;font-size:1.8rem;line-height:1.15;text-align:center}
+.big-msg.good{color:var(--good)} .big-msg.bad{color:var(--bad)}
+.answer{font-family:var(--f-display);font-weight:800;font-size:2.2rem;letter-spacing:.08em;text-align:center}
+.center{text-align:center}
+.err{color:var(--bad);font-weight:600;text-align:center}
+.beta{display:inline-block;font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;border-radius:6px;padding:2px 8px;background:var(--surface,#23372B);color:var(--muted);vertical-align:middle}
+.rules{margin:0;padding-left:1.1em;color:var(--muted);display:grid;gap:4px;font-size:.95rem;text-align:left}
+#play.stage{--ring:78px}
+/* lobby + alive strip */
+.bubbles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:44px}
+.bub{display:inline-flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:999px;background:var(--surface,#23372B);font-weight:800;font-size:.95rem;max-width:100%}
+.bub .av,.alive .av{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--av);color:#11200f;font-family:var(--f-display);font-size:.85rem}
+.bub.mine{outline:2px solid var(--accent,#C7F58B)}
+.bub small,.tagbot{font-size:.62rem;font-weight:800;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.bub.fresh{animation:bubPop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes bubPop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+.lobbyclock{font-family:var(--f-mono);font-size:3rem;font-weight:700;color:var(--accent,#C7F58B);font-variant-numeric:tabular-nums;line-height:1}
+.alive{display:flex;flex-wrap:wrap;gap:5px;justify-content:center}
+.alive .av{width:24px;height:24px;font-size:.72rem;transition:opacity .3s,transform .3s}
+.alive .av.ok{box-shadow:0 0 0 2px var(--good,#C7F58B)}
+.alive .av.x{opacity:.22;transform:scale(.85)}
+.alive .av.mine{outline:2px solid var(--ink,#F6F8F0);outline-offset:1px}
+.feed{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:.92rem;color:var(--muted)}
+.feed b{color:var(--ink)}
+.place{font-family:var(--f-display);font-size:4rem;line-height:1;color:var(--accent,#C7F58B)}
+.hostnote{font-size:.8rem;color:var(--muted);text-align:center}
+.spinner{width:42px;height:42px;border-radius:50%;border:4px solid var(--surface,#23372B);border-top-color:var(--accent,#C7F58B);margin:8px auto;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(1turn)}}
+@media (prefers-reduced-motion: reduce){.spinner{animation-duration:3s}.bub.fresh{animation:none}}
+</style>
+<link rel="stylesheet" href="theme.css?v=20261116m">
+<link rel="stylesheet" href="drama.css?v=20261116m">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-label="REVEAL">REVEAL<i aria-hidden="true"></i></div>
+    <div class="me" id="me" hidden><b id="meName"></b><br><span id="meState"></span></div>
+    <a class="back" href="./" id="backLink">Menu</a>
+  </header>
+
+  <!-- FIND -->
+  <section class="card" id="find">
+    <div style="display:grid;gap:6px">
+      <p class="eyebrow">Online Battle Royale <span class="beta">Beta · unranked</span></p>
+      <h1 style="font-size:1.7rem">Last one standing wins.</h1>
+    </div>
+    <ul class="rules">
+      <li>Everyone gets the same word and 20 seconds.</li>
+      <li>Wrong answer or no answer: you're out.</li>
+      <li>The slowest correct answer each round is out too.</li>
+      <li>If nobody gets it, everyone stays in.</li>
+    </ul>
+    <form class="find" id="findForm" autocomplete="off">
+      <input type="text" id="nameIn" maxlength="14" placeholder="Your name" aria-label="Your name" autocorrect="off">
+      <button class="primary" type="submit" id="findBtn">Find a match</button>
+    </form>
+    <p class="muted" style="font-size:.85rem;margin:0">Empty seats are filled with bots (marked BOT). Ranked matches with ratings come with accounts.</p>
+    <p class="err" id="findErr" hidden></p>
+  </section>
+
+  <!-- SEARCHING -->
+  <section class="card center" id="searching" hidden>
+    <div class="spinner" aria-hidden="true"></div>
+    <p class="big-msg" style="font-size:1.4rem">Finding a match…</p>
+    <p class="muted" id="searchNote">Looking for players online.</p>
+    <button class="ghost" id="cancelBtn" type="button">Cancel</button>
+  </section>
+
+  <!-- LOBBY -->
+  <section class="card center" id="lobby" hidden>
+    <p class="eyebrow">Match starts in</p>
+    <div class="lobbyclock" id="lobbyClock">20</div>
+    <p class="muted" id="lobbyNote"></p>
+    <div class="bubbles" id="bubbles"></div>
+    <p class="hostnote" id="hostNote1" hidden>You're hosting this match. Keep this screen open until it ends.</p>
+  </section>
+
+  <!-- PLAY -->
+  <section class="card stage" id="play" data-sound="feedback" hidden>
+    <div class="toprow">
+      <span class="clock" id="clock">20</span>
+      <span class="eyebrow" id="roundLbl"></span>
+    </div>
+    <div class="timebar" id="bar"><i id="fill"></i></div>
+    <div class="tiles" id="tiles"></div>
+    <div class="hint"><span class="tag">Hint</span><p id="hint"></p></div>
+    <form class="guess" id="guessForm" autocomplete="off">
+      <input type="text" id="guess" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="go" aria-label="Your guess">
+      <button class="primary" type="submit" id="guessBtn">Guess</button>
+    </form>
+    <p class="msg" id="msg" aria-live="polite"></p>
+    <div class="alive" id="alive" aria-label="Players still in"></div>
+  </section>
+
+  <!-- REVEAL -->
+  <section class="card center" id="reveal" hidden>
+    <p class="eyebrow">The word was</p>
+    <div class="answer" id="answer"></div>
+    <p class="big-msg" id="revealMsg"></p>
+    <ul class="feed" id="feed"></ul>
+    <p class="muted" id="revealNote"></p>
+  </section>
+
+  <!-- OVER -->
+  <section class="card center" id="over" hidden>
+    <p class="eyebrow">Match over</p>
+    <div class="place" id="place"></div>
+    <div class="rankcard"><span class="lvl">Battle Royale</span><span class="ttl" id="myTitle"></span></div>
+    <p class="big-msg" id="winner" style="font-size:1.3rem"></p>
+    <p class="muted" id="overNote"></p>
+    <button class="primary" id="againBtn" type="button">Play again</button>
+    <button class="ghost" id="shareBtn" type="button">Share my result</button>
+  </section>
+
+  <p class="hostnote" id="hostNote2" hidden>You're hosting this match. Keep this screen open until it ends.</p>
+  <div class="card center" id="lost" hidden>
+    <p class="big-msg bad" style="font-size:1.3rem">The match host left.</p>
+    <p class="muted">This prototype runs each match on one player's phone. Find a new match to keep playing.</p>
+    <button class="primary" id="lostBtn" type="button">Find a new match</button>
+  </div>
+</div>
+
+<script src="vendor/peerjs-1.5.4.min.js"></script>
+<script src="net.js?v=20261116m"></script>
+<script src="words.js?v=20261116m"></script>
+<script src="online.js?v=20261116m"></script>
+<script src="stage.js?v=20261116m"></script>
+<script src="drama.js?v=20261116m"></script>
+</body>
+</html>
