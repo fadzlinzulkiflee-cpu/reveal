@@ -196,3 +196,32 @@ button,.btn,.seg label{transition:transform .12s ease,background-color .2s,borde
 .install:hover{color:var(--lime)}
 .install-tip{margin:0;color:var(--muted);font-size:.9rem}
 .install-tip b{color:var(--ink)}
+
+/* ---- Daily Challenge ---- */
+.daily-card{width:100%;display:grid;gap:4px;text-align:left;padding:16px 18px;border-radius:20px;cursor:pointer;
+  background:linear-gradient(135deg,rgba(199,245,139,.16),rgba(199,245,139,.04)) ,var(--raised);border:1px solid rgba(199,245,139,.45);color:var(--ink);
+  font-family:var(--f-body);text-transform:none;letter-spacing:0;transition:transform .12s ease,border-color .2s}
+.daily-card:active{transform:scale(.98)}
+.daily-card .dk{font:900 .7rem var(--f-body);letter-spacing:.16em;text-transform:uppercase;color:var(--lime)}
+.daily-card b{font-family:var(--f-display);font-weight:400;font-size:1.15rem;line-height:1.2}
+.daily-card .ds{font-size:.85rem;color:var(--muted);font-weight:700}
+.daily-card.done{border-color:rgba(246,248,240,.12);background:var(--raised)}
+.daily-card.done .dk{color:var(--muted)}
+.lbview{display:grid;gap:12px}
+.lbview h2{margin:0;font-size:1.6rem}
+.center{text-align:center}
+.lb{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.lb li{display:grid;grid-template-columns:2em 1fr auto auto auto;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--raised);font-variant-numeric:tabular-nums}
+.lb .pos{font-family:var(--f-display);color:var(--muted);text-align:center}
+.lb li.top .pos{color:var(--lime)}
+.lb .nm{font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb .sv,.lb .tm{font:700 .8rem var(--f-mono);color:var(--muted)}
+.lb .sc{font-family:var(--f-display);font-weight:400;color:var(--ink)}
+.lb li.me{outline:2px solid var(--lime);background:color-mix(in srgb,var(--lime) 12%,var(--raised))}
+@media (max-width:380px){.lb .tm{display:none}.lb li{grid-template-columns:2em 1fr auto auto}}
+.lb-empty{color:var(--muted);text-align:center;margin:6px 0}
+.dailyend{display:grid;gap:10px}
+.nickform{display:grid;gap:8px}
+.nickform label{font-weight:800;color:var(--muted);font-size:.85rem;letter-spacing:.04em}
+.nickform .row{display:flex;gap:8px}
+.nickform input{flex:1;min-width:0;padding:12px 14px;font-size:1.05rem}

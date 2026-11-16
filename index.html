@@ -119,10 +119,10 @@ header{min-height:36px}
 body:has(#start:not([hidden])) header{display:none}
 .seg4 label{min-width:70px}
 </style>
-<link rel="stylesheet" href="stage.css?v=20261116i">
+<link rel="stylesheet" href="stage.css?v=20261116j">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
-<link rel="stylesheet" href="theme.css?v=20261116i">
-<link rel="stylesheet" href="drama.css?v=20261116i">
+<link rel="stylesheet" href="theme.css?v=20261116j">
+<link rel="stylesheet" href="drama.css?v=20261116j">
 <style>#play.stage{--ring:80px}</style>
 </head>
 <body>
@@ -149,10 +149,16 @@ body:has(#start:not([hidden])) header{display:none}
       <div><span class="k">Best</span><b id="best">0</b></div>
       <div><span class="k">Games</span><b id="games">0</b></div>
     </div>
+    <button class="daily-card" id="dailyBtn" type="button">
+      <span class="dk" id="dailyDate">Daily Challenge</span>
+      <b id="dailyTitle">12 words. Same for everyone today.</b>
+      <span class="ds" id="dailySub"></span>
+    </button>
     <div class="actions">
       <button class="btn primary playbtn" id="go"><span>Play</span><small id="goSub">Mixed · 30 s</small></button>
       <a class="btn" href="host.html">Play on TV with friends</a>
     </div>
+    <button class="install" id="lbBtn" type="button">Today's leaderboard</button>
     <button class="install" id="install" type="button" hidden>Add REVEAL to your home screen</button>
     <p class="install-tip" id="installTip" hidden>On iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>.</p>
   </section>
@@ -205,6 +211,15 @@ body:has(#start:not([hidden])) header{display:none}
   </section>
 
   <!-- END -->
+  <section class="card lbview" id="lbView" hidden>
+    <p class="eyebrow" id="lbDate">Daily Challenge</p>
+    <h2>Today's leaderboard</h2>
+    <p class="lead" id="lbMine"></p>
+    <div id="lbList"></div>
+    <p class="muted center" id="lbReset"></p>
+    <button class="ghost" id="lbBack" type="button">Back</button>
+  </section>
+
   <section class="card" id="end" hidden>
     <div style="display:grid;gap:6px">
       <p class="eyebrow" data-i="final"></p>
@@ -212,6 +227,14 @@ body:has(#start:not([hidden])) header{display:none}
       <p class="bestgap" id="bestGap"></p>
     </div>
     <div class="rankcard" id="rank"></div>
+    <div class="dailyend" id="dailyEnd" hidden>
+      <form class="nickform" id="nickForm" autocomplete="off">
+        <label for="nick">Your name on the leaderboard</label>
+        <div class="row"><input type="text" id="nick" maxlength="16" placeholder="Nickname" required><button class="primary" type="submit" id="nickGo">Post score</button></div>
+      </form>
+      <p class="lead" id="dailyMsg" aria-live="polite"></p>
+      <div id="dailyBoard"></div>
+    </div>
     <div class="grid" id="grid" aria-hidden="true"></div>
     <p class="lead" id="endNote"></p>
     <table id="log"></table>
@@ -223,7 +246,7 @@ body:has(#start:not([hidden])) header{display:none}
   </section>
 </div>
 
-<script src="words.js?v=20261116i"></script>
+<script src="words.js?v=20261116j"></script>
 <script>
 
 const UI = {
@@ -256,6 +279,7 @@ function applyUI(){
   $("goSub").textContent = `${lv.parentNode.textContent.trim()} · ${tm.value} s`;
   $("optSound").checked = store.get("reveal-muted")!=="1";
   $("optVibe").checked = store.get("reveal-vibe")!=="0";
+  paintDaily();
 }
 addEventListener("load", applyUI);
 // add to home screen
@@ -294,10 +318,12 @@ function demo(){
 document.querySelectorAll('input[name=time]').forEach(r=>r.addEventListener("change",()=>{store.set("reveal-time-v2",document.querySelector('input[name=time]:checked').value);applyUI();}));
 document.querySelectorAll('input[name=level]').forEach(r=>r.addEventListener("change",()=>{store.set("reveal-level",document.querySelector('input[name=level]:checked').value);applyUI();}));
 
-function newGame(){
-  const T=+document.querySelector('input[name=time]:checked').value;
+function newGame(daily){
+  daily = daily===true;
+  const T = daily ? REVEAL_DAILY.T : +document.querySelector('input[name=time]:checked').value;
   const level=document.querySelector('input[name=level]:checked').value;
-  S = { T, words: pickWords(ROUNDS, level), i:-1, score:0, streak:0, log:[] };
+  S = { T, daily, words: daily ? REVEAL_DAILY.words() : pickWords(ROUNDS, level), i:-1, score:0, streak:0, log:[] };
+  $("lbView").hidden=true;
   window.REVEAL_DRAMA && REVEAL_DRAMA.combo(0);
   $("start").hidden=true; $("end").hidden=true; $("play").hidden=false; $("stats").hidden=false;
   $("rt").textContent=S.words.length; $("sc").textContent=0;
@@ -362,7 +388,7 @@ function finish(kind){
   const m=$("msg");
   m.className="msg "+(kind==="right"?"good":"bad");
   m.textContent = kind==="right" ? t("right")(pts) + (bonus ? ` · Streak ×${S.streak} (+${bonus})` : "") : kind==="skip" ? t("skipped")(c.word) : t("timeup")(c.word);
-  S.log.push({word:c.word,pts,kind,fast: kind==="right" && (S.T-((performance.now()-c.start)/1000+c.penalty))/S.T>=.75});
+  S.log.push({word:c.word,pts,kind,secs: kind==="right" ? Math.min(S.T,(performance.now()-c.start)/1000) : S.T,fast: kind==="right" && (S.T-((performance.now()-c.start)/1000+c.penalty))/S.T>=.75});
   window.REVEAL_DRAMA && REVEAL_DRAMA.combo(S.streak);
   $("guess").disabled=true; $("submit").disabled=true; $("skip").hidden=true;
   $("nextBtn").textContent = S.i+1>=S.words.length ? t("seeResults") : t("nextWord");
@@ -387,9 +413,12 @@ function endGame(){
   $("play").hidden=true; $("end").hidden=false; $("stats").hidden=true;
   $("final").textContent=S.score;
   const got=S.log.filter(l=>l.kind==="right").length;
+  store.set("reveal-games", String(+(store.get("reveal-games")||0)+1));
+  $("dailyEnd").hidden = !S.daily; $("rank").hidden = !!S.daily; $("bestGap").hidden = !!S.daily;
+  S.grid = S.log.map(l=>l.kind!=="right"?"🟥":l.fast?"⚡":"🟩").join("");
+  if(S.daily) return dailyEnd(got);
   const prev=+(store.get("reveal-best")||0);
   const isBest = S.score>prev && S.score>0;
-  store.set("reveal-games", String(+(store.get("reveal-games")||0)+1));
   if(isBest){ store.set("reveal-best",S.score); window.REVEAL_SFX && REVEAL_SFX.fanfare(); }
   $("endNote").textContent=t("endNote")(got,S.log.length);
   countUp($("final"), S.score);
@@ -406,16 +435,72 @@ function endGame(){
   S.title = T.name;
   $("log").innerHTML=S.log.map(l=>`<tr><td><span class="w">${l.word}</span></td><td>${l.kind==="right"?`<span class="pop">+${l.pts}</span>`:"—"}</td></tr>`).join("");
 }
+function dailyEnd(got){
+  const D = REVEAL_DAILY, time_ms = Math.round(S.log.reduce((a,l)=>a+l.secs,0)*1000);
+  const first = !D.result();
+  if(first) D.saveResult({ score:S.score, solved:got, time_ms, grid:S.grid });
+  const r = D.result();
+  $("endNote").textContent = `Daily Challenge · ${D.niceDate(D.today())} · ${got} of 12 solved in ${(r.time_ms/1000).toFixed(1)}s`;
+  countUp($("final"), S.score);
+  $("grid").textContent = S.grid;
+  S.title = "Daily Challenge";
+  $("log").innerHTML=S.log.map(l=>`<tr><td><span class="w">${l.word}</span></td><td>${l.kind==="right"?`<span class="pop">+${l.pts}</span>`:"—"}</td></tr>`).join("");
+  $("again").textContent = "Play a normal game →";
+  const nick = store.get("reveal-nick")||"";
+  $("nick").value = nick;
+  $("nickForm").hidden = !D.online() || !!store.get("reveal-daily-posted-"+D.today());
+  $("dailyMsg").textContent = !D.online() ? "Your result is saved. The online leaderboard opens soon." : $("nickForm").hidden ? "" : "Post your score to see where you rank today.";
+  if(!$("nickForm").hidden && nick) postDaily(); else loadBoard($("dailyBoard"));
+  if(S.score>0) window.REVEAL_SFX && REVEAL_SFX.fanfare();
+}
+async function postDaily(){
+  const D = REVEAL_DAILY, r = D.result(), name = $("nick").value.trim().slice(0,16);
+  if(!name || !r) return;
+  store.set("reveal-nick", name);
+  $("nickGo").disabled = true; $("dailyMsg").textContent = "Posting your score…";
+  const res = await D.submit({ day:D.today(), name, score:r.score, solved:r.solved, time_ms:r.time_ms, device:D.device() });
+  $("nickGo").disabled = false;
+  if(res.ok){ store.set("reveal-daily-posted-"+D.today(),"1"); $("nickForm").hidden = true; $("dailyMsg").textContent = res.already ? "You already posted today. Here's the board." : "Posted! Here's today's board."; }
+  else $("dailyMsg").textContent = "Couldn't post right now. Check your connection and try again.";
+  loadBoard($("dailyBoard"));
+}
+async function loadBoard(el){
+  el.innerHTML = `<p class="lb-empty">Loading…</p>`;
+  const rows = await REVEAL_DAILY.board();
+  REVEAL_DAILY.renderBoard(el, rows, REVEAL_DAILY.device());
+}
+function openBoard(){
+  const D = REVEAL_DAILY, r = D.result();
+  $("start").hidden=true; $("end").hidden=true; $("lbView").hidden=false;
+  $("lbDate").textContent = "Daily Challenge · " + D.niceDate(D.today());
+  $("lbMine").textContent = r ? `You scored ${r.score} (${r.solved}/12 in ${(r.time_ms/1000).toFixed(1)}s).` : "You haven't played today's challenge yet.";
+  $("lbReset").textContent = `New words in ${D.hms(D.msToReset())}`;
+  loadBoard($("lbList"));
+}
+function paintDaily(){
+  const D = window.REVEAL_DAILY; if(!D) return;
+  const r = D.result(), st = D.streak();
+  $("dailyDate").textContent = "Daily Challenge · " + D.niceDate(D.today());
+  $("dailyTitle").textContent = r ? `Done today: ${r.score} points` : "12 words. Same for everyone today.";
+  $("dailySub").textContent = (st ? `${st}-day streak · ` : "") + (r ? `See where you rank · new words in ${D.hms(D.msToReset())}` : "Easy to hard · 30 s each · one try");
+  $("dailyBtn").classList.toggle("done", !!r);
+}
+$("dailyBtn").addEventListener("click",()=>{ REVEAL_DAILY.result() ? openBoard() : newGame(true); });
+$("lbBtn").addEventListener("click",openBoard);
+$("lbBack").addEventListener("click",()=>{ $("lbView").hidden=true; $("start").hidden=false; applyUI(); });
+$("nickForm").addEventListener("submit",e=>{ e.preventDefault(); postDaily(); });
 function countUp(el, to){
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   if(reduce || to<=0){ el.textContent=to; return; }
   const t0=performance.now(), dur=Math.min(1600, 500+to/2);
   (function f(now){ const k=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-k,3); el.textContent=Math.round(to*e); if(k<1) requestAnimationFrame(f); })(t0);
 }
-$("share").addEventListener("click",e=>REVEAL_END.share(`REVEAL. I scored ${S.score} · ${S.title}\n${S.grid}\nThink fast. Guess faster. Can you beat me?`, e.currentTarget));
-$("again").addEventListener("click",newGame);
+$("share").addEventListener("click",e=>REVEAL_END.share(S.daily
+  ? `REVEAL Daily ${REVEAL_DAILY.niceDate(REVEAL_DAILY.today())}: ${S.score} points\n${S.grid}\nSame 12 words for everyone today. Can you beat me?`
+  : `REVEAL. I scored ${S.score} · ${S.title}\n${S.grid}\nThink fast. Guess faster. Can you beat me?`, e.currentTarget));
+$("again").addEventListener("click",()=>{ $("again").textContent=t("again"); newGame(); });
 $("menu").addEventListener("click",()=>{$("end").hidden=true;$("start").hidden=false;applyUI();demo();});
-$("go").addEventListener("click",newGame);
+$("go").addEventListener("click",()=>newGame());
 
 const savedLevel=store.get("reveal-level");
 if(savedLevel&&$("level-"+savedLevel)) $("level-"+savedLevel).checked=true;
@@ -423,7 +508,8 @@ const savedTime=store.get("reveal-time-v2");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
 applyUI(); demo();
 </script>
-<script src="stage.js?v=20261116i"></script>
-<script src="drama.js?v=20261116i"></script>
+<script src="stage.js?v=20261116j"></script>
+<script src="drama.js?v=20261116j"></script>
+<script src="daily.js?v=20261116j"></script>
 </body>
 </html>
