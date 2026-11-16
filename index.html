@@ -6,7 +6,7 @@
 <title>REVEAL</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
 /* Layout: one centred play column; a stage card with a draining time bar, flip tiles, hint, and guess bar. */
 :root{
@@ -107,27 +107,38 @@ td .w{font-family:var(--f-display);font-weight:800;letter-spacing:.06em}
 .bigscreen span{font-weight:400;color:var(--muted);font-size:.88rem}
 .bigscreen:hover,.bigscreen:focus-visible{border-color:var(--accent)}
 @media (prefers-reduced-motion:reduce){.t .in{transition:none}.shake{animation:none}}
+header{min-height:36px}
+body:has(#start:not([hidden])) header{display:none}
 </style>
 <link rel="stylesheet" href="stage.css">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 
 <div class="wrap">
   <header>
-    <div class="logo" aria-label="REVEAL"><span class="on">R</span><span>E</span><span class="on">V</span><span>E</span><span class="on">A</span><span>L</span></div>
+    <div class="logo" aria-label="REVEAL">REVEAL<i aria-hidden="true"></i></div>
     <div class="stats" id="stats" hidden><span><span data-i="round"></span> <b id="rn">1</b>/<b id="rt">10</b></span><span><span data-i="pts"></span> <b id="sc">0</b></span></div>
   </header>
 
   <!-- START -->
-  <section class="card" id="start">
-    <div style="display:grid;gap:8px">
-      <p class="eyebrow" data-i="tag"></p>
-      <h1 data-i="title"></h1>
-      <p class="lead" data-i="lead"></p>
+  <section class="card home" id="start">
+    <div style="display:grid;gap:14px;justify-items:center">
+      <div class="logo" aria-label="REVEAL">REVEAL<i aria-hidden="true"></i></div>
+      <p class="tagline">Think fast. Guess faster.</p>
     </div>
     <div class="tiles" id="demo" aria-hidden="true"></div>
-    <div style="display:grid;gap:8px">
+    <div class="pitch">
+      <p>One clue. A hidden word.</p>
+      <p>Every second reveals another letter.</p>
+      <p><b>Can you guess it first?</b></p>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="go">Play solo →</button>
+      <a class="btn" href="host.html">Play on TV with friends</a>
+    </div>
+    <div class="settings">
       <p class="eyebrow" data-i="timePick"></p>
       <div class="seg" role="radiogroup">
         <label><input type="radio" name="time" id="time-20" value="20"><span data-i="fast"></span><small>20 s</small></label>
@@ -135,10 +146,7 @@ td .w{font-family:var(--f-display);font-weight:800;letter-spacing:.06em}
         <label><input type="radio" name="time" id="time-45" value="45"><span data-i="relaxed"></span><small>45 s</small></label>
       </div>
     </div>
-    <ol class="rules" id="rules"></ol>
-    <button class="primary" id="go" data-i="start"></button>
-    <a class="bigscreen" href="host.html">Playing with friends? Use the big screen <span>TV or laptop shows the word, everyone guesses on their own phone. Party for 2 or more, Royale for up to 12.</span></a>
-    <p class="foot"><span data-i="best"></span> <b id="best">0</b></p>
+    <p class="foot">Classic word game · Mobile first · <span data-i="best"></span> <b id="best">0</b></p>
   </section>
 
   <!-- PLAY -->
@@ -184,7 +192,7 @@ const UI = {
     lead:"Every few seconds a letter flips open. Guess early to score more.",
     timePick:"Time per word",fast:"Fast",normal:"Normal",relaxed:"Relaxed",
     rules:["<b>Read the hint</b> and count the letters.","<b>Letters flip open one by one</b> as time runs.","<b>Guess any time.</b> The earlier, the more points.","Wrong guess? <b>Lose 3 seconds.</b>"],
-    start:"Start game",best:"Best score:",guessBtn:"Guess",skip:"Skip",nextWord:"Next word",
+    start:"Start game",best:"Best",guessBtn:"Guess",skip:"Skip",nextWord:"Next word",
     nextIn:s=>`Next letter in ${s}s`,lastHidden:"The last letter stays hidden",
     right:(p)=>`Correct! +${p} points`,wrong:"Not it. −3 seconds",timeup:w=>`Time's up. It was ${w}.`,skipped:w=>`Skipped. It was ${w}.`,
     final:"Final score",menu:"Menu",again:"Play again",seeResults:"See results",
@@ -201,17 +209,24 @@ function t(k){return UI.en[k]}
 
 function applyUI(){
   document.querySelectorAll("[data-i]").forEach(el=>{const v=t(el.dataset.i); if(typeof v==="string") el.textContent=v;});
-  $("rules").innerHTML = t("rules").map(r=>`<li>${r}</li>`).join("");
   $("best").textContent = store.get("reveal-best") || "0";
 }
 
 function tileHTML(ch, open){return `<div class="t${open?" open":""}"><div class="in"><div class="f"></div><div class="b">${ch}</div></div></div>`}
 
+let demoTimer=0;
 function demo(){
-  const w = "PENGUIN";
-  $("demo").innerHTML = [...w].map(c=>tileHTML(c,false)).join("");
-  const tiles=[...$("demo").children], order=shuffle(tiles.map((_,i)=>i));
-  [order[0],order[2],order[4]].forEach(i=>tiles[i].classList.add("open"));
+  const w="BEACH";
+  $("demo").innerHTML=[...w].map(c=>tileHTML(c,false)).join("");
+  const tiles=[...$("demo").children]; tiles[2].classList.add("open");
+  const order=[0,4,1,3]; let k=0;
+  clearInterval(demoTimer);
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  demoTimer=setInterval(()=>{
+    if($("start").hidden) return;
+    if(k<order.length){ tiles[order[k++]].classList.add("open"); }
+    else { tiles.forEach((el,i)=>{ if(i!==2) el.classList.remove("open"); }); k=0; }
+  },1400);
 }
 
 document.querySelectorAll('input[name=time]').forEach(r=>r.addEventListener("change",()=>store.set("reveal-time-v2",document.querySelector('input[name=time]:checked').value)));
@@ -235,7 +250,7 @@ function nextWord(){
   $("hint").textContent = hint;
   $("msg").textContent=""; $("msg").className="msg";
   $("guess").value=""; $("guess").disabled=false; $("submit").disabled=false;
-  $("guess").maxLength=n+4; $("guess").placeholder="_ ".repeat(n).trim();
+  $("guess").maxLength=n+4; $("guess").placeholder="Type your answer…";
   $("skip").hidden=false; $("nextBtn").hidden=true;
   $("guess").focus({preventScroll:true});
   cancelAnimationFrame(raf); tick();

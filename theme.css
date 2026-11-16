@@ -1,0 +1,89 @@
+/* REVEAL brand theme (Lin's design, 2026-11-16): deep forest green, lime accent, off-white heavy wordmark.
+   One deliberate dark look for every screen. Loaded last on every page, so it overrides older tokens.
+   `:root:not(#_)` beats the light/dark token blocks in the page styles. */
+:root:not(#_){
+  --bg:#121c17; --surface:#1a2620; --raised:#2a3831; --edge:rgba(255,255,255,.12);
+  --ink:#f3f1e8; --muted:#9fb0a6; --line:rgba(255,255,255,.12);
+  --lime:#c8f28a; --lime-ink:#11200f;
+  --tile:#c8f28a; --tile-ink:#11200f; --hidden:#2f3e36; --hidden-mark:#f3f1e8;
+  --accent:#c8f28a; --accent-ink:#11200f; --good:#c8f28a; --bad:#ff7a6b;
+  --f-display:"Archivo Black","Arial Black",Impact,system-ui,sans-serif;
+  --f-body:"Nunito",ui-rounded,"SF Pro Rounded",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body)}
+
+/* wordmark */
+.logo{font-family:var(--f-display);font-weight:400;letter-spacing:-.04em;line-height:.9;font-size:1.7rem;color:var(--ink);display:inline-flex;align-items:baseline;gap:0}
+.logo i{font-style:normal;display:inline-block;width:.24em;height:.24em;border-radius:50%;background:var(--lime);margin-left:.04em;transform:translateY(-.02em)}
+.tagline{font-family:var(--f-body);font-weight:900;font-size:.82rem;letter-spacing:.2em;text-transform:uppercase;color:var(--lime)}
+
+/* surfaces */
+.card{background:var(--surface);border:1px solid var(--edge);border-radius:28px;box-shadow:0 30px 60px -36px rgba(0,0,0,.8)}
+h1,h2{font-family:var(--f-display);font-weight:400;letter-spacing:-.02em}
+.eyebrow{color:var(--muted);font-family:var(--f-body);font-weight:800;letter-spacing:.14em}
+.lead,.muted,.next,.foot{color:var(--muted)}
+
+/* buttons */
+button{font-family:var(--f-body);font-weight:900;border-radius:16px;background:var(--raised);color:var(--ink);border:1px solid var(--edge)}
+button.primary{background:var(--lime);color:var(--lime-ink);border-color:transparent;text-transform:uppercase;letter-spacing:.02em}
+button.primary:hover{filter:brightness(1.05)}
+button.ghost{background:transparent;color:var(--muted);border:1px solid var(--edge)}
+.btn{display:block;text-align:center;text-decoration:none;font-family:var(--f-body);font-weight:900;font-size:1.15rem;text-transform:uppercase;letter-spacing:.02em;
+  padding:20px 18px;border-radius:18px;border:1px solid var(--edge);background:var(--raised);color:var(--ink)}
+.btn.primary{background:var(--lime);color:var(--lime-ink);border-color:transparent}
+.btn:focus-visible,button:focus-visible{outline:3px solid var(--lime);outline-offset:3px}
+
+/* choices */
+.seg label{background:var(--raised);border:1px solid var(--edge);border-radius:14px;color:var(--ink);font-weight:800}
+.seg label:has(input:checked){border-color:var(--lime);background:color-mix(in srgb,var(--lime) 14%,var(--raised));color:var(--ink)}
+.seg small{color:var(--muted)}
+
+/* tiles: dark "?" faces, lime when revealed */
+.t .f,.t .b{border-radius:10px;font-family:var(--f-display);font-weight:400}
+.t .f{background:var(--hidden);border:1px solid var(--edge);color:var(--ink)}
+.t .f::after{content:"?";width:auto;height:auto;background:none;border-radius:0;color:var(--ink);font-family:var(--f-display);font-size:calc(var(--s)*.46)}
+.t .b{background:var(--lime);color:var(--lime-ink)}
+.t.beat .b{background:#ffffff;color:var(--lime-ink)}
+.t.missed .b{background:var(--bad);color:#2a0905}
+
+/* hint, inputs, messages */
+.hint{background:var(--raised);border:1px solid var(--edge);border-radius:16px}
+.hint .tag{background:var(--lime);color:var(--lime-ink);font-family:var(--f-body);font-weight:900}
+.hint p{font-family:var(--f-body);font-weight:700;color:var(--ink)}
+input[type=text]{background:#0e1712;color:var(--ink);border:2px solid var(--edge);border-radius:16px;font-family:var(--f-display);font-weight:400}
+input[type=text]:focus{border-color:var(--lime);box-shadow:0 0 0 4px rgba(200,242,138,.15)}
+input[type=text]::placeholder{color:rgba(243,241,232,.28)}
+.msg.good{color:var(--lime)} .msg.bad{color:var(--bad)}
+.stats{color:var(--muted)} .stats b{color:var(--ink)}
+.timebar{background:var(--raised)} .timebar i{background:var(--lime)}
+
+/* the guessing stage in brand colours */
+.stage{--st-bg0:#0b130f;--st-bg1:#17251e;--st-bg2:#2f5a3a;--st-ink:#f3f1e8;--st-muted:#a7b8ad;
+  --st-gold0:#e3fbbd;--st-gold1:#c8f28a;--st-gold-ink:#11200f;--st-good:#ffffff;--st-bad:#ff7a6b;--st-edge:rgba(255,255,255,.12);--st-glass:rgba(255,255,255,.05)}
+.stage::before,.stage::after{background:linear-gradient(180deg,rgba(200,242,138,.13),rgba(200,242,138,0) 70%)}
+.stage .t .f{background:linear-gradient(180deg,#34453c,#25332c);border:1px solid rgba(255,255,255,.14)}
+.stage .t .f::after{color:rgba(243,241,232,.85);background:none;height:auto}
+.stage .t .b{background:linear-gradient(180deg,var(--st-gold0),var(--st-gold1));box-shadow:0 0 18px rgba(200,242,138,.4)}
+.stage .t.beat .b{background:linear-gradient(180deg,#ffffff,#e9f7d6);color:var(--lime-ink);box-shadow:0 0 22px rgba(255,255,255,.45)}
+.stage .ring .arc{filter:drop-shadow(0 0 6px rgba(200,242,138,.6))}
+.stage .msg.good{color:var(--lime);text-shadow:0 0 18px rgba(200,242,138,.4)}
+.stage.flash-good{animation-name:goodflash-lime}
+@keyframes goodflash-lime{0%{box-shadow:inset 0 0 0 3px var(--lime),0 0 60px rgba(200,242,138,.5)}100%{box-shadow:inset 0 0 0 0 transparent,0 30px 60px -30px rgba(0,0,0,.7)}}
+.stage.lowtime{background-color:#2a0f0c}
+
+/* home screen */
+.home{display:flex;flex-direction:column;align-items:center;text-align:center;gap:26px;padding:44px 22px 22px}
+.home .logo{font-size:clamp(3.4rem,17vw,4.6rem)}
+.home .pitch{display:grid;gap:4px;color:var(--muted);font-size:1.02rem}
+.home .pitch b{color:var(--ink);font-weight:900}
+.home .actions{display:grid;gap:12px;width:100%;margin-top:18px}
+.home .settings{display:grid;gap:8px;width:100%}
+.home .foot{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase}
+.home .tiles .t{--s:clamp(48px,14vw,62px)}
+.stage .hint p{font-family:var(--f-body);font-weight:800}
+/* while guessing, hidden tiles show "_" so players can count the letters left */
+.stage .t .f::after{content:"_";font-family:var(--f-display);font-size:calc(var(--s)*.5);line-height:1;transform:translateY(-.12em);color:rgba(243,241,232,.75)}
+.stage input[type=text]{font-family:var(--f-body);font-weight:800;letter-spacing:.06em}
+.stage input[type=text]:placeholder-shown{letter-spacing:0;font-weight:600}
