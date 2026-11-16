@@ -4,10 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>REVEAL Big Screen</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#17231D">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="REVEAL">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
-<link rel="stylesheet" href="party.css?v=20261116g">
-<link rel="stylesheet" href="stage.css?v=20261116g">
+<link rel="stylesheet" href="party.css?v=20261116j">
+<link rel="stylesheet" href="stage.css?v=20261116j">
 <style>
 /* Layout: TV-first. Main stage on the left, players rail on the right; stacks on narrow screens. */
 body{font-size:clamp(16px,1.25vw,22px)}
@@ -38,6 +46,17 @@ body{font-size:clamp(16px,1.25vw,22px)}
 .players .st.ok{background:var(--good);color:#fff}
 .players .st.bad{background:var(--bad);color:#fff}
 .players li.out{opacity:.45}
+.players .av{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--av);color:#11200f;font-family:var(--f-display);font-size:.95rem}
+.bubbles{display:flex;flex-wrap:wrap;gap:10px;min-height:52px;align-items:center}
+.bub{display:inline-flex;align-items:center;gap:10px;padding:8px 18px 8px 8px;border-radius:999px;background:var(--raised);font-weight:800;font-size:1.15rem}
+.bub .av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--av);color:#11200f;font-family:var(--f-display)}
+.bub.wait{padding:10px 18px;color:var(--muted);font-weight:700;animation:breathe 2s ease-in-out infinite}
+@keyframes breathe{50%{opacity:.5}}
+.bub.fresh{animation:bubPop .6s cubic-bezier(.2,1.6,.4,1)}
+@keyframes bubPop{0%{opacity:0;transform:scale(.4)}100%{opacity:1;transform:none}}
+.players li.fresh{animation:joinPop .55s cubic-bezier(.2,1.5,.4,1)}
+@keyframes joinPop{0%{opacity:0;transform:translateX(24px) scale(.9)}100%{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.players li.fresh{animation:none}}
 .players .rk{font-family:var(--f-display);color:var(--lime,#c7f58b);min-width:1.2em;text-align:center}
 .players .tm{font-family:var(--f-mono);font-weight:700;color:var(--lime,#c7f58b);font-variant-numeric:tabular-nums}
 .players li.done{border-color:color-mix(in srgb,var(--lime,#c7f58b) 50%,transparent)}
@@ -62,8 +81,8 @@ body{font-size:clamp(16px,1.25vw,22px)}
 .pod.p3 .block{height:clamp(70px,10vh,110px)}
 #play.stage{--ring:clamp(96px,9vw,150px)}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261116g">
-<link rel="stylesheet" href="drama.css?v=20261116g">
+<link rel="stylesheet" href="theme.css?v=20261116j">
+<link rel="stylesheet" href="drama.css?v=20261116j">
 </head>
 <body>
 <div class="screen">
@@ -108,6 +127,7 @@ body{font-size:clamp(16px,1.25vw,22px)}
           <label><input type="radio" name="time" id="time-45" value="45">Relaxed<small>45 s</small></label>
         </div>
       </div>
+      <div class="bubbles" id="bubbles" aria-live="polite"></div>
       <div class="row">
         <button class="primary" id="startBtn" disabled>Start game</button>
         <span class="muted" id="startNote">Waiting for players to join</span>
@@ -155,8 +175,8 @@ body{font-size:clamp(16px,1.25vw,22px)}
 
 <script src="vendor/peerjs-1.5.4.min.js"></script>
 <script src="vendor/qrcode-generator-1.4.4.js"></script>
-<script src="words.js?v=20261116g"></script>
-<script src="net.js?v=20261116g"></script>
+<script src="words.js?v=20261116j"></script>
+<script src="net.js?v=20261116j"></script>
 <script>
 const PARTY_ROUNDS = 10, ROYALE_MAX = 12, WRONG_COST = 50, FIRST_BONUS = 25;
 const $ = id => document.getElementById(id);
@@ -278,6 +298,8 @@ function lobbyState(){
 }
 document.querySelectorAll('input[name=mode]').forEach(r=>r.addEventListener("change",lobbyState));
 
+const AV = ["#c7f58b","#8fd3ff","#ffc98b","#d9a7ff","#ff9fb0","#7fe0c4","#f6e27a","#b3c7ff","#ffb38a","#a8f0a0","#f0a8e0","#9be7ff"];
+function avColor(name){ let h=0; for(const c of name) h=(h*31+c.charCodeAt(0))>>>0; return AV[h%AV.length]; }
 function renderPlayers(){
   const playing = H.phase==="play" && H.cur;
   const order = p => p.out ? 3 : !playing ? 0 : p.rd.correct ? 0 : p.rd.failed ? 2 : 1;
@@ -288,7 +310,11 @@ function renderPlayers(){
     : H.mode==="royale" ? (playing ? `Live ranking · ${left} / ${total} remaining` : `Players remaining ${left} / ${total}`)
     : playing ? "Live ranking" : "Scores";
   let rank = 0;
+  const now = performance.now();
   $("players").innerHTML = list.map(p=>{
+    if(!p.shownAt){ p.shownAt = now; if(H.phase==="lobby" && window.REVEAL_SFX) REVEAL_SFX.pop(); }
+    const fresh = now - p.shownAt < 700 ? " fresh" : "";
+    const av = `<span class="av" style="--av:${avColor(p.name)}">${esc((p.name.trim()[0]||"?").toUpperCase())}</span>`;
     let st="", tm="", rk="";
     if(playing && !p.out){
       if(p.rd.correct){ rank++; rk=`<span class="rk">${rank}</span>`; tm=`<span class="tm">${((p.rd.at-H.cur.start)/1000).toFixed(1)}s</span>`; }
@@ -296,8 +322,13 @@ function renderPlayers(){
     }
     if(p.out) st='<span class="st bad">Out</span>';
     const score = (H.mode==="party" && H.phase!=="lobby") ? `<span class="sc">${p.score}</span>` : "";
-    return `<li class="${p.out?"out":""} ${p.online?"":"off"} ${playing&&p.rd.correct?"done":""}">${rk}<span class="nm">${esc(p.name)}${p.vip?" ★":""}</span>${st}${tm}${score}</li>`;
+    return `<li class="${p.out?"out":""} ${p.online?"":"off"} ${playing&&p.rd.correct?"done":""}${fresh}">${rk}${av}<span class="nm">${esc(p.name)}${p.vip?" ★":""}</span>${st}${tm}${score}</li>`;
   }).join("");
+  if(H.phase==="lobby"){
+    const on = list.filter(p=>p.online);
+    $("bubbles").innerHTML = on.length ? on.map(p=>`<span class="bub${now-p.shownAt<700?" fresh":""}"><span class="av" style="--av:${avColor(p.name)}">${esc((p.name.trim()[0]||"?").toUpperCase())}</span>${esc(p.name)}</span>`).join("")
+      : `<span class="bub wait">Waiting for the first player…</span>`;
+  }
 }
 
 /* ---------- game ---------- */
@@ -479,7 +510,7 @@ window.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ") && doc
 
 openRoom(); renderPlayers();
 </script>
-<script src="stage.js?v=20261116g"></script>
-<script src="drama.js?v=20261116g"></script>
+<script src="stage.js?v=20261116j"></script>
+<script src="drama.js?v=20261116j"></script>
 </body>
 </html>

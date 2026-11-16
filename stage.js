@@ -24,7 +24,7 @@
 
   // tell CSS how many tiles there are so long words fit on one row
   const tiles = stage.querySelector("#tiles");
-  if(tiles){ const fit=()=>tiles.style.setProperty("--n", Math.max(1,tiles.children.length)); new MutationObserver(fit).observe(tiles,{childList:true}); fit(); }
+  if(tiles){ const fit=()=>{ const n=Math.max(1,tiles.children.length); tiles.style.setProperty("--n", n); stage.toggleAttribute("data-long", n>=10); }; new MutationObserver(fit).observe(tiles,{childList:true}); fit(); }
 
   // confetti
   const cv = document.createElement("canvas"); cv.className = "confetti"; stage.appendChild(cv);
@@ -130,7 +130,11 @@
     if(keep && keep !== document.activeElement && keep.focus) keep.focus({preventScroll:true});
   }
   const canVibrate = typeof navigator.vibrate === "function";
+  let vibeOn = true;
+  const readVibe = () => { try{ vibeOn = localStorage.getItem("reveal-vibe") !== "0"; }catch(e){} };
+  readVibe();
   const buzz = p => {
+    if(!vibeOn) return;
     try{
       if(canVibrate){ navigator.vibrate(p); return; }
       const pulses = Array.isArray(p) ? p.filter((_,i)=>i%2===0) : [p];
@@ -168,6 +172,8 @@
   const paint = () => { mb.textContent = muted ? "Sound off" : "Sound on"; mb.setAttribute("aria-pressed", String(!muted)); };
   mb.addEventListener("click", ()=>{ muted=!muted; try{ localStorage.setItem("reveal-muted", muted?"1":"0"); }catch(e){} unlock(); paint(); });
   paint(); stage.appendChild(mb);
+  addEventListener("reveal-settings", ()=>{ try{ muted = localStorage.getItem("reveal-muted") === "1"; }catch(e){} readVibe(); paint(); });
+  addEventListener("storage", e=>{ if(e.key==="reveal-muted"||e.key==="reveal-vibe") dispatchEvent(new Event("reveal-settings")); });
 
   // delete / backspace in the answer box: soft click and tiny buzz
   const ans = stage.querySelector("#guess");

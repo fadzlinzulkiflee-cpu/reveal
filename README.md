@@ -48,7 +48,7 @@ To use your own PeerJS server, add `?peerhost=HOST&peerport=PORT&peerpath=/PATH`
 
 ## Word list
 
-The starter words and hints live in `words.js` (334 words: 119 Easy, 116 Medium, 99 Hard), shared by every mode. Add a word as `["WORD", "Hint text", level]` (1 Easy, 2 Medium, 3 Hard), using letters A–Z only.
+The starter words and hints live in `words.js` (957 words: 313 Easy, 320 Medium, 323 Hard), shared by every mode. Add a word as `["WORD", "Hint text", level]` (1 Easy, 2 Medium, 3 Hard), using letters A–Z only.
 
 ## Drama and replay (drama.js, drama.css)
 - **Final 5 seconds:** heartbeat sound (vibration on phones), red pulsing edge, the tiles thump each second.
@@ -57,3 +57,27 @@ The starter words and hints live in `words.js` (334 words: 119 Easy, 116 Medium,
 - **End of Solo:** rank title (7 levels, from Warming Up to REVEAL Legend) with points to the next title, gap to your best ("So close!"), a result grid (⚡ fast, 🟩 right, 🟥 missed) and a Share button.
 - **End of Party/Royale on phones:** your title (Champion, On the podium, Last one standing…) and a Share button.
 - Palette (Lin, v2): background #17231D, lime #C7F58B, text #F6F8F0, surfaces #23372B, muted #A9BBAC.
+
+## Daily Challenge (daily.js)
+- 12 words a day (4 Easy, 4 Medium, 4 Hard, in that order), the same for everyone. They're picked from the date (UTC) with a seeded shuffle, so no server is needed for the words.
+- 30 seconds per word, one ranked try per device per day. A daily streak shows on the home card.
+- Online leaderboard on Supabase, table `daily_scores` (SQL below). It's ranked by score, then by fastest total time (unsolved words count as 30 s).
+- Only the public **publishable** key is in the code. Never put the secret key in this repo.
+
+```sql
+create table daily_scores (
+  id bigint generated always as identity primary key,
+  day date not null,
+  name text not null check (char_length(name) between 1 and 16),
+  score int not null check (score between 0 and 6000),
+  solved int not null check (solved between 0 and 12),
+  time_ms int not null check (time_ms between 0 and 3600000),
+  device text not null check (char_length(device) between 8 and 64),
+  created_at timestamptz default now(),
+  unique (day, device)
+);
+alter table daily_scores enable row level security;
+create policy "anyone can read" on daily_scores for select using (true);
+create policy "post for today only" on daily_scores for insert
+  with check (day between current_date - 1 and current_date + 1);
+```
