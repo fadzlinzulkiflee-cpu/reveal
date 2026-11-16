@@ -53,11 +53,13 @@
     const all = tiles ? tiles.children.length : 0;
     const hidden = tiles ? [...tiles.children].filter(t=>!t.classList.contains("open") || t.classList.contains("beat")).length : 0;
     const tx = msg.textContent, sm = tx.match(/Streak ×(\d+)/), streak = sm ? +sm[1] : 0;
-    if(f >= .75) return ["LIGHTNING!", "Faster than the letters", "zap"];
-    if(secs <= 3) return ["CLUTCH!", "Just in time", "clutch"];
-    if(all && hidden/all >= .5) return ["GENIUS!", `${hidden} of ${all} letters still hidden`, "genius"];
+    // success messages from the REVEAL 3.0 brief
+    if(all && hidden === all) return ["INSTANT REVEAL!", "Before a single letter", "zap"];
+    if(f >= .75) return ["INSTANT REVEAL!", "Faster than the letters", "zap"];
+    if(secs <= 3) return ["PERFECT TIMING!", "Just in time", "clutch"];
+    if(all && hidden/all >= .5) return ["BRILLIANT!", `${hidden} of ${all} letters still hidden`, "genius"];
     if(streak >= 3) return ["ON FIRE!", `${streak} in a row`, "fire"];
-    return [["NICE!","GOT IT!","BOOM!"][Math.floor(Math.random()*3)], "", ""];
+    return ["QUICK THINKER!", "", ""];
   }
   if(msg && inp){   // splashes on the player's own screen (Solo and phone), not the TV
     let prevK = "", prevT = "";

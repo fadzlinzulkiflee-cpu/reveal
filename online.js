@@ -63,6 +63,9 @@
     } else if(st.phase==="reveal"){
       clearInterval(clockTimer); REVEAL_STAGE.cancelCountdown(); show("reveal");
       $("answer").textContent = st.word;
+      $("clueLine").innerHTML = `Clue: <em>${esc(st.hint||"")}</em>`;
+      const sm = st.sum || { survived: st.alive, out: 0 };
+      $("sumRow").innerHTML = `<span><b>${sm.survived}</b>survived</span><span class="out"><b>${sm.out}</b>knocked out</span>`;
       const rm = $("revealMsg");
       rm.className = "big-msg " + (st.eliminated ? "bad" : st.out ? "" : "good");
       rm.textContent = st.eliminated ? "You're out!" : st.out ? "Spectating" : "You survived!";
@@ -99,7 +102,7 @@
 
   function drawAlive(){
     if(!st.players) return;
-    $("alive").innerHTML = st.players.map(p=>`<span class="av${p.out?" x":p.c?" ok":""}${p.n===myName?" mine":""}" style="--av:${avColor(p.n)}" title="${esc(p.n)}${p.bot?" (bot)":""}">${initial(p.n)}</span>`).join("");
+    $("alive").innerHTML = st.players.map(p=>`<span class="av${p.out?" x":p.l?" ok":""}${p.n===myName?" mine":""}" style="--av:${avColor(p.n)}" title="${esc(p.n)}${p.bot?" (bot)":""}">${initial(p.n)}</span>`).join("");
   }
 
   function startPlay(){
@@ -124,6 +127,7 @@
     else if(st.correct){ $("msg").className="msg good"; if(!$("msg").textContent) $("msg").textContent="You got it! Waiting for the others."; }
     else if(st.failed){ $("msg").className="msg bad"; $("msg").textContent="Wrong! You're out after this round."; }
     else if(document.activeElement!==$("guess")) $("guess").focus({preventScroll:true});
+    $("lockLine").innerHTML = st.out ? "" : `<b>${st.locked||0}</b> of ${st.alive} locked in`;
     drawAlive(); drawClock();
   }
   function drawClock(){
@@ -368,6 +372,7 @@
     const contenders = alivePlayers();
     const correct = contenders.filter(p=>p.rd.correct).sort((a,b)=>a.rd.at-b.rd.at);
     const feed = [];
+    H.sum = { survived: contenders.length, out: 0 };
     if(!correct.length){
       feed.push("Nobody got it, so everyone stays in.");
     } else {
@@ -376,6 +381,7 @@
       if(slow) losers.push(slow);
       const aliveAfter = contenders.length - losers.length;
       losers.forEach(p=>{ p.out = true; p.rd.elim = true; p.outRound = H.round; p.place = aliveAfter + 1; });
+      H.sum = { survived: aliveAfter, out: losers.length };
       if(c.showdown) feed.push(`<b>${esc(correct[0].name)}</b> answered first and wins the showdown!`);
       const missed = losers.filter(p=>p!==slow && !p.rd.failed), wrong = losers.filter(p=>p.rd.failed);
       if(wrong.length) feed.push(`Wrong answer: ${list(wrong)}`);
@@ -404,7 +410,9 @@
   function viewFor(p){
     const c = H.cur;
     const base = { t:"state", phase:H.phase, total:H.total || H.players.length, alive:alivePlayers().length, T,
-      players: H.players.map(x=>({ n:x.name, bot:!!x.bot, out:!!x.out, c:!!(x.rd && x.rd.correct && H.phase==="play") })) };
+      // "l" = locked in (answered, right or wrong). Correctness stays hidden until the round ends.
+      players: H.players.map(x=>({ n:x.name, bot:!!x.bot, out:!!x.out, l:!!(x.rd && (x.rd.correct || x.rd.failed) && H.phase==="play") })),
+      locked: H.phase==="play" ? alivePlayers().filter(x=>x.rd && (x.rd.correct || x.rd.failed)).length : 0 };
     if(H.phase==="lobby") return Object.assign(base, { startsIn: Math.max(0,(H.startAt-performance.now())/1000) });
     if(H.phase==="over") return Object.assign(base, { place:p.place||1, outRound:p.outRound||0, winner:H.winner, coWin: alivePlayers().length>1 });
     return Object.assign(base, {
@@ -412,7 +420,7 @@
       out: !!p.out,
       correct: !!(p.rd && p.rd.correct), failed: !!(p.rd && p.rd.failed),
       eliminated: !!(p.rd && p.rd.elim), word: H.phase==="reveal" ? c.word : undefined,
-      feed: H.phase==="reveal" ? H.feed : undefined, finished: !!H.finished
+      feed: H.phase==="reveal" ? H.feed : undefined, sum: H.phase==="reveal" ? H.sum : undefined, finished: !!H.finished
     });
   }
   function reply(p, m){

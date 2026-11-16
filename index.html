@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>REVEAL</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#ECE7F6">
+<meta name="theme-color" content="#17231D">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -119,11 +119,11 @@ header{min-height:36px}
 body:has(#start:not([hidden])) header{display:none}
 .seg4 label{min-width:70px}
 </style>
-<link rel="stylesheet" href="stage.css?v=20261116q">
+<link rel="stylesheet" href="stage.css?v=20261116s">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
-<link rel="stylesheet" href="theme.css?v=20261116q">
-<link rel="stylesheet" href="drama.css?v=20261116q">
-<link rel="stylesheet" href="look.css?v=20261116q">
+<link rel="stylesheet" href="theme.css?v=20261116s">
+<link rel="stylesheet" href="drama.css?v=20261116s">
+<link rel="stylesheet" href="look.css?v=20261116s">
 <style>#play.stage{--ring:80px}</style>
 </head>
 <body>
@@ -225,6 +225,7 @@ body:has(#start:not([hidden])) header{display:none}
       <p class="bestgap" id="bestGap"></p>
     </div>
     <div class="rankcard" id="rank"></div>
+    <div class="records" id="records" aria-label="Your records"></div>
     <div class="dailyend" id="dailyEnd" hidden>
       <form class="nickform" id="nickForm" autocomplete="off">
         <label for="nick">Your name on the leaderboard</label>
@@ -244,7 +245,7 @@ body:has(#start:not([hidden])) header{display:none}
   </section>
 </div>
 
-<script src="words.js?v=20261116q"></script>
+<script src="words.js?v=20261116s"></script>
 <script>
 
 const UI = {
@@ -407,6 +408,23 @@ $("form").addEventListener("submit",e=>{
 $("skip").addEventListener("click",()=>finish("skip"));
 $("nextBtn").addEventListener("click",nextWord);
 
+// Personal records (REVEAL 3.0 brief): fastest correct answer, longest streak, total correct, games played.
+function records(got){
+  const right = S.log.filter(l=>l.kind==="right");
+  const fastest = right.length ? Math.min(...right.map(l=>l.secs)) : Infinity;
+  let run=0, longest=0; S.log.forEach(l=>{ run = l.kind==="right" ? run+1 : 0; longest=Math.max(longest,run); });
+  const prevFast = +(store.get("reveal-rec-fastest")||Infinity), prevStreak = +(store.get("reveal-rec-streak")||0);
+  const total = +(store.get("reveal-rec-correct")||0) + got;
+  const newFast = fastest < prevFast, newStreak = longest > prevStreak;
+  if(newFast) store.set("reveal-rec-fastest", fastest.toFixed(2));
+  if(newStreak) store.set("reveal-rec-streak", String(longest));
+  store.set("reveal-rec-correct", String(total));
+  const bestFast = Math.min(fastest, prevFast), bestStreak = Math.max(longest, prevStreak);
+  const cell = (v,k,isNew) => `<div class="${isNew?"new":""}"><b>${v}</b><span>${isNew?"New · ":""}${k}</span></div>`;
+  $("records").innerHTML = cell(isFinite(bestFast) ? bestFast.toFixed(1)+"s" : "–", "Fastest", newFast)
+    + cell(bestStreak, "Streak", newStreak) + cell(total, "Correct", false) + cell(store.get("reveal-games")||"1", "Games", false);
+}
+
 function endGame(){
   $("play").hidden=true; $("end").hidden=false; $("stats").hidden=true;
   $("final").textContent=S.score;
@@ -414,6 +432,7 @@ function endGame(){
   store.set("reveal-games", String(+(store.get("reveal-games")||0)+1));
   $("dailyEnd").hidden = !S.daily; $("rank").hidden = !!S.daily; $("bestGap").hidden = !!S.daily;
   S.grid = S.log.map(l=>l.kind!=="right"?"🟥":l.fast?"⚡":"🟩").join("");
+  records(got);
   if(S.daily) return dailyEnd(got);
   const prev=+(store.get("reveal-best")||0);
   const isBest = S.score>prev && S.score>0;
@@ -507,8 +526,8 @@ const savedTime=store.get("reveal-time-v2");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
 applyUI(); demo();
 </script>
-<script src="stage.js?v=20261116q"></script>
-<script src="drama.js?v=20261116q"></script>
-<script src="daily.js?v=20261116q"></script>
+<script src="stage.js?v=20261116s"></script>
+<script src="drama.js?v=20261116s"></script>
+<script src="daily.js?v=20261116s"></script>
 </body>
 </html>
