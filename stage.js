@@ -34,7 +34,7 @@
     if(reduce) return;
     const r = stage.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio||1);
     cv.width = r.width*dpr; cv.height = r.height*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
-    for(let i=0;i<140;i++){
+    for(let i=0;i<60;i++){
       const side = i%2 ? 1 : -1;
       parts.push({x:r.width/2 + side*r.width*0.15, y:r.height*0.35, vx:(Math.random()*6+2)*side*(Math.random()<.3?-1:1), vy:-(Math.random()*9+5),
         s:Math.random()*6+4, rot:Math.random()*6, vr:(Math.random()-.5)*.4, c:COLORS[i%COLORS.length], life:0});

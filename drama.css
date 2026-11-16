@@ -74,3 +74,50 @@ button.again-hot{font-size:1.2rem;padding:18px 20px;animation:hot 1.6s ease-in-o
   .stage .splash.go{animation:splash-calm 1.5s forwards}
   @keyframes splash-calm{0%,100%{opacity:0}15%,80%{opacity:1}}
 }
+
+/* ---- Calmer pass (Lin, 2026-11-16): fewer, smoother effects; smaller 3-2-1 ---- */
+.stage::before,.stage::after{animation:none;opacity:.22}
+.stage.shake{animation:none}
+.stage.thump .tiles{animation:none}
+.stage.lowtime:not(.frozen) .vignette{animation:none;opacity:.7}
+.stage .vignette{background:radial-gradient(130% 100% at 50% 50%, transparent 60%, rgba(255,90,70,.22) 100%)}
+.stage.lowtime{background-color:transparent}
+.ring.low{animation:pulse-soft 1s ease-in-out infinite}
+@keyframes pulse-soft{50%{transform:scale(1.025)}}
+.stage .t .in{transition:transform .45s cubic-bezier(.3,1.1,.5,1)}
+/* splash: compact, fades up, no backdrop */
+.stage .splash{background:none}
+.stage .splash b{font-size:clamp(1.8rem,8vw,3rem);text-shadow:0 2px 16px rgba(0,0,0,.6)}
+.stage .splash span{font-size:.72rem;padding:4px 10px}
+.stage .splash.go{animation:splash-soft 1.2s ease-out forwards}
+@keyframes splash-soft{0%{opacity:0;transform:translateY(10px) scale(.96)}15%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}
+.stage .flypts{display:none}
+.stage .combo.bump{animation:bump-soft .35s ease-out}
+@keyframes bump-soft{0%{transform:scale(.9)}100%{transform:scale(1)}}
+.stage .combo[data-heat="4"]{animation:none}
+.bump-up{animation:sup-soft .35s ease-out}
+@keyframes sup-soft{50%{transform:scale(1.12)}}
+.stage .banner{animation:none}
+.rankcard .ttl{animation:fadeup .5s .1s ease-out both;text-shadow:none}
+.bestgap.new{animation:fadeup .5s .3s ease-out both}
+@keyframes fadeup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+button.again-hot{animation:none}
+/* 3-2-1: a small round badge instead of a full-screen number */
+.countdown{background:rgba(18,28,23,.55);backdrop-filter:blur(2px);gap:10px}
+.countdown b{display:grid;place-items:center;width:clamp(84px,24vw,120px);aspect-ratio:1;border-radius:50%;
+  background:#23372b;border:2px solid rgba(199,245,139,.5);font-size:clamp(2.4rem,11vw,3.6rem);color:#f6f8f0;
+  animation:cd-soft .8s ease-out}
+.countdown b.go{background:#c7f58b;color:#11200f;border-color:#c7f58b;font-size:clamp(1.6rem,7vw,2.2rem)}
+.countdown .lbl{font-size:.75rem}
+@keyframes cd-soft{0%{opacity:0;transform:scale(.85)}25%{opacity:1;transform:scale(1)}100%{opacity:1;transform:scale(1)}}
+/* splash as a solid pill over the answer row, so it never overlaps text */
+.stage .splash{top:50%;bottom:auto;left:50%;right:auto;width:max-content;max-width:92%;transform:translate(-50%,-50%);
+  display:flex;align-items:center;gap:10px;padding:10px 20px;border-radius:999px;background:#c7f58b;color:#11200f;
+  box-shadow:0 12px 30px -12px rgba(0,0,0,.7)}
+.stage .splash b{font-size:clamp(1.3rem,6vw,1.8rem);color:#11200f;text-shadow:none}
+.stage .splash span{background:none;padding:0;color:#11200f;opacity:.75;font-size:.68rem;letter-spacing:.12em}
+.stage .splash.zap b,.stage .splash.clutch b,.stage .splash.fire b{color:#11200f}
+.stage .splash.fire,.stage .splash.clutch{background:#ffc98b}
+.stage .splash.go{animation:pill 1.3s ease-out forwards}
+@keyframes pill{0%{opacity:0;transform:translate(-50%,-50%) scale(.92)}12%{opacity:1;transform:translate(-50%,-50%)}80%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(-50%,-60%)}}
+@media (prefers-reduced-motion:reduce){.stage .splash.go{animation:pill 1.3s steps(1) forwards}}
