@@ -1,0 +1,163 @@
+/* REVEAL look v3 (Lin, 2026-11-16): playful game style on a light "Cloud" background.
+   Loaded LAST on every page. Phones/Solo get the light Cloud look; the TV (html[data-screen="tv"]) stays dark
+   but shares the playful type, chunky buttons and tiles. "@L" rules are light-only; "@A" rules apply everywhere. */
+
+/* ---------- tokens ---------- */
+:root:not([data-screen="tv"]):not(#_){
+  --bg:#E6EAF2; --surface:#F4F6FA; --raised:#DDE2EC; --edge:#C9D0DE; --line:#C9D0DE;
+  --ink:#1E2433; --muted:#5D6578; --field:#FFFFFF;
+  --lime:#C7F58B; --lime-d:#86BC4F; --lime-ink:#17231D; --lime-text:#3E7A1E;
+  --sun:#FFC15E; --sun-d:#D9902A; --sky:#7FCBFF; --sky-d:#3C93D0; --grape:#C4A1FF; --grape-d:#8A62D6; --coral:#FF7E73; --coral-d:#D0493F;
+  --tile:#C7F58B; --tile-ink:#17231D; --hidden:#DDE2EC; --hidden-mark:#5D6578;
+  --accent:#C7F58B; --accent-ink:#17231D; --good:#3E7A1E; --bad:#D0493F;
+  --shadow:rgba(30,36,51,.12);
+  color-scheme:light;
+}
+:root:not(#_){
+  --f-display:"Lilita One","Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
+  --lime-d:#86BC4F; --sun:#FFC15E; --sun-d:#D9902A; --sky:#7FCBFF; --sky-d:#3C93D0; --grape:#C4A1FF; --grape-d:#8A62D6; --coral:#FF7E73; --coral-d:#D0493F;
+}
+:root:not([data-screen="tv"]):not(#_) body{background:var(--bg);color:var(--ink)}
+:root:not([data-screen="tv"]):not(#_) .card{background:var(--surface);border:0;box-shadow:0 10px 30px -18px var(--shadow)}
+:root:not([data-screen="tv"]):not(#_) .eyebrow,:root:not([data-screen="tv"]):not(#_) .muted,:root:not([data-screen="tv"]):not(#_) .lead,:root:not([data-screen="tv"]):not(#_) .next,:root:not([data-screen="tv"]):not(#_) .foot{color:var(--muted)}
+
+/* ---------- logo: game tiles, one hidden, orange dot ---------- */
+:root:not(#_) .logo{font-family:var(--f-display);letter-spacing:.01em}
+:root:not(#_) .logo i{background:var(--sun)!important;box-shadow:0 .08em 0 var(--sun-d)}
+:root:not(#_) .biglogo{display:inline-flex;gap:.14em;align-items:flex-end;font-size:clamp(2.6rem,13vw,3.6rem);letter-spacing:0;color:#17231D}
+:root:not(#_) .biglogo span{width:1.02em;height:1.14em;display:grid;place-items:center;border-radius:.24em;background:var(--lime);color:#17231D;
+  box-shadow:inset 0 -.08em 0 rgba(0,0,0,.16),0 .08em 0 var(--lime-d);line-height:1;font-size:.8em;transform:rotate(var(--r,0deg))}
+:root:not(#_) .biglogo span:nth-child(1){--r:-4deg}:root:not(#_) .biglogo span:nth-child(2){--r:3deg}:root:not(#_) .biglogo span:nth-child(3){--r:-2deg}
+:root:not(#_) .biglogo span:nth-child(5){--r:3deg}:root:not(#_) .biglogo span:nth-child(6){--r:-3deg}
+:root:not(#_) .biglogo span:nth-child(4){background:var(--raised,#DDE2EC);color:transparent;position:relative;box-shadow:inset 0 -.08em 0 rgba(0,0,0,.12),0 .08em 0 var(--edge,#C9D0DE)}
+:root:not(#_) .biglogo span:nth-child(4)::after{content:"?";position:absolute;inset:0;display:grid;place-items:center;color:var(--muted)}
+:root:not(#_) .biglogo i{width:.26em;height:.26em;margin-left:.06em;margin-bottom:.06em}
+:root:not([data-screen="tv"]):not(#_) .tagline{color:var(--muted)}
+
+/* ---------- buttons: chunky, sink when pressed ---------- */
+:root:not(#_) button,:root:not(#_) .btn{font-family:var(--f-display);font-weight:400;letter-spacing:.03em}
+:root:not(#_) button.primary,:root:not(#_) .btn.primary,:root:not(#_) .stage button.primary{--c:var(--lime);--d:var(--lime-d);background:var(--c);color:#17231D;border:0;
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.12),0 5px 0 var(--d);transition:transform .08s,box-shadow .08s;text-transform:uppercase}
+:root:not(#_) button.primary:active:not(:disabled),:root:not(#_) .btn.primary:active,:root:not(#_) .stage button.primary:active:not(:disabled){transform:translateY(4px);box-shadow:inset 0 -2px 0 rgba(0,0,0,.12),0 1px 0 var(--d)}
+:root:not(#_) button.primary:disabled{opacity:.5;box-shadow:inset 0 -4px 0 rgba(0,0,0,.08),0 2px 0 var(--d);transform:translateY(3px)}
+:root:not([data-screen="tv"]):not(#_) button:not(.primary):not(.mode):not(.install),:root:not([data-screen="tv"]):not(#_) .btn:not(.primary):not(.mode){background:var(--surface);color:var(--ink);border:0;box-shadow:inset 0 -3px 0 rgba(0,0,0,.06),0 4px 0 var(--edge)}
+:root:not([data-screen="tv"]):not(#_) button.ghost{background:var(--raised);color:var(--muted);box-shadow:0 4px 0 var(--edge)}
+:root:not([data-screen="tv"]):not(#_) button:focus-visible,:root:not([data-screen="tv"]):not(#_) .btn:focus-visible{outline:3px solid #1E2433;outline-offset:3px}
+:root:not([data-screen="tv"]):not(#_) .install{background:none;box-shadow:none;color:var(--muted);font-family:var(--f-body);font-weight:800}
+:root:not([data-screen="tv"]):not(#_) .install:hover{color:var(--ink)}
+
+/* ---------- home menu: one colour per mode, with icons ---------- */
+:root:not([data-screen="tv"]):not(#_) .home{background:var(--surface)}
+:root:not([data-screen="tv"]):not(#_) .gear{background:var(--raised);border:0;color:var(--ink);box-shadow:0 3px 0 var(--edge)}
+:root:not([data-screen="tv"]):not(#_) .me-strip{background:var(--field);box-shadow:0 3px 0 var(--edge)}
+:root:not([data-screen="tv"]):not(#_) .me-strip>div+div{border-left:1px solid var(--line)}
+:root:not([data-screen="tv"]):not(#_) .me-strip>div:first-child b{color:var(--lime-text)}
+:root:not(#_) .mode{text-decoration:none;display:grid!important;grid-template-columns:48px 1fr auto;align-items:center;gap:12px;text-align:left;padding:12px 14px 14px!important;border-radius:20px!important;border:0!important;
+  background:var(--c)!important;color:#17231D!important;box-shadow:inset 0 -5px 0 rgba(0,0,0,.12),0 5px 0 var(--d)!important;text-transform:none;letter-spacing:0;width:100%;font-family:var(--f-body)}
+:root:not(#_) .mode:active{transform:translateY(4px);box-shadow:inset 0 -3px 0 rgba(0,0,0,.12),0 1px 0 var(--d)!important}
+:root:not(#_) .mode .mi{width:48px;height:48px;border-radius:15px;background:rgba(255,255,255,.4);display:grid;place-items:center}
+:root:not(#_) .mode .mi svg{width:28px;height:28px;fill:#17231D}
+:root:not(#_) .mode .mt{display:grid;gap:1px;min-width:0}
+:root:not(#_) .mode .mt>b,:root:not(#_) .mode .mt>span:first-child{font-family:var(--f-display);font-weight:400;font-size:1.3rem;line-height:1.05;color:#17231D;display:flex;align-items:center;gap:8px}
+:root:not(#_) .mode small,:root:not(#_) .mode .ds,:root:not(#_) .mode .dk{font:800 .78rem var(--f-body);color:#17231D;opacity:.72;letter-spacing:0;text-transform:none}
+:root:not(#_) .mode .badge{background:#17231D;color:var(--c);font-family:var(--f-body)}
+:root:not(#_) .mode.m-daily{--c:var(--sun);--d:var(--sun-d)} :root:not(#_) .mode.m-solo{--c:var(--lime);--d:var(--lime-d)}
+:root:not(#_) .mode.m-local{--c:var(--sky);--d:var(--sky-d)} :root:not(#_) .mode.m-ranked{--c:var(--grape);--d:var(--grape-d)}
+:root:not(#_) .mode.done{filter:saturate(.55)}
+:root:not(#_) .mode .chev{width:22px;height:22px;fill:#17231D;opacity:.55}
+
+/* ---------- settings sheet ---------- */
+:root:not([data-screen="tv"]):not(#_) .sheet{background:var(--surface);color:var(--ink);box-shadow:0 -20px 50px -20px var(--shadow)}
+:root:not([data-screen="tv"]):not(#_) .sheet::backdrop{background:rgba(30,36,51,.35)}
+:root:not([data-screen="tv"]):not(#_) .tog{background:var(--field);box-shadow:0 3px 0 var(--edge)}
+:root:not([data-screen="tv"]):not(#_) .tog input{background:var(--edge)}
+:root:not([data-screen="tv"]):not(#_) .tog input::after{background:#fff}
+:root:not([data-screen="tv"]):not(#_) .tog input:checked::after{background:#17231D}
+:root:not([data-screen="tv"]):not(#_) .seg label{background:var(--field);border:2px solid var(--line);color:var(--ink);box-shadow:0 3px 0 var(--edge)}
+:root:not([data-screen="tv"]):not(#_) .seg label:has(input:checked){background:var(--lime);border-color:var(--lime-d);color:#17231D}
+:root:not([data-screen="tv"]):not(#_) .seg small{color:var(--muted)}
+:root:not([data-screen="tv"]):not(#_) .seg label:has(input:checked) small{color:#17231D}
+
+/* ---------- tiles (home demo + game) ---------- */
+:root:not(#_) .t .f,:root:not(#_) .t .b{border-radius:11px}
+:root:not([data-screen="tv"]):not(#_) .t .f,:root:not([data-screen="tv"]):not(#_) .stage .t .f{background:var(--raised);border:0;box-shadow:inset 0 -4px 0 rgba(0,0,0,.06),0 4px 0 var(--edge)}
+:root:not([data-screen="tv"]):not(#_) .t .f::after,:root:not([data-screen="tv"]):not(#_) .stage .t .f::after{color:var(--muted)}
+:root:not(#_) .t .b,:root:not(#_) .stage .t .b{background:var(--lime);color:#17231D;box-shadow:inset 0 -4px 0 rgba(0,0,0,.12),0 4px 0 var(--lime-d)}
+:root:not([data-screen="tv"]):not(#_) .stage .t.beat .b{background:#FFFFFF;box-shadow:inset 0 -4px 0 rgba(0,0,0,.06),0 4px 0 var(--lime-d)}
+:root:not(#_) .t.missed .b,:root:not(#_) .stage .t.missed .b{background:var(--coral);color:#3a0905;box-shadow:inset 0 -4px 0 rgba(0,0,0,.12),0 4px 0 var(--coral-d)}
+:root:not(#_) .stage .tiles{padding-bottom:10px}
+
+/* ---------- guessing stage ---------- */
+:root:not([data-screen="tv"]):not(#_) .stage{--st-ink:#1E2433;--st-muted:#5D6578;--st-edge:#C9D0DE;--st-glass:#FFFFFF;--st-bad:#D0493F;--st-good:#3E7A1E;--st-gold1:#C7F58B;
+  background:var(--surface);border:0;box-shadow:0 10px 30px -18px var(--shadow);color:var(--ink);color-scheme:light}
+:root:not([data-screen="tv"]):not(#_) .stage::before,:root:not([data-screen="tv"]):not(#_) .stage::after{display:none}
+:root:not([data-screen="tv"]):not(#_) .stage .clock{color:var(--ink);font-family:var(--f-display)}
+:root:not([data-screen="tv"]):not(#_) .stage .clock.low{color:var(--coral-d)}
+:root:not([data-screen="tv"]):not(#_) .stage .ring .trk{stroke:var(--raised)}
+:root:not([data-screen="tv"]):not(#_) .stage .ring .arc{stroke:var(--lime-d)}
+:root:not([data-screen="tv"]):not(#_) .stage .ring.low .arc{stroke:var(--coral);filter:none}
+:root:not([data-screen="tv"]):not(#_) .stage .hint{background:var(--field);border:0;box-shadow:0 3px 0 var(--edge)}
+:root:not(#_) .stage .hint .tag{background:var(--sky);color:#17231D;font-family:var(--f-display);font-weight:400;letter-spacing:.06em}
+:root:not([data-screen="tv"]):not(#_) .stage .hint p{color:var(--ink)}
+:root:not([data-screen="tv"]):not(#_) input[type=text],:root:not([data-screen="tv"]):not(#_) .stage input[type=text]{background:var(--field);color:var(--ink);border:2px solid var(--line);box-shadow:inset 0 3px 0 rgba(30,36,51,.04)}
+:root:not([data-screen="tv"]):not(#_) input[type=text]:focus,:root:not([data-screen="tv"]):not(#_) .stage input[type=text]:focus{border-color:var(--lime-d);box-shadow:0 0 0 4px rgba(134,188,79,.22)}
+:root:not([data-screen="tv"]):not(#_) input[type=text]::placeholder{color:#9AA2B4}
+:root:not([data-screen="tv"]):not(#_) .slots .s{color:#A3ABBD}
+:root:not([data-screen="tv"]):not(#_) .slots .s.on{color:var(--ink)}
+:root:not([data-screen="tv"]):not(#_) .slots .s.cur{color:var(--lime-text)}
+:root:not([data-screen="tv"]):not(#_) .msg.good,:root:not([data-screen="tv"]):not(#_) .stage .msg.good{color:var(--lime-text);text-shadow:none}
+:root:not([data-screen="tv"]):not(#_) .msg.bad,:root:not([data-screen="tv"]):not(#_) .stage .msg.bad{color:var(--coral-d)}
+:root:not([data-screen="tv"]):not(#_) .stage .mute,:root:not([data-screen="tv"]):not(#_) .stage button.mute{background:var(--raised);color:var(--muted);border:0;box-shadow:none}
+:root:not([data-screen="tv"]):not(#_) .stage .mute[aria-pressed="false"]{color:var(--coral-d)}
+:root:not([data-screen="tv"]):not(#_) .stage.lowtime:not(.frozen){background:#FCEAE7}
+:root:not([data-screen="tv"]):not(#_) .stage .vignette{background:radial-gradient(130% 100% at 50% 50%, transparent 62%, rgba(255,126,115,.25) 100%)}
+:root:not([data-screen="tv"]):not(#_) .stats{color:var(--muted)} :root:not([data-screen="tv"]):not(#_) .stats b{color:var(--ink)}
+:root:not([data-screen="tv"]):not(#_) .countdown{background:rgba(230,234,242,.75)}
+:root:not([data-screen="tv"]):not(#_) .countdown b{background:var(--field);border:0;color:var(--ink);box-shadow:0 6px 0 var(--edge)}
+:root:not(#_) .countdown b{font-family:var(--f-display)}
+:root:not(#_) .countdown b.go{background:var(--lime);color:#17231D;box-shadow:0 6px 0 var(--lime-d)}
+:root:not([data-screen="tv"]):not(#_) .countdown .lbl{color:var(--muted)}
+:root:not(#_) .stage .splash{box-shadow:0 5px 0 var(--lime-d)}
+:root:not(#_) .stage .splash b{font-family:var(--f-display);font-weight:400;letter-spacing:.03em}
+:root:not(#_) .stage .splash.fire,:root:not(#_) .stage .splash.clutch{background:var(--sun);box-shadow:0 5px 0 var(--sun-d)}
+:root:not(#_) .stage .banner{background:var(--coral);color:#3a0905;font-family:var(--f-display);font-weight:400;box-shadow:0 4px 0 var(--coral-d)}
+:root:not([data-screen="tv"]):not(#_) .stage.counting .hint::after{color:var(--muted)}
+:root:not([data-screen="tv"]):not(#_) .bump-up{color:var(--lime-text)}
+
+/* ---------- end screens, leaderboard, podium ---------- */
+:root:not([data-screen="tv"]):not(#_) .rankcard{background:var(--field);border:0;box-shadow:0 5px 0 var(--edge)}
+:root:not([data-screen="tv"]):not(#_) .rankcard .ttl{color:#17231D;background:var(--lime);padding:8px 18px 10px;border-radius:16px;box-shadow:0 5px 0 var(--lime-d);transform:rotate(-2deg)}
+:root:not(#_) .rankcard .ttl{font-family:var(--f-display)}
+:root:not([data-screen="tv"]):not(#_) .rankcard .pips i{background:var(--raised)}
+:root:not([data-screen="tv"]):not(#_) .rankcard .pips i.on{background:var(--lime-d);box-shadow:none}
+:root:not([data-screen="tv"]):not(#_) .rankcard .nxt b,:root:not([data-screen="tv"]):not(#_) .bestgap.new{color:var(--lime-text)}
+:root:not([data-screen="tv"]):not(#_) .bestgap.close{color:var(--sun-d)}
+:root:not([data-screen="tv"]):not(#_) .lb li{background:var(--field);box-shadow:0 3px 0 var(--edge)}
+:root:not([data-screen="tv"]):not(#_) .lb li.top .pos{color:var(--sun-d)}
+:root:not([data-screen="tv"]):not(#_) .lb li.me{outline:3px solid var(--lime-d);background:#F3FBE6}
+:root:not([data-screen="tv"]):not(#_) .pp .blk{background:var(--raised)}
+:root:not(#_) .pp.p1 .blk{background:var(--sun);box-shadow:0 5px 0 var(--sun-d)}
+:root:not(#_) .pp.p1 .blk b{color:#17231D}
+:root:not([data-screen="tv"]):not(#_) .pp.me .pn{color:var(--lime-text)}
+:root:not([data-screen="tv"]):not(#_) .daily-card .dk{color:inherit}
+:root:not([data-screen="tv"]):not(#_) .bub,:root:not([data-screen="tv"]):not(#_) .alive .av{box-shadow:0 3px 0 var(--edge)}
+:root:not([data-screen="tv"]):not(#_) .bub{background:var(--field)}
+:root:not([data-screen="tv"]):not(#_) .bub.mine{outline:3px solid var(--lime-d)}
+:root:not([data-screen="tv"]):not(#_) .alive .av.ok{box-shadow:0 0 0 3px var(--lime-d)}
+:root:not([data-screen="tv"]):not(#_) .alive .av.mine{outline-color:var(--ink)}
+:root:not([data-screen="tv"]):not(#_) .spinner{border-color:var(--raised);border-top-color:var(--lime-d)}
+:root:not([data-screen="tv"]):not(#_) .lobbyclock,:root:not([data-screen="tv"]):not(#_) .place{color:#17231D;font-family:var(--f-display)}
+:root:not([data-screen="tv"]):not(#_) .place{background:var(--lime);border-radius:22px;padding:6px 22px 10px;box-shadow:0 6px 0 var(--lime-d);justify-self:center;align-self:center;width:max-content;margin-inline:auto;display:block}
+:root:not([data-screen="tv"]):not(#_) .beta{background:var(--grape);color:#17231D}
+:root:not([data-screen="tv"]):not(#_) .rules{color:var(--muted)}
+:root:not([data-screen="tv"]):not(#_) .big-msg.good{color:var(--lime-text)} :root:not([data-screen="tv"]):not(#_) .big-msg.bad{color:var(--coral-d)}
+:root:not([data-screen="tv"]):not(#_) .err{color:var(--coral-d)}
+:root:not([data-screen="tv"]):not(#_) .pill{background:var(--lime);color:#17231D}
+:root:not([data-screen="tv"]):not(#_) header a.back{color:var(--muted)}
+:root:not([data-screen="tv"]):not(#_) .me{color:var(--muted)} :root:not([data-screen="tv"]):not(#_) .me b{color:var(--ink)}
+
+/* logo tiles keep their tilt after the entrance animation */
+:root:not(#_) .biglogo span{animation-name:tileIn}
+@keyframes tileIn{from{opacity:0;transform:translateY(14px) scale(.6) rotate(var(--r,0deg))}to{opacity:1;transform:rotate(var(--r,0deg))}}
+:root:not(#_) .home .actions.menu{gap:14px}
+:root:not([data-screen="tv"]):not(#_) form.find input,:root:not([data-screen="tv"]):not(#_) #nameIn{letter-spacing:.02em}

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>REVEAL Controller</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#17231D">
+<meta name="theme-color" content="#E6EAF2">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,9 +13,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="REVEAL">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
-<link rel="stylesheet" href="party.css?v=20261116m">
-<link rel="stylesheet" href="stage.css?v=20261116m">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Lilita+One&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="party.css?v=20261116n">
+<link rel="stylesheet" href="stage.css?v=20261116n">
 <style>
 /* Layout: one phone column; header with room + score, one card that changes with the game phase. */
 .wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px;
@@ -39,8 +39,9 @@ form.join input{width:100%}
 .err{color:var(--bad);font-weight:600;text-align:center}
 #play.stage{--ring:78px}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261116m">
-<link rel="stylesheet" href="drama.css?v=20261116m">
+<link rel="stylesheet" href="theme.css?v=20261116n">
+<link rel="stylesheet" href="drama.css?v=20261116n">
+<link rel="stylesheet" href="look.css?v=20261116n">
 </head>
 <body>
 <div class="wrap">
@@ -114,7 +115,7 @@ form.join input{width:100%}
 </div>
 
 <script src="vendor/peerjs-1.5.4.min.js"></script>
-<script src="net.js?v=20261116m"></script>
+<script src="net.js?v=20261116n"></script>
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -287,7 +288,7 @@ $("shareBtn").addEventListener("click", e=>REVEAL_END.share(shareText + "\nThink
 $("startBtn").addEventListener("click", ()=>conn && conn.send({t:"start"}));
 $("nextBtn").addEventListener("click", ()=>conn && conn.send({t:"next"}));
 </script>
-<script src="stage.js?v=20261116m"></script>
-<script src="drama.js?v=20261116m"></script>
+<script src="stage.js?v=20261116n"></script>
+<script src="drama.js?v=20261116n"></script>
 </body>
 </html>
