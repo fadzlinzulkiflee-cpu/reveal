@@ -324,3 +324,16 @@
 :root:not(#_) .exitrow{display:flex;gap:10px;margin-top:8px}
 :root:not(#_) .exitrow button{flex:1}
 @media (min-width:600px){ :root:not(#_) .exitsheet{place-items:center} }
+
+/* Account sheet: Delete my account (quiet link, then an explicit second step) */
+:root:not(#_) .ac-del{background:none;border:0;box-shadow:none;color:#A9BBAC;font:600 .85rem var(--f-body);text-decoration:underline;padding:8px;margin:4px auto 0;display:block;width:auto;min-height:0}
+:root:not(#_) .ac-del[hidden]{display:none}
+:root:not(#_) .ac-delbox{display:grid;gap:10px;background:rgba(255,126,115,.08);border:1px solid rgba(255,126,115,.4);border-radius:14px;padding:14px}
+:root:not(#_) .ac-delbox[hidden]{display:none}
+:root:not(#_) .ac-delbox p{margin:0;font-size:.9rem;color:#F6F8F0}
+:root:not(#_) .ac-delbox .danger{background:#FF7E73;color:#17231D;border:0;box-shadow:none;font-weight:800;border-radius:12px;min-height:44px;padding:8px 14px;flex:1}
+:root:not(#_) .ac-delbox .ghost{flex:1}
+
+/* Exit button in the brand green (Lin) */
+:root:not(#_) .exitbtn{color:#C7F58B;border-color:rgba(199,245,139,.55);background:rgba(199,245,139,.08)}
+:root:not(#_) .exitbtn:hover,:root:not(#_) .exitbtn:focus-visible{color:#17231D;background:#C7F58B;border-color:#C7F58B}

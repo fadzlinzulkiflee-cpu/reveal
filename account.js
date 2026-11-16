@@ -92,6 +92,18 @@
   });
   $("acEditBtn").addEventListener("click", startEdit);
   $("acOutBtn").addEventListener("click", async ()=>{ await A.signOut(); close(); });
+  // Delete my account: a second, explicit step inside the sheet
+  const delReset = ()=>{ $("acDelBox").hidden = true; $("acDelBtn").hidden = false; $("acDelErr").hidden = true; $("acDelYes").disabled = false; $("acDelYes").textContent = "Delete forever"; };
+  $("acDelBtn").addEventListener("click", ()=>{ $("acDelBox").hidden = false; $("acDelBtn").hidden = true; $("acDelNo").focus(); });
+  $("acDelNo").addEventListener("click", delReset);
+  $("acDelYes").addEventListener("click", async ()=>{
+    $("acDelYes").disabled = true; $("acDelYes").textContent = "Deleting…"; $("acDelErr").hidden = true;
+    const res = await A.deleteAccount();
+    if(res.ok){ delReset(); close(); return; }
+    $("acDelYes").disabled = false; $("acDelYes").textContent = "Delete forever";
+    $("acDelErr").textContent = res.msg; $("acDelErr").hidden = false;
+  });
+  dlg.addEventListener("close", delReset);
 
   let lastUser = null;
   A.on(async st=>{
