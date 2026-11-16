@@ -57,7 +57,11 @@
     $("meState").textContent = st.phase==="lobby" ? "In lobby" : st.phase==="over" ? ordinal(st.place||1)+" place" : st.out ? "Out" : "Still in";
     if(st.phase==="lobby"){ overCounted = false; return drawLobby(); }
     clearInterval(lobbyTimer);
+    // Ranked updates arrive about twice a second with the same phase, so only (re)draw what changed.
+    // Restarting the 3-2-1 or rebuilding the tiles on every update made the screen jump.
+    const sameRound = prev===st.phase && st.round===playRound;
     if(st.phase==="countdown"){
+      if(sameRound){ drawAlive(); return; }
       startPlay();
       // answer box stays focused through the 3-2-1 so the keyboard is already up at GO! (guesses wait for "play")
       $("guess").disabled = !!st.out; $("guessBtn").disabled = true;
@@ -72,19 +76,21 @@
       REVEAL_STAGE.banner(st.showdown ? "Final showdown · first correct answer wins" : null);
       updatePlay();
     } else if(st.phase==="reveal"){
-      clearInterval(clockTimer); REVEAL_STAGE.cancelCountdown(); show("reveal");
+      clearInterval(clockTimer); REVEAL_STAGE.cancelCountdown(); if(prev!=="reveal") show("reveal");
       $("answer").textContent = st.word;
       $("clueLine").innerHTML = `Clue: <em>${esc(st.hint||"")}</em>`;
       const sm = st.sum || { survived: st.alive, out: 0 };
-      $("sumRow").innerHTML = `<span><b>${sm.survived}</b>survived</span><span class="out"><b>${sm.out}</b>knocked out</span>`;
+      setHTML($("sumRow"), `<span><b>${sm.survived}</b>survived</span><span class="out"><b>${sm.out}</b>knocked out</span>`);
       const rm = $("revealMsg");
       rm.className = "big-msg " + (st.eliminated ? "bad" : st.out ? "" : "good");
       rm.textContent = st.eliminated ? "You're out!" : st.out ? "Spectating" : "You survived!";
-      $("feed").innerHTML = (st.feed||[]).map(f=>`<li>${f}</li>`).join("");
+      setHTML($("feed"), (st.feed||[]).map(f=>`<li>${f}</li>`).join(""));
       $("revealNote").textContent = st.finished ? "And that's the match…" : `${st.alive} still in. Next word coming up.`;
       if(prev!=="reveal" && st.eliminated && navigator.vibrate) try{ navigator.vibrate([60,40,60]); }catch(e){}
     } else if(st.phase==="over"){
-      clearInterval(clockTimer); REVEAL_STAGE.cancelCountdown(); REVEAL_STAGE.banner(null); show("over");
+      clearInterval(clockTimer); REVEAL_STAGE.cancelCountdown(); REVEAL_STAGE.banner(null);
+      if(prev==="over") return;
+      show("over");
       const won = st.place===1;
       if(!overCounted){   // count the match in your records (synced to your account next time the menu opens)
         overCounted = true;
@@ -107,6 +113,7 @@
       $("hostNote2").hidden = true;
     }
   }
+  function setHTML(el, html){ if(el._html!==html){ el._html = html; el.innerHTML = html; } }
   const ordinal = n => { const s=["th","st","nd","rd"], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); };
 
   function drawLobby(){
@@ -115,7 +122,7 @@
     const humans = st.players.filter(p=>!p.bot).length;
     $("lobbyNote").textContent = humans>1 ? `${humans} players found. Bots fill the empty seats when the match starts.` : "Waiting for more players. Bots fill the empty seats when the match starts.";
     const now = new Set(st.players.map(p=>p.n));
-    $("bubbles").innerHTML = st.players.map(p=>`<span class="bub${p.n===myName?" mine":""}${lastBubbles.has(p.n)?"":" fresh"}">${avHTML(p)}${esc(p.n)}${p.bot?' <small>BOT</small>':""}</span>`).join("");
+    setHTML($("bubbles"), st.players.map(p=>`<span class="bub${p.n===myName?" mine":""}${lastBubbles.has(p.n)?"":" fresh"}">${avHTML(p)}${esc(p.n)}${p.bot?' <small>BOT</small>':""}</span>`).join(""));
     lastBubbles = now;
     lobbyEnds = performance.now() + st.startsIn*1000;
     clearInterval(lobbyTimer);
@@ -125,7 +132,7 @@
 
   function drawAlive(){
     if(!st.players) return;
-    $("alive").innerHTML = st.players.map(p=>avHTML(p, (p.out?" x":p.l?" ok":"")+(p.n===myName?" mine":""))).join("");
+    setHTML($("alive"), st.players.map(p=>avHTML(p, (p.out?" x":p.l?" ok":"")+(p.n===myName?" mine":""))).join(""));
   }
 
   function startPlay(){
