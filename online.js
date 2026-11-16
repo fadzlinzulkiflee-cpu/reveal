@@ -52,7 +52,7 @@
     st = m;
     $("me").hidden = false; $("meName").textContent = myName;
     $("meState").textContent = st.phase==="lobby" ? "In lobby" : st.phase==="over" ? ordinal(st.place||1)+" place" : st.out ? "Out" : "Still in";
-    if(st.phase==="lobby") return drawLobby();
+    if(st.phase==="lobby"){ overCounted = false; return drawLobby(); }
     clearInterval(lobbyTimer);
     if(st.phase==="countdown"){
       startPlay();
@@ -83,6 +83,11 @@
     } else if(st.phase==="over"){
       clearInterval(clockTimer); REVEAL_STAGE.cancelCountdown(); REVEAL_STAGE.banner(null); show("over");
       const won = st.place===1;
+      if(!overCounted){   // count the match in your records (synced to your account next time the menu opens)
+        overCounted = true;
+        const bump = k => store.set(k, String(+(store.get(k)||0)+1));
+        bump("reveal-games"); bump("reveal-br-matches"); if(won) bump("reveal-br-wins");
+      }
       $("place").textContent = ordinal(st.place);
       $("myTitle").textContent = won ? (st.coWin ? "SURVIVOR" : "LAST ONE STANDING") : st.place<=3 ? "SO CLOSE" : "KNOCKED OUT";
       $("winner").textContent = st.winner;
@@ -158,7 +163,7 @@
     $("guess").disabled = true; $("guessBtn").disabled = true;
     send({t:"guess", g});
   });
-  let shareText = "";
+  let shareText = "", overCounted = false;
   $("shareBtn").addEventListener("click", e=>REVEAL_END.share(shareText + "\nThink fast. Guess faster.", e.currentTarget));
 
   // ============ MATCHMAKING ============
