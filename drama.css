@@ -121,3 +121,12 @@ button.again-hot{animation:none}
 .stage .splash.go{animation:pill 1.3s ease-out forwards}
 @keyframes pill{0%{opacity:0;transform:translate(-50%,-50%) scale(.92)}12%{opacity:1;transform:translate(-50%,-50%)}80%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(-50%,-60%)}}
 @media (prefers-reduced-motion:reduce){.stage .splash.go{animation:pill 1.3s steps(1) forwards}}
+/* long words (10+ letters): tighter tiles, answer box gets its own full-width row */
+.stage[data-long] .tiles{gap:3px}
+.stage[data-long] .t{--s:min(var(--smax,46px), calc((100cqw - (var(--n,8) - 1) * 3px) / var(--n,8)))}
+.stage[data-long] .t .f,.stage[data-long] .t .b{border-radius:6px}
+.stage[data-long] form.guess,.stage[data-long] #guessForm{flex-wrap:wrap}
+.stage[data-long] .slotwrap{flex:1 1 100%}
+.stage[data-long] form.guess button,.stage[data-long] #guessForm button{flex:1 1 100%}
+.stage[data-long] .t{height:calc(var(--s)*1.7)}
+.stage[data-long] .t .f,.stage[data-long] .t .b{font-size:calc(var(--s)*.85)}

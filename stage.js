@@ -24,7 +24,7 @@
 
   // tell CSS how many tiles there are so long words fit on one row
   const tiles = stage.querySelector("#tiles");
-  if(tiles){ const fit=()=>tiles.style.setProperty("--n", Math.max(1,tiles.children.length)); new MutationObserver(fit).observe(tiles,{childList:true}); fit(); }
+  if(tiles){ const fit=()=>{ const n=Math.max(1,tiles.children.length); tiles.style.setProperty("--n", n); stage.toggleAttribute("data-long", n>=10); }; new MutationObserver(fit).observe(tiles,{childList:true}); fit(); }
 
   // confetti
   const cv = document.createElement("canvas"); cv.className = "confetti"; stage.appendChild(cv);
