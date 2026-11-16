@@ -119,11 +119,11 @@ header{min-height:36px}
 body:has(#start:not([hidden])) header{display:none}
 .seg4 label{min-width:70px}
 </style>
-<link rel="stylesheet" href="stage.css?v=20261116w">
+<link rel="stylesheet" href="stage.css?v=20261116x">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
-<link rel="stylesheet" href="theme.css?v=20261116w">
-<link rel="stylesheet" href="drama.css?v=20261116w">
-<link rel="stylesheet" href="look.css?v=20261116w">
+<link rel="stylesheet" href="theme.css?v=20261116x">
+<link rel="stylesheet" href="drama.css?v=20261116x">
+<link rel="stylesheet" href="look.css?v=20261116x">
 <style>#play.stage{--ring:80px}</style>
 </head>
 <body>
@@ -272,7 +272,7 @@ body:has(#start:not([hidden])) header{display:none}
   </section>
 </div>
 
-<script src="words.js?v=20261116w"></script>
+<script src="words.js?v=20261116x"></script>
 <script>
 
 const UI = {
@@ -518,7 +518,8 @@ async function postDaily(){
 async function loadBoard(el){
   el.innerHTML = `<p class="lb-empty">Loading…</p>`;
   const rows = await REVEAL_DAILY.board();
-  REVEAL_DAILY.renderBoard(el, rows, REVEAL_DAILY.device());
+  const A = window.REVEAL_AUTH, u = A && A.state().user;
+  REVEAL_DAILY.renderBoard(el, rows, { uid: u && u.id });
 }
 function openBoard(){
   const D = REVEAL_DAILY, r = D.result();
@@ -536,7 +537,30 @@ function paintDaily(){
   $("dailySub").textContent = (st ? `${st}-day streak · ` : "") + (r ? `See where you rank · new words in ${D.hms(D.msToReset())}` : "Easy to hard · 30 s each · one try");
   $("dailyBtn").classList.toggle("done", !!r);
 }
-$("dailyBtn").addEventListener("click",()=>{ REVEAL_DAILY.result() ? openBoard() : newGame(true); });
+$("dailyBtn").addEventListener("click", async ()=>{
+  const D = REVEAL_DAILY, A = window.REVEAL_AUTH, st = A && A.state();
+  if(D.result()) return openBoard();
+  // One try per account: if this account already played today on another device, show the board instead
+  if(st && st.profile){
+    $("dailyBtn").disabled = true;
+    const row = await D.accountRow(st.user.id, await A.token());
+    $("dailyBtn").disabled = false;
+    if(row){ D.saveResult({ score:row.score, solved:row.solved, time_ms:row.time_ms, grid:"" }); store.set("reveal-daily-posted-"+D.today(),"1"); paintDaily(); return openBoard(); }
+  }
+  newGame(true);
+});
+// Signed in after playing today as a guest: put that score under the account (posted or not yet)
+window.REVEAL_DAILY_CLAIM = async function(){
+  const D = REVEAL_DAILY, A = window.REVEAL_AUTH, st = A && A.state();
+  if(!D.online() || !st || !st.profile || !D.result()) return;
+  const key = "reveal-daily-claimed-"+D.today()+"-"+st.user.id;
+  if(store.get(key)) return;
+  const token = await A.token(); if(!token) return;
+  if(store.get("reveal-daily-posted-"+D.today())){ if(await D.claim(token)) store.set(key,"1"); return; }
+  const r = D.result(), row = { day:D.today(), name:st.profile.username, score:r.score, solved:r.solved, time_ms:r.time_ms, device:D.device(), user_id:st.user.id };
+  const res = await D.submit(row, token);
+  if(res.ok){ store.set("reveal-daily-posted-"+D.today(),"1"); store.set(key,"1"); }
+};
 $("lbBtn").addEventListener("click",openBoard);
 
 $("lbBack").addEventListener("click",()=>{ $("lbView").hidden=true; $("start").hidden=false; applyUI(); });
@@ -560,12 +584,12 @@ const savedTime=store.get("reveal-time-v2");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
 applyUI(); demo();
 </script>
-<script src="stage.js?v=20261116w"></script>
-<script src="drama.js?v=20261116w"></script>
-<script src="daily.js?v=20261116w"></script>
+<script src="stage.js?v=20261116x"></script>
+<script src="drama.js?v=20261116x"></script>
+<script src="daily.js?v=20261116x"></script>
 <script src="vendor/supabase-js-2.118.0.min.js"></script>
-<script src="avatars.js?v=20261116w"></script>
-<script src="auth.js?v=20261116w"></script>
-<script src="account.js?v=20261116w"></script>
+<script src="avatars.js?v=20261116x"></script>
+<script src="auth.js?v=20261116x"></script>
+<script src="account.js?v=20261116x"></script>
 </body>
 </html>

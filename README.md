@@ -100,6 +100,7 @@ One-time setup (do this before merging, or the Sign in button leads to an error)
 2. **Supabase** → *Authentication* → *Sign In / Providers* → *Google*: enable, paste the Client ID and Client secret from step 1. The client secret goes only into Supabase, never into this repo or a chat.
 3. **Supabase** → *Authentication* → *URL Configuration*: Site URL `https://fadzlinzulkiflee-cpu.github.io/reveal/`, and add the redirect URL `https://fadzlinzulkiflee-cpu.github.io/reveal/**`. With a custom domain later, add it in both places and in step 1's origins.
 4. **Supabase** → *SQL Editor* → paste `supabase/accounts.sql` → *Run*.
+5. **Supabase** → *SQL Editor* → paste `supabase/daily-accounts.sql` → *Run*. Daily becomes one try per account (still one per device for guests), a guest score from today moves to the account on sign-in, and device ids are no longer readable by other players.
 
 Tests mock Supabase (the session proxy blocks supabase.co), so the first real sign-in happens live.
 

@@ -98,7 +98,7 @@
     paint(st);
     const uid = st.user && st.user.id;
     if(st.profile){ try{ localStorage.setItem("reveal-name", st.profile.username); }catch(e){} }   // online match name
-    if(st.profile && uid !== lastUser){ lastUser = uid; await A.syncStats(); if(typeof applyUI === "function") applyUI(); }
+    if(st.profile && uid !== lastUser){ lastUser = uid; await A.syncStats(); if(typeof applyUI === "function") applyUI(); if(window.REVEAL_DAILY_CLAIM) REVEAL_DAILY_CLAIM(); }
     if(!uid) lastUser = null;
   });
 })();
