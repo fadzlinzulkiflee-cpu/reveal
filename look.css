@@ -200,3 +200,25 @@
 :root:not(#_) .stage .splash b{white-space:nowrap;font-size:clamp(1.1rem,5vw,1.5rem)}
 :root:not(#_) .stage .splash span{white-space:nowrap}
 @media (max-width:460px){:root:not(#_) .stage .splash span{display:none}}
+
+/* ---------- menu cards and buttons in the dark green theme (Lin, 16 Nov): flat, premium, lime accents ---------- */
+:root:not(#_) .mode{background:#23372B!important;color:#F6F8F0!important;border:1px solid rgba(246,248,240,.08)!important;box-shadow:none!important;
+  padding:14px 16px!important;border-radius:18px!important;transition:transform .12s ease,border-color .2s,background-color .2s}
+:root:not(#_) .mode:hover{border-color:rgba(199,245,139,.45)!important}
+:root:not(#_) .mode:active{transform:scale(.98);box-shadow:none!important}
+:root:not(#_) .mode .mi{background:rgba(199,245,139,.12);border-radius:14px}
+:root:not(#_) .mode .mi svg{fill:#C7F58B}
+:root:not(#_) .mode .mt>b,:root:not(#_) .mode .mt>span:first-child{color:#F6F8F0;font-family:"Archivo","Archivo Black",sans-serif;font-weight:900;font-style:italic;font-size:1.2rem;letter-spacing:-.01em}
+:root:not(#_) .mode small,:root:not(#_) .mode .ds,:root:not(#_) .mode .dk{color:#A9BBAC;opacity:1}
+:root:not(#_) .mode .badge{background:#C7F58B;color:#17231D}
+:root:not(#_) .mode.m-solo{background:#C7F58B!important;border-color:transparent!important}
+:root:not(#_) .mode.m-solo .mt>b{color:#17231D}
+:root:not(#_) .mode.m-solo small{color:#17231D;opacity:.7}
+:root:not(#_) .mode.m-solo .mi{background:rgba(23,35,29,.12)}
+:root:not(#_) .mode.m-solo .mi svg{fill:#17231D}
+:root:not(#_) .mode.done{filter:none;opacity:.8}
+/* flat lime buttons: no 3D edge, gentle press */
+:root:not(#_) button.primary,:root:not(#_) .btn.primary,:root:not(#_) .stage button.primary{box-shadow:none;border-radius:16px}
+:root:not(#_) button.primary:active:not(:disabled),:root:not(#_) .btn.primary:active,:root:not(#_) .stage button.primary:active:not(:disabled){transform:scale(.97);box-shadow:none}
+:root:not(#_) button.primary:disabled{box-shadow:none;transform:none}
+:root:not(#_) .stage .splash,:root:not(#_) .stage .splash.fire,:root:not(#_) .stage .splash.clutch{box-shadow:0 10px 24px -12px rgba(0,0,0,.6)}
