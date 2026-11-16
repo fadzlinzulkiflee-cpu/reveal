@@ -6,8 +6,8 @@
 <title>REVEAL Controller</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
-<link rel="stylesheet" href="party.css?v=20261116d">
-<link rel="stylesheet" href="stage.css?v=20261116d">
+<link rel="stylesheet" href="party.css?v=20261116e">
+<link rel="stylesheet" href="stage.css?v=20261116e">
 <style>
 /* Layout: one phone column; header with room + score, one card that changes with the game phase. */
 .wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px;
@@ -31,7 +31,7 @@ form.join input{width:100%}
 .err{color:var(--bad);font-weight:600;text-align:center}
 #play.stage{--ring:96px}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261116d">
+<link rel="stylesheet" href="theme.css?v=20261116e">
 </head>
 <body>
 <div class="wrap">
@@ -101,14 +101,14 @@ form.join input{width:100%}
 </div>
 
 <script src="vendor/peerjs-1.5.4.min.js"></script>
-<script src="net.js?v=20261116d"></script>
+<script src="net.js?v=20261116e"></script>
 <script>
 const $ = id => document.getElementById(id);
 const NET = window.REVEAL_NET;
 const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}} };
 const q = new URLSearchParams(location.search);
 
-let peer=null, conn=null, st=null, timer=0, cooldownUntil=0, lastPattern="", joined=false;
+let peer=null, conn=null, st=null, timer=0, cooldownUntil=0, wrongCount=0, lastPattern="", joined=false;
 let token = store.get("reveal-token"); if(!token){ token = Math.random().toString(36).slice(2)+Date.now().toString(36); store.set("reveal-token",token); }
 
 $("codeIn").value = (q.get("room")||"").toUpperCase();
@@ -197,7 +197,7 @@ function onMsg(m){
 
 let playRound = -1, deadline = 0;
 function startPlay(){
-  show("play"); playRound = st.round; lastPattern="";
+  show("play"); playRound = st.round; lastPattern=""; wrongCount=0;
   const n = st.pattern.length;
   $("tiles").style.setProperty("--fit", `min(46px, calc((min(100vw, 520px) - 80px) / ${n} - 6px))`);
   $("tiles").innerHTML = [...st.pattern].map(()=>`<div class="t"><div class="in"><div class="f"></div><div class="b"></div></div></div>`).join("");
@@ -244,8 +244,10 @@ function onResult(r){
     st.failed=true; m.className="msg bad"; m.textContent="Wrong! You're out after this round.";
     inp.disabled=true; $("guessBtn").disabled=true; shake();
   } else {
-    m.className="msg bad"; m.textContent=`Not it. Try again in ${r.cooldown} seconds.`;
-    inp.value=""; cooldownUntil = performance.now()+r.cooldown*1000; shake(); drawClock();
+    if(typeof r.score==="number"){ st.score=r.score; $("meScore").textContent = `${st.score} pts`; }
+    m.className="msg bad"; m.textContent = r.cost ? `Not it. −${r.cost} points` : "Not it.";
+    if(++wrongCount>1) m.textContent += ` (×${wrongCount})`;
+    inp.value=""; inp.focus({preventScroll:true}); shake();
   }
 }
 function shake(){ const inp=$("guess"); inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake"); }
@@ -259,6 +261,6 @@ $("guessForm").addEventListener("submit", e=>{
 $("startBtn").addEventListener("click", ()=>conn && conn.send({t:"start"}));
 $("nextBtn").addEventListener("click", ()=>conn && conn.send({t:"next"}));
 </script>
-<script src="stage.js?v=20261116d"></script>
+<script src="stage.js?v=20261116e"></script>
 </body>
 </html>

@@ -16,8 +16,8 @@ For big-screen games, the files must be served from a web address (for example G
 
 - **Language:** English, aimed at adults and families.
 - **Modes:**
-  - *Solo:* chase your best score. A wrong guess costs 3 seconds.
-  - *Party (big screen):* everyone guesses the same word on their own phone. Every correct guess scores, faster scores more, and the first correct guess gets +25. A wrong guess locks that phone for 3 seconds. 10 words.
+  - *Solo:* chase your best score. A wrong guess costs 50 points.
+  - *Party (big screen):* everyone guesses the same word on their own phone. Every correct guess scores, faster scores more, and the first correct guess gets +25. A wrong guess costs 50 points (score never goes below 0). 10 words.
   - *Royale (big screen, 2–12 players):* same word for everyone. A wrong guess, or not answering before time runs out, disqualifies you, and so does the slowest correct answer. The TV shows a live ranking with answer times and how many players remain. If nobody gets it, nobody is out. Last one standing wins. When two players are left it becomes a **final showdown**: the first correct answer wins.
 
 - **Level:** Easy, Medium, Hard or Mixed. Words don't repeat on a device until every word at that level has been played.
@@ -26,7 +26,7 @@ For big-screen games, the files must be served from a web address (for example G
 - **Sound and vibration:** letter pops, a ticking last 5 seconds, right/wrong sounds; phones vibrate on right or wrong. Mute with the Sound button.
 - **Rounds:** 10 words per game, with 20, 30 (default) or 45 seconds per word.
 - **Reveal:** one letter opens every `time / letters` seconds, in random order. The last letter stays hidden until time runs out.
-- **Scoring:** `50 + 100 × (time left / total time) + 15 × hidden letters`. In Solo a wrong guess costs 3 seconds.
+- **Scoring:** `50 + 100 × (time left / total time) + 15 × hidden letters`. In Solo and Party a wrong guess costs 50 points.
 - **Best score** is kept in the browser's local storage.
 
 ## How big-screen mode connects

@@ -111,9 +111,9 @@ header{min-height:36px}
 body:has(#start:not([hidden])) header{display:none}
 .seg4 label{min-width:70px}
 </style>
-<link rel="stylesheet" href="stage.css?v=20261116d">
+<link rel="stylesheet" href="stage.css?v=20261116e">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
-<link rel="stylesheet" href="theme.css?v=20261116d">
+<link rel="stylesheet" href="theme.css?v=20261116e">
 </head>
 <body>
 
@@ -194,22 +194,22 @@ body:has(#start:not([hidden])) header{display:none}
   </section>
 </div>
 
-<script src="words.js?v=20261116d"></script>
+<script src="words.js?v=20261116e"></script>
 <script>
 
 const UI = {
   en:{round:"Round",pts:"Points",tag:"Guess before it's revealed",title:"One word. One hint. The clock is running.",
     lead:"Every few seconds a letter flips open. Guess early to score more.",
     timePick:"Time per word",fast:"Fast",normal:"Normal",relaxed:"Relaxed",
-    rules:["<b>Read the hint</b> and count the letters.","<b>Letters flip open one by one</b> as time runs.","<b>Guess any time.</b> The earlier, the more points.","Wrong guess? <b>Lose 3 seconds.</b>","<b>Streak:</b> +10 for each word in a row you get right, up to +50."],
+    rules:["<b>Read the hint</b> and count the letters.","<b>Letters flip open one by one</b> as time runs.","<b>Guess any time.</b> The earlier, the more points.","Wrong guess? <b>Lose 50 points.</b>","<b>Streak:</b> +10 for each word in a row you get right, up to +50."],
     start:"Start game",best:"Best",guessBtn:"Guess",skip:"Skip",nextWord:"Next word",
     nextIn:s=>`Next letter in ${s}s`,lastHidden:"The last letter stays hidden",
-    right:(p)=>`Correct! +${p} points`,wrong:"Not it. −3 seconds",timeup:w=>`Time's up. It was ${w}.`,skipped:w=>`Skipped. It was ${w}.`,
+    right:(p)=>`Correct! +${p} points`,wrong:"Not it. −50 points",timeup:w=>`Time's up. It was ${w}.`,skipped:w=>`Skipped. It was ${w}.`,
     final:"Final score",menu:"Menu",again:"Play again",seeResults:"See results",
     endNote:(c,n)=>`You guessed ${c} of ${n} words.`,newBest:" New best score!",short:"Too short"}
 };
 
-const ROUNDS = 10, PENALTY = 3;
+const ROUNDS = 10, WRONG_COST = 50;
 const $ = id => document.getElementById(id);
 const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}} };
 let S = null, raf = 0;
@@ -256,7 +256,7 @@ function nextWord(){
   if(S.i>=S.words.length) return endGame();
   const [word,hint]=S.words[S.i];
   const n=word.length;
-  S.cur={word,hint,n,order:shuffle([...Array(n).keys()]),shown:0,start:performance.now(),penalty:0,done:false};
+  S.cur={word,hint,n,order:shuffle([...Array(n).keys()]),shown:0,start:performance.now(),penalty:0,wrong:0,done:false};
   $("rn").textContent=S.i+1;
   $("tiles").innerHTML=[...word].map(c=>tileHTML(c,false)).join("");
   $("hint").textContent = hint;
@@ -321,9 +321,9 @@ $("form").addEventListener("submit",e=>{
   const g=$("guess").value.toUpperCase().replace(/[^A-Z]/g,"");
   if(!g) return;
   if(g===c.word) return finish("right");
-  c.penalty+=PENALTY;
+  S.score=Math.max(0,S.score-WRONG_COST); $("sc").textContent=S.score;
   const inp=$("guess"); inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake");
-  $("msg").className="msg bad"; $("msg").textContent = g.length<c.n ? `${t("short")} · ${t("wrong")}` : t("wrong");
+  $("msg").className="msg bad"; $("msg").textContent = (g.length<c.n ? `${t("short")} · ${t("wrong")}` : t("wrong")) + (++c.wrong>1 ? ` (×${c.wrong})` : "");
   inp.value=""; inp.focus({preventScroll:true});
 });
 $("skip").addEventListener("click",()=>finish("skip"));
@@ -349,6 +349,6 @@ const savedTime=store.get("reveal-time-v2");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
 applyUI(); demo();
 </script>
-<script src="stage.js?v=20261116d"></script>
+<script src="stage.js?v=20261116e"></script>
 </body>
 </html>

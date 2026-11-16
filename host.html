@@ -6,8 +6,8 @@
 <title>REVEAL Big Screen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
-<link rel="stylesheet" href="party.css?v=20261116d">
-<link rel="stylesheet" href="stage.css?v=20261116d">
+<link rel="stylesheet" href="party.css?v=20261116e">
+<link rel="stylesheet" href="stage.css?v=20261116e">
 <style>
 /* Layout: TV-first. Main stage on the left, players rail on the right; stacks on narrow screens. */
 body{font-size:clamp(16px,1.25vw,22px)}
@@ -62,7 +62,7 @@ body{font-size:clamp(16px,1.25vw,22px)}
 .pod.p3 .block{height:clamp(70px,10vh,110px)}
 #play.stage{--ring:clamp(110px,11vw,190px)}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261116d">
+<link rel="stylesheet" href="theme.css?v=20261116e">
 </head>
 <body>
 <div class="screen">
@@ -154,10 +154,10 @@ body{font-size:clamp(16px,1.25vw,22px)}
 
 <script src="vendor/peerjs-1.5.4.min.js"></script>
 <script src="vendor/qrcode-generator-1.4.4.js"></script>
-<script src="words.js?v=20261116d"></script>
-<script src="net.js?v=20261116d"></script>
+<script src="words.js?v=20261116e"></script>
+<script src="net.js?v=20261116e"></script>
 <script>
-const PARTY_ROUNDS = 10, ROYALE_MAX = 12, COOLDOWN = 3, FIRST_BONUS = 25;
+const PARTY_ROUNDS = 10, ROYALE_MAX = 12, WRONG_COST = 50, FIRST_BONUS = 25;
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const shuffle = a => {a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -376,8 +376,8 @@ function onGuess(p, raw){
     p.rd.failed=true;
     send(p,{t:"result", ok:false, out:true});
   } else {
-    p.rd.cooldownUntil = now + COOLDOWN*1000;
-    send(p,{t:"result", ok:false, cooldown:COOLDOWN});
+    p.score = Math.max(0, p.score - WRONG_COST);
+    send(p,{t:"result", ok:false, cost:WRONG_COST, score:p.score});
   }
   renderPlayers(); checkRoundEnd();
 }
@@ -478,6 +478,6 @@ window.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ") && doc
 
 openRoom(); renderPlayers();
 </script>
-<script src="stage.js?v=20261116d"></script>
+<script src="stage.js?v=20261116e"></script>
 </body>
 </html>
