@@ -30,15 +30,20 @@
   }
 
   // splash text + flying points
+  // On the player's screen the praise takes the answer box's place and stays until the next word.
   const splash = document.createElement("div"); splash.className = "splash"; splash.setAttribute("aria-hidden","true");
-  stage.appendChild(splash);
+  const form = inp && inp.form;
+  if(form && msg){ splash.classList.add("inline"); form.after(splash); } else stage.appendChild(splash);
   function showSplash(word, sub, kind){
-    splash.className = "splash " + (kind||"");
+    splash.className = "splash " + (kind||"") + (form && msg ? " inline" : "");
     splash.innerHTML = `<b>${word}</b>` + (sub ? `<span>${sub}</span>` : "");
-    const anchor = stage.querySelector(".slotwrap") || inp || msg, sr = stage.getBoundingClientRect();
-    if(anchor){ const r = anchor.getBoundingClientRect(); splash.style.top = (r.top - sr.top + r.height/2) + "px"; }
+    if(!splash.classList.contains("inline")){
+      const anchor = stage.querySelector(".slotwrap") || inp || msg, sr = stage.getBoundingClientRect();
+      if(anchor){ const r = anchor.getBoundingClientRect(); splash.style.top = (r.top - sr.top + r.height/2) + "px"; }
+    } else stage.classList.add("won");
     void splash.offsetWidth; splash.classList.add("go");
   }
+  function clearSplash(){ stage.classList.remove("won"); splash.classList.remove("go"); }
   function flyPoints(text){
     if(reduce) return;
     const el = document.createElement("div"); el.className = "flypts"; el.textContent = text;
@@ -68,13 +73,13 @@
       const tx = msg.textContent;
       if(k==="good" && prevK!=="good" && /\+\d+/.test(tx)){
         const [w, sub, kind] = judge(); showSplash(w, sub, kind);
-        flyPoints(tx.match(/\+\d+/)[0]);
         if(kind==="zap" || kind==="genius") play("whoosh");
       }
       if(k==="bad" && tx && tx!==prevT){
         stage.classList.remove("shake"); void stage.offsetWidth; stage.classList.add("shake");
         const m = tx.match(/−\d+/); if(m) flyPoints(m[0]+" pts");
       }
+      if(k!=="good" && prevK==="good") clearSplash();
       prevK = k; prevT = tx;
     }).observe(msg,{attributes:true,attributeFilter:["class"],childList:true,characterData:true,subtree:true});
   }
