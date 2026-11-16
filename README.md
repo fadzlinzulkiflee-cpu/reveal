@@ -81,3 +81,16 @@ create policy "anyone can read" on daily_scores for select using (true);
 create policy "post for today only" on daily_scores for insert
   with check (day between current_date - 1 and current_date + 1);
 ```
+
+## Online Battle Royale (beta, unranked)
+
+`online.html` + `online.js`. Ranked Play on the menu opens it. No game server is needed:
+
+- The first player to search claims a lobby id (`reveal-br-v1-lobby-0..3`) on the PeerJS broker. That player's device hosts the match.
+- Others who search connect to the lobby id, get the host's game id, and join.
+- The lobby waits 20 s (or until 20 players), then bots fill the match up to 10 players. Bots are marked BOT.
+- When the match starts, the host drops the lobby id, so the next searcher opens a new lobby.
+- Rules match the TV Royale: 20 s per word, mixed difficulty. A wrong answer or no answer puts you out, and so does the slowest correct answer. If nobody gets it, everyone stays. With 2 left, the first correct answer wins.
+- If the host closes the page, the match ends for everyone. This is fine for a prototype; ranked play will move hosting to a server.
+
+Test overrides: `?lobby=6&t=8&rv=2&size=8&bots=0` plus the usual `peerhost/peerport/peerpath/peersecure`.
