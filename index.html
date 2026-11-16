@@ -110,9 +110,9 @@ td .w{font-family:var(--f-display);font-weight:800;letter-spacing:.06em}
 header{min-height:36px}
 body:has(#start:not([hidden])) header{display:none}
 </style>
-<link rel="stylesheet" href="stage.css">
+<link rel="stylesheet" href="stage.css?v=20261116b">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
-<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="theme.css?v=20261116b">
 </head>
 <body>
 
@@ -184,7 +184,7 @@ body:has(#start:not([hidden])) header{display:none}
   </section>
 </div>
 
-<script src="words.js"></script>
+<script src="words.js?v=20261116b"></script>
 <script>
 
 const UI = {
@@ -325,6 +325,6 @@ const savedTime=store.get("reveal-time-v2");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
 applyUI(); demo();
 </script>
-<script src="stage.js"></script>
+<script src="stage.js?v=20261116b"></script>
 </body>
 </html>
