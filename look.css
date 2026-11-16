@@ -4,13 +4,13 @@
 
 /* ---------- tokens ---------- */
 :root:not([data-screen="tv"]):not(#_){
-  --bg:#E6EAF2; --surface:#F4F6FA; --raised:#DDE2EC; --edge:#C9D0DE; --line:#C9D0DE;
-  --ink:#1E2433; --muted:#5D6578; --field:#FFFFFF;
+  --bg:#ECE7F6; --surface:#F7F4FC; --raised:#DDD5EE; --edge:#B8AAD6; --line:#D0C6E6;
+  --ink:#231E33; --muted:#655D7A; --field:#FFFFFF;
   --lime:#C7F58B; --lime-d:#86BC4F; --lime-ink:#17231D; --lime-text:#3E7A1E;
   --sun:#FFC15E; --sun-d:#D9902A; --sky:#7FCBFF; --sky-d:#3C93D0; --grape:#C4A1FF; --grape-d:#8A62D6; --coral:#FF7E73; --coral-d:#D0493F;
-  --tile:#C7F58B; --tile-ink:#17231D; --hidden:#DDE2EC; --hidden-mark:#5D6578;
+  --tile:#C7F58B; --tile-ink:#17231D; --hidden:#DDD5EE; --hidden-mark:#655D7A;
   --accent:#C7F58B; --accent-ink:#17231D; --good:#3E7A1E; --bad:#D0493F;
-  --shadow:rgba(30,36,51,.12);
+  --shadow:rgba(35,30,51,.14);
   color-scheme:light;
 }
 :root:not(#_){
@@ -21,18 +21,22 @@
 :root:not([data-screen="tv"]):not(#_) .card{background:var(--surface);border:0;box-shadow:0 10px 30px -18px var(--shadow)}
 :root:not([data-screen="tv"]):not(#_) .eyebrow,:root:not([data-screen="tv"]):not(#_) .muted,:root:not([data-screen="tv"]):not(#_) .lead,:root:not([data-screen="tv"]):not(#_) .next,:root:not([data-screen="tv"]):not(#_) .foot{color:var(--muted)}
 
-/* ---------- logo: game tiles, one hidden, orange dot ---------- */
-:root:not(#_) .logo{font-family:var(--f-display);letter-spacing:.01em}
-:root:not(#_) .logo i{background:var(--sun)!important;box-shadow:0 .08em 0 var(--sun-d)}
-:root:not(#_) .biglogo{display:inline-flex;gap:.14em;align-items:flex-end;font-size:clamp(2.6rem,13vw,3.6rem);letter-spacing:0;color:#17231D}
-:root:not(#_) .biglogo span{width:1.02em;height:1.14em;display:grid;place-items:center;border-radius:.24em;background:var(--lime);color:#17231D;
-  box-shadow:inset 0 -.08em 0 rgba(0,0,0,.16),0 .08em 0 var(--lime-d);line-height:1;font-size:.8em;transform:rotate(var(--r,0deg))}
-:root:not(#_) .biglogo span:nth-child(1){--r:-4deg}:root:not(#_) .biglogo span:nth-child(2){--r:3deg}:root:not(#_) .biglogo span:nth-child(3){--r:-2deg}
-:root:not(#_) .biglogo span:nth-child(5){--r:3deg}:root:not(#_) .biglogo span:nth-child(6){--r:-3deg}
-:root:not(#_) .biglogo span:nth-child(4){background:var(--raised,#DDE2EC);color:transparent;position:relative;box-shadow:inset 0 -.08em 0 rgba(0,0,0,.12),0 .08em 0 var(--edge,#C9D0DE)}
-:root:not(#_) .biglogo span:nth-child(4)::after{content:"?";position:absolute;inset:0;display:grid;place-items:center;color:var(--muted)}
-:root:not(#_) .biglogo i{width:.26em;height:.26em;margin-left:.06em;margin-bottom:.06em}
-:root:not([data-screen="tv"]):not(#_) .tagline{color:var(--muted)}
+/* ---------- logo (option B "Frame"): heavy italic REVEAL, lime corner frame, lime dot ---------- */
+:root:not(#_) .logo{font-family:"Archivo","Archivo Black","Arial Black",sans-serif;font-style:italic;font-weight:900;letter-spacing:-.02em}
+:root:not(#_) .logo i{background:var(--lime)!important;box-shadow:none;border-radius:50%}
+:root:not([data-screen="tv"]):not(#_) .logo i{box-shadow:0 0 0 .04em var(--lime-d)}
+:root:not(#_) .biglogo{position:relative;display:inline-flex;align-items:baseline;font-size:clamp(3rem,15vw,4.4rem);line-height:1;letter-spacing:-.03em;color:var(--ink);padding:.12em .1em .1em .32em;margin:0}
+:root:not(#_) .biglogo .wm{font:inherit;color:inherit;animation:wmIn .55s cubic-bezier(.2,1.2,.4,1) both}
+:root:not(#_) .biglogo::before{content:"";position:absolute;left:0;top:0;width:1.45em;height:100%;border:.085em solid var(--lime);border-right:0;border-radius:.22em 0 0 .22em;
+  transform:skewX(-14deg);transform-origin:0 100%;animation:frameIn .5s .15s ease-out both}
+:root:not(#_) .biglogo::after{content:"";position:absolute;left:1.36em;top:0;width:.32em;height:.085em;background:var(--lime);border-radius:0 .05em .05em 0;transform:skewX(-14deg);transform-origin:0 100%;animation:frameIn .5s .15s ease-out both}
+:root:not([data-screen="tv"]):not(#_) .biglogo::before{filter:drop-shadow(0 .03em 0 var(--lime-d))}
+:root:not(#_) .biglogo i{width:.2em;height:.2em;margin-left:.06em;animation:dotIn .4s .45s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes wmIn{from{opacity:0;transform:translateX(-.2em)}to{opacity:1;transform:none}}
+@keyframes frameIn{from{opacity:0}to{opacity:1}}
+:root:not(#_) .tagline{font-style:italic;font-weight:900;letter-spacing:.22em}
+:root:not([data-screen="tv"]):not(#_) .tagline{color:var(--ink)}
+@media (prefers-reduced-motion:reduce){:root:not(#_) .biglogo .wm,:root:not(#_) .biglogo::before,:root:not(#_) .biglogo::after,:root:not(#_) .biglogo i{animation:none}}
 
 /* ---------- buttons: chunky, sink when pressed ---------- */
 :root:not(#_) button,:root:not(#_) .btn{font-family:var(--f-display);font-weight:400;letter-spacing:.03em}
@@ -42,7 +46,7 @@
 :root:not(#_) button.primary:disabled{opacity:.5;box-shadow:inset 0 -4px 0 rgba(0,0,0,.08),0 2px 0 var(--d);transform:translateY(3px)}
 :root:not([data-screen="tv"]):not(#_) button:not(.primary):not(.mode):not(.install),:root:not([data-screen="tv"]):not(#_) .btn:not(.primary):not(.mode){background:var(--surface);color:var(--ink);border:0;box-shadow:inset 0 -3px 0 rgba(0,0,0,.06),0 4px 0 var(--edge)}
 :root:not([data-screen="tv"]):not(#_) button.ghost{background:var(--raised);color:var(--muted);box-shadow:0 4px 0 var(--edge)}
-:root:not([data-screen="tv"]):not(#_) button:focus-visible,:root:not([data-screen="tv"]):not(#_) .btn:focus-visible{outline:3px solid #1E2433;outline-offset:3px}
+:root:not([data-screen="tv"]):not(#_) button:focus-visible,:root:not([data-screen="tv"]):not(#_) .btn:focus-visible{outline:3px solid #231E33;outline-offset:3px}
 :root:not([data-screen="tv"]):not(#_) .install{background:none;box-shadow:none;color:var(--muted);font-family:var(--f-body);font-weight:800}
 :root:not([data-screen="tv"]):not(#_) .install:hover{color:var(--ink)}
 
@@ -68,7 +72,7 @@
 
 /* ---------- settings sheet ---------- */
 :root:not([data-screen="tv"]):not(#_) .sheet{background:var(--surface);color:var(--ink);box-shadow:0 -20px 50px -20px var(--shadow)}
-:root:not([data-screen="tv"]):not(#_) .sheet::backdrop{background:rgba(30,36,51,.35)}
+:root:not([data-screen="tv"]):not(#_) .sheet::backdrop{background:rgba(35,30,51,.35)}
 :root:not([data-screen="tv"]):not(#_) .tog{background:var(--field);box-shadow:0 3px 0 var(--edge)}
 :root:not([data-screen="tv"]):not(#_) .tog input{background:var(--edge)}
 :root:not([data-screen="tv"]):not(#_) .tog input::after{background:#fff}
@@ -101,8 +105,8 @@
 :root:not([data-screen="tv"]):not(#_) .stage .hint p{color:var(--ink)}
 :root:not([data-screen="tv"]):not(#_) input[type=text],:root:not([data-screen="tv"]):not(#_) .stage input[type=text]{background:var(--field);color:var(--ink);border:2px solid var(--line);box-shadow:inset 0 3px 0 rgba(30,36,51,.04)}
 :root:not([data-screen="tv"]):not(#_) input[type=text]:focus,:root:not([data-screen="tv"]):not(#_) .stage input[type=text]:focus{border-color:var(--lime-d);box-shadow:0 0 0 4px rgba(134,188,79,.22)}
-:root:not([data-screen="tv"]):not(#_) input[type=text]::placeholder{color:#9AA2B4}
-:root:not([data-screen="tv"]):not(#_) .slots .s{color:#A3ABBD}
+:root:not([data-screen="tv"]):not(#_) input[type=text]::placeholder{color:#A39BB8}
+:root:not([data-screen="tv"]):not(#_) .slots .s{color:#ABA3C0}
 :root:not([data-screen="tv"]):not(#_) .slots .s.on{color:var(--ink)}
 :root:not([data-screen="tv"]):not(#_) .slots .s.cur{color:var(--lime-text)}
 :root:not([data-screen="tv"]):not(#_) .msg.good,:root:not([data-screen="tv"]):not(#_) .stage .msg.good{color:var(--lime-text);text-shadow:none}
@@ -112,7 +116,7 @@
 :root:not([data-screen="tv"]):not(#_) .stage.lowtime:not(.frozen){background:#FCEAE7}
 :root:not([data-screen="tv"]):not(#_) .stage .vignette{background:radial-gradient(130% 100% at 50% 50%, transparent 62%, rgba(255,126,115,.25) 100%)}
 :root:not([data-screen="tv"]):not(#_) .stats{color:var(--muted)} :root:not([data-screen="tv"]):not(#_) .stats b{color:var(--ink)}
-:root:not([data-screen="tv"]):not(#_) .countdown{background:rgba(230,234,242,.75)}
+:root:not([data-screen="tv"]):not(#_) .countdown{background:rgba(236,231,246,.78)}
 :root:not([data-screen="tv"]):not(#_) .countdown b{background:var(--field);border:0;color:var(--ink);box-shadow:0 6px 0 var(--edge)}
 :root:not(#_) .countdown b{font-family:var(--f-display)}
 :root:not(#_) .countdown b.go{background:var(--lime);color:#17231D;box-shadow:0 6px 0 var(--lime-d)}
@@ -156,8 +160,9 @@
 :root:not([data-screen="tv"]):not(#_) header a.back{color:var(--muted)}
 :root:not([data-screen="tv"]):not(#_) .me{color:var(--muted)} :root:not([data-screen="tv"]):not(#_) .me b{color:var(--ink)}
 
-/* logo tiles keep their tilt after the entrance animation */
-:root:not(#_) .biglogo span{animation-name:tileIn}
-@keyframes tileIn{from{opacity:0;transform:translateY(14px) scale(.6) rotate(var(--r,0deg))}to{opacity:1;transform:rotate(var(--r,0deg))}}
 :root:not(#_) .home .actions.menu{gap:14px}
 :root:not([data-screen="tv"]):not(#_) form.find input,:root:not([data-screen="tv"]):not(#_) #nameIn{letter-spacing:.02em}
+
+/* home demo spells REVEAL: six tiles on one row */
+:root:not(#_) .home .tiles{flex-wrap:nowrap;gap:6px}
+:root:not(#_) .home .tiles .t{--s:clamp(38px,11.5vw,52px)}
