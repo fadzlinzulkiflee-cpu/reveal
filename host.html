@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>REVEAL Big Screen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="party.css">
+<style>
+/* Layout: TV-first. Main stage on the left, players rail on the right; stacks on narrow screens. */
+body{font-size:clamp(16px,1.25vw,22px)}
+.screen{min-height:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,26%);gap:24px;
+  padding-block:24px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+@media (max-width:820px){.screen{grid-template-columns:1fr;gap:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}}
+.stage{display:flex;flex-direction:column;gap:22px;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.roomtag{font-family:var(--f-mono);color:var(--muted)}
+.roomtag b{color:var(--ink);letter-spacing:.15em}
+.lobby{display:grid;grid-template-columns:auto minmax(0,1fr);gap:28px;align-items:center}
+@media (max-width:820px){.lobby{grid-template-columns:1fr;justify-items:center;text-align:center}}
+.qr{background:#fff;padding:14px;border-radius:16px;width:min(300px,70vw);aspect-ratio:1;max-width:100%}
+.qr svg{width:100%;height:100%;display:block}
+.code{font-family:var(--f-mono);font-weight:700;font-size:clamp(2.6rem,6vw,4.6rem);letter-spacing:.2em;line-height:1}
+.joinurl{font-family:var(--f-mono);font-size:.85rem;color:var(--muted);word-break:break-all}
+.big .t{--s:clamp(44px,6.2vw,96px)}
+.big.hint p{font-size:clamp(1.2rem,2.2vw,2rem)}
+.big.clock{font-size:clamp(2.4rem,5vw,4.5rem)}
+.toprow{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.next{color:var(--muted)}
+.rail{display:flex;flex-direction:column;gap:12px;min-width:0}
+.players{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.players li{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.players .nm{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.players .sc{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.players .st{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-radius:6px;padding:2px 7px;background:var(--hidden);color:var(--muted)}
+.players .st.ok{background:var(--good);color:#fff}
+.players .st.bad{background:var(--bad);color:#fff}
+.players li.out{opacity:.45}
+.players li.out .nm{text-decoration:line-through}
+.players li.off .nm::after{content:" · offline";font-weight:400;color:var(--muted)}
+.empty{color:var(--muted);border:2px dashed var(--line);border-radius:12px;padding:16px;text-align:center}
+.answer{font-family:var(--f-display);font-weight:800;font-size:clamp(2rem,5vw,4rem);letter-spacing:.08em}
+.winner{font-family:var(--f-display);font-weight:800;font-size:clamp(2.2rem,6vw,5rem);line-height:1.05}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.err{color:var(--bad);font-weight:600}
+</style>
+</head>
+<body>
+<div class="screen">
+  <main class="stage">
+    <div class="top">
+      <div class="logo" aria-label="REVEAL"><span class="on">R</span><span>E</span><span class="on">V</span><span>E</span><span class="on">A</span><span>L</span></div>
+      <span class="roomtag" id="roomtag" hidden>Room <b id="roomSmall"></b></span>
+    </div>
+
+    <!-- LOBBY -->
+    <section class="card" id="lobby">
+      <div class="lobby">
+        <div class="qr" id="qr" aria-label="QR code to join"></div>
+        <div style="display:grid;gap:14px;min-width:0">
+          <p class="eyebrow">Scan to join, or open the link and enter the code</p>
+          <div class="code" id="code">····</div>
+          <p class="joinurl" id="joinurl">Opening a room…</p>
+          <p class="err" id="neterr" hidden></p>
+        </div>
+      </div>
+      <div style="display:grid;gap:8px">
+        <p class="eyebrow">Mode</p>
+        <div class="seg">
+          <label><input type="radio" name="mode" id="mode-party" value="party" checked>Party<small>10 words. Everyone scores, fastest scores most.</small></label>
+          <label><input type="radio" name="mode" id="mode-royale" value="royale">Royale<small>Up to 12 players. Wrong or slowest each round is out. Last one standing wins.</small></label>
+        </div>
+      </div>
+      <div style="display:grid;gap:8px">
+        <p class="eyebrow">Time per word</p>
+        <div class="seg">
+          <label><input type="radio" name="time" id="time-45" value="45">Fast<small>45 s</small></label>
+          <label><input type="radio" name="time" id="time-60" value="60" checked>Normal<small>60 s</small></label>
+          <label><input type="radio" name="time" id="time-90" value="90">Relaxed<small>90 s</small></label>
+        </div>
+      </div>
+      <div class="row">
+        <button class="primary" id="startBtn" disabled>Start game</button>
+        <span class="muted" id="startNote">Waiting for players to join</span>
+      </div>
+    </section>
+
+    <!-- PLAY -->
+    <section class="card" id="play" hidden>
+      <div class="toprow">
+        <span class="clock big" id="clock">60</span>
+        <span class="next" id="next"></span>
+        <span class="eyebrow" id="roundLbl"></span>
+      </div>
+      <div class="timebar" id="bar"><i id="fill"></i></div>
+      <div class="tiles big" id="tiles"></div>
+      <div class="hint big"><span class="tag">Hint</span><p id="hint"></p></div>
+      <p class="msg" id="msg" aria-live="polite"></p>
+    </section>
+
+    <!-- REVEAL between rounds -->
+    <section class="card" id="reveal" hidden>
+      <p class="eyebrow" id="revealLbl">The word was</p>
+      <div class="answer" id="answer"></div>
+      <p id="revealNote" class="muted"></p>
+      <div class="row"><button class="primary" id="nextBtn">Next word</button><span class="muted">The first player who joined can also tap Next on their phone.</span></div>
+    </section>
+
+    <!-- OVER -->
+    <section class="card" id="over" hidden>
+      <p class="eyebrow">Game over</p>
+      <div class="winner" id="winner"></div>
+      <p class="muted" id="overNote"></p>
+      <div class="row"><button class="primary" id="againBtn">Play again with the same players</button></div>
+    </section>
+  </main>
+
+  <aside class="rail">
+    <p class="eyebrow" id="railLbl">Players</p>
+    <ul class="players" id="players"></ul>
+    <p class="empty" id="noPlayers">No one has joined yet.</p>
+  </aside>
+</div>
+
+<script src="vendor/peerjs-1.5.4.min.js"></script>
+<script src="vendor/qrcode-generator-1.4.4.js"></script>
+<script src="words.js"></script>
+<script src="net.js"></script>
+<script>
+const PARTY_ROUNDS = 10, ROYALE_MAX = 12, COOLDOWN = 3, FIRST_BONUS = 25;
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle = a => {a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const NET = window.REVEAL_NET;
+
+const H = { code:"", peer:null, players:new Map(), phase:"lobby", mode:"party", T:60, words:[], i:-1, cur:null, raf:0, nextId:1 };
+
+function show(id){ ["lobby","play","reveal","over"].forEach(s=>$(s).hidden = s!==id); $("roomtag").hidden = id==="lobby"; }
+function playerList(){ return [...H.players.values()]; }
+function activePlayers(){ return playerList().filter(p=>p.online && !p.out); }
+function send(p,msg){ if(p.online && p.conn && p.conn.open){ try{ p.conn.send(msg); }catch(e){} } }
+function broadcast(fn){ playerList().forEach(p=>send(p, typeof fn==="function"?fn(p):fn)); }
+function getMode(){ return document.querySelector('input[name=mode]:checked').value; }
+
+/* ---------- room ---------- */
+function makeCode(){ let c=""; for(let i=0;i<4;i++) c+=NET.codeChars[Math.floor(Math.random()*NET.codeChars.length)]; return c; }
+function openRoom(){
+  H.code = makeCode();
+  const peer = new Peer(NET.prefix+H.code, NET.opts);
+  H.peer = peer;
+  peer.on("open", ()=>{
+    $("neterr").hidden = true;
+    const url = new URL("play.html?room="+H.code+(NET.passthrough?"&"+NET.passthrough:""), location.href).href;
+    $("code").textContent = H.code; $("roomSmall").textContent = H.code;
+    $("joinurl").textContent = url;
+    const qr = qrcode(0,"M"); qr.addData(url); qr.make();
+    $("qr").innerHTML = qr.createSvgTag({cellSize:6, margin:2, scalable:true});
+  });
+  peer.on("connection", onConnection);
+  peer.on("error", err=>{
+    if(err.type==="unavailable-id"){ peer.destroy(); openRoom(); return; }
+    if(H.phase==="lobby"){ $("neterr").hidden=false; $("neterr").textContent = "Could not open a room ("+err.type+"). Check the internet connection and reload the page."; }
+  });
+  peer.on("disconnected", ()=>{ try{ peer.reconnect(); }catch(e){} });
+}
+
+function uniqueName(name){
+  name = (name||"").trim().slice(0,14) || "Player";
+  const taken = new Set(playerList().map(p=>p.name.toLowerCase()));
+  if(!taken.has(name.toLowerCase())) return name;
+  for(let n=2;;n++){ const c=name.slice(0,11)+" "+n; if(!taken.has(c.toLowerCase())) return c; }
+}
+
+function onConnection(conn){
+  let player = null;
+  conn.on("data", msg=>{
+    if(!msg || typeof msg!=="object") return;
+    if(msg.t==="hello"){
+      // rejoin with the same token keeps score
+      const existing = msg.token && playerList().find(p=>p.token===msg.token);
+      if(existing){ player=existing; player.conn=conn; player.online=true; }
+      else {
+        const royaleSel = H.phase==="lobby" ? getMode()==="royale" : H.mode==="royale";
+        if(royaleSel && H.phase==="lobby" && playerList().filter(p=>p.online).length>=ROYALE_MAX){
+          try{ conn.send({t:"full", max:ROYALE_MAX}); }catch(e){}
+          setTimeout(()=>conn.close(),500); return;
+        }
+        const lateRoyale = H.phase!=="lobby" && H.mode==="royale";
+        player = { id:H.nextId++, token:msg.token||"", name:uniqueName(msg.name), conn, online:true, score:0, out:lateRoyale, rd:freshRound() };
+        H.players.set(player.id, player);
+      }
+      assignVip();
+      send(player, {t:"welcome", name:player.name, code:H.code});
+      syncPlayer(player);
+      renderPlayers(); lobbyState();
+      return;
+    }
+    if(!player) return;
+    if(msg.t==="guess") onGuess(player, String(msg.g||""));
+    if(msg.t==="next" && player.vip) hostNext();
+    if(msg.t==="start" && player.vip && H.phase==="lobby") startGame();
+  });
+  conn.on("close", ()=>{ if(player && player.conn===conn){ player.online=false; assignVip(); renderPlayers(); lobbyState(); if(H.phase==="play") checkRoundEnd(); } });
+}
+
+function assignVip(){
+  const list = playerList().filter(p=>p.online);
+  const cur = list.find(p=>p.vip);
+  if(cur) return;
+  playerList().forEach(p=>p.vip=false);
+  if(list[0]){ list[0].vip=true; syncPlayer(list[0]); }
+}
+
+/* ---------- what each phone sees ---------- */
+function pattern(){ const c=H.cur; return [...c.word].map((ch,i)=>c.open[i]?ch:"_").join(""); }
+function timeLeft(){ const c=H.cur; return Math.max(0, H.T - (performance.now()-c.start)/1000); }
+function rankOf(p){ const sorted = playerList().slice().sort((a,b)=>b.score-a.score); return sorted.indexOf(p)+1; }
+
+function syncPlayer(p){
+  const base = { t:"state", phase:H.phase, mode:H.mode, vip:!!p.vip, score:p.score, out:!!p.out, players:playerList().filter(x=>x.online).length };
+  if(H.phase==="play"){
+    const c=H.cur;
+    Object.assign(base, { round:H.i+1, rounds:H.mode==="party"?H.words.length:0, hint:c.hint, pattern:pattern(), left:timeLeft(), T:H.T,
+      correct:p.rd.correct, failed:p.rd.failed, cooldown:Math.max(0,(p.rd.cooldownUntil-performance.now())/1000) });
+  } else if(H.phase==="reveal"){
+    Object.assign(base, { word:H.cur.word, got:p.rd.correct, pts:p.rd.pts, rank:rankOf(p), eliminated:!!p.rd.eliminatedNow, last:H.i+1>=H.words.length });
+  } else if(H.phase==="over"){
+    Object.assign(base, { winner:H.winnerText, rank:rankOf(p) });
+  }
+  send(p, base);
+}
+function syncAll(){ playerList().forEach(syncPlayer); }
+
+/* ---------- lobby ---------- */
+function lobbyState(){
+  if(H.phase!=="lobby") return;
+  const n = playerList().filter(p=>p.online).length;
+  const royale = getMode()==="royale";
+  const need = royale ? 2 : 1;
+  const tooMany = royale && n>ROYALE_MAX;
+  $("startBtn").disabled = n<need || tooMany;
+  $("startNote").textContent = tooMany ? `Royale is for up to ${ROYALE_MAX} players. ${n} have joined: switch to Party or ask ${n-ROYALE_MAX} to leave.`
+    : n<need ? (need===2&&n===1 ? "Royale needs at least 2 players" : "Waiting for players to join")
+    : royale ? `${n} of ${ROYALE_MAX} Royale spots filled` : `${n} player${n>1?"s":""} ready`;
+}
+document.querySelectorAll('input[name=mode]').forEach(r=>r.addEventListener("change",lobbyState));
+
+function renderPlayers(){
+  const list = playerList().slice().sort((a,b)=> (a.out-b.out) || (b.score-a.score));
+  $("noPlayers").hidden = list.length>0;
+  $("railLbl").textContent = H.phase==="lobby" ? `Players (${list.filter(p=>p.online).length})` : H.mode==="royale" ? `Still in: ${activePlayers().length}` : "Scores";
+  $("players").innerHTML = list.map(p=>{
+    let st="";
+    if(H.phase==="play" && !p.out){ st = p.rd.correct ? '<span class="st ok">Got it</span>' : p.rd.failed ? '<span class="st bad">Wrong</span>' : '<span class="st">Thinking</span>'; }
+    if(p.out) st='<span class="st bad">Out</span>';
+    const score = H.mode==="party" || H.phase==="lobby" ? `<span class="sc">${p.score}</span>` : "";
+    return `<li class="${p.out?"out":""} ${p.online?"":"off"}"><span class="nm">${esc(p.name)}${p.vip?" ★":""}</span>${st}${H.phase==="lobby"?"":score}</li>`;
+  }).join("");
+}
+
+/* ---------- game ---------- */
+function freshRound(){ return { correct:false, failed:false, at:0, pts:0, cooldownUntil:0, eliminatedNow:false }; }
+
+function startGame(){
+  H.mode = getMode();
+  if(H.mode==="royale" && playerList().filter(p=>p.online).length>ROYALE_MAX) return;
+  H.T = +document.querySelector('input[name=time]:checked').value;
+  const pool = shuffle(window.WORDS);
+  H.words = H.mode==="party" ? pool.slice(0,PARTY_ROUNDS) : pool;
+  H.i = -1;
+  playerList().forEach(p=>{ p.score=0; p.out=!p.online; });
+  nextRound();
+}
+
+function nextRound(){
+  H.i++;
+  if(H.i>=H.words.length) return gameOver();
+  const [word,hint] = H.words[H.i];
+  const n = word.length;
+  H.cur = { word, hint, n, order:shuffle([...Array(n).keys()]), shown:0, open:Array(n).fill(false), start:performance.now(), firstDone:false, ended:false };
+  playerList().forEach(p=>p.rd=freshRound());
+  H.phase = "play";
+  $("tiles").innerHTML = [...word].map(c=>`<div class="t"><div class="in"><div class="f"></div><div class="b">${c}</div></div></div>`).join("");
+  $("hint").textContent = hint;
+  $("msg").textContent = ""; $("msg").className="msg";
+  $("roundLbl").textContent = H.mode==="party" ? `Word ${H.i+1} of ${H.words.length}` : `Round ${H.i+1} · ${activePlayers().length} left`;
+  show("play"); renderPlayers(); syncAll();
+  cancelAnimationFrame(H.raf); tick();
+}
+
+function tick(){
+  const c=H.cur; if(!c || c.ended) return;
+  const elapsed=(performance.now()-c.start)/1000, left=Math.max(0,H.T-elapsed), step=H.T/c.n;
+  const target=Math.min(c.n-1, Math.floor(elapsed/step));
+  let changed=false;
+  while(c.shown<target){ const i=c.order[c.shown]; c.open[i]=true; $("tiles").children[i].classList.add("open"); c.shown++; changed=true; }
+  if(changed) syncAll();
+  $("clock").textContent=Math.ceil(left);
+  const low=left<=10; $("clock").classList.toggle("low",low); $("bar").classList.toggle("low",low);
+  $("fill").style.width=(left/H.T*100)+"%";
+  $("next").textContent = c.shown<c.n-1 ? `Next letter in ${Math.max(1,Math.ceil((c.shown+1)*step-elapsed))}s` : "Last letter stays hidden";
+  if(left<=0) return endRound();
+  H.raf=requestAnimationFrame(tick);
+}
+
+function onGuess(p, raw){
+  const c=H.cur;
+  if(H.phase!=="play" || !c || c.ended || p.out || p.rd.correct || p.rd.failed) return;
+  const now=performance.now();
+  if(now < p.rd.cooldownUntil) return;
+  const g = raw.toUpperCase().replace(/[^A-Z]/g,"");
+  if(!g) return;
+  if(g===c.word){
+    const left=timeLeft(), hidden=c.n-c.shown;
+    const first = !c.firstDone;
+    const pts = Math.round(50 + left/H.T*100 + hidden*15) + (first ? FIRST_BONUS : 0);
+    c.firstDone = true;
+    p.rd.correct=true; p.rd.at=now; p.rd.pts=pts; p.score+=pts;
+    send(p,{t:"result", ok:true, pts, first});
+    $("msg").className="msg good"; $("msg").textContent = `${p.name} got it!`;
+  } else if(H.mode==="royale"){
+    p.rd.failed=true;
+    send(p,{t:"result", ok:false, out:true});
+  } else {
+    p.rd.cooldownUntil = now + COOLDOWN*1000;
+    send(p,{t:"result", ok:false, cooldown:COOLDOWN});
+  }
+  renderPlayers(); checkRoundEnd();
+}
+
+function checkRoundEnd(){
+  if(H.phase!=="play" || H.cur.ended) return;
+  const act = activePlayers();
+  if(act.length && act.every(p=>p.rd.correct || p.rd.failed)) endRound();
+  else if(!act.length) endRound();
+}
+
+function endRound(){
+  const c=H.cur; if(c.ended) return; c.ended=true; cancelAnimationFrame(H.raf);
+  // open remaining tiles
+  [...$("tiles").children].forEach((el,i)=>{ if(!c.open[i]){ el.classList.add("missed"); el.classList.add("open"); }});
+  const contenders = playerList().filter(p=>!p.out);
+  const correct = contenders.filter(p=>p.rd.correct).sort((a,b)=>a.rd.at-b.rd.at);
+  let note = "";
+  if(H.mode==="royale"){
+    if(correct.length===0){
+      note = "Nobody got it, so nobody is out. Same players, new word.";
+    } else {
+      const losers = contenders.filter(p=>!p.rd.correct);
+      if(correct.length>=2) losers.push(correct[correct.length-1]);
+      losers.forEach(p=>{ p.out=true; p.rd.eliminatedNow=true; });
+      const slow = correct.length>=2 ? correct[correct.length-1] : null;
+      const parts=[];
+      const wrong = losers.filter(p=>p!==slow);
+      if(wrong.length) parts.push(`Out for missing it: ${wrong.map(p=>p.name).join(", ")}.`);
+      if(slow) parts.push(`Slowest correct answer: ${slow.name}, also out.`);
+      note = parts.join(" ") || "Everyone survives.";
+    }
+  } else {
+    note = correct.length ? `${correct.length} of ${contenders.length} got it. Fastest: ${correct[0].name}.` : "Nobody got this one.";
+  }
+  H.phase = "reveal";
+  $("answer").textContent = c.word;
+  $("revealNote").textContent = note;
+  const finished = H.mode==="royale" ? activePlayers().length<=1 : H.i+1>=H.words.length;
+  $("nextBtn").textContent = finished ? "See the winner" : "Next word";
+  H.finished = finished;
+  show("reveal"); renderPlayers(); syncAll();
+}
+
+function hostNext(){
+  if(H.phase==="lobby") return startGame();
+  if(H.phase!=="reveal") return;
+  if(H.finished) return gameOver();
+  nextRound();
+}
+
+function gameOver(){
+  H.phase="over";
+  let text;
+  if(H.mode==="royale"){
+    const alive = playerList().filter(p=>!p.out);
+    text = alive.length===1 ? `${alive[0].name} wins the Royale!` : alive.length ? `${alive.map(p=>p.name).join(" & ")} survive!` : "No one survived!";
+    $("overNote").textContent = `${H.i+1} rounds played.`;
+  } else {
+    const sorted = playerList().slice().sort((a,b)=>b.score-a.score);
+    const top = sorted.filter(p=>p.score===sorted[0].score && p.score>0);
+    text = top.length===0 ? "Nobody scored this time" : top.length===1 ? `${top[0].name} wins!` : `${top.map(p=>p.name).join(" & ")} share the win!`;
+    $("overNote").textContent = sorted.map((p,i)=>`${i+1}. ${p.name} ${p.score}`).join("   ");
+  }
+  H.winnerText = text;
+  $("winner").textContent = text;
+  show("over"); renderPlayers(); syncAll();
+}
+
+$("startBtn").addEventListener("click", startGame);
+$("nextBtn").addEventListener("click", hostNext);
+$("againBtn").addEventListener("click", ()=>{ H.phase="lobby"; playerList().forEach(p=>{p.score=0;p.out=false;p.rd=freshRound();}); show("lobby"); renderPlayers(); lobbyState(); syncAll(); });
+window.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ") && document.activeElement===document.body){ if(H.phase==="lobby" && !$("startBtn").disabled) startGame(); else hostNext(); }});
+
+openRoom(); renderPlayers();
+</script>
+</body>
+</html>
