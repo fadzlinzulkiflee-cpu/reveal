@@ -222,3 +222,46 @@
 :root:not(#_) button.primary:active:not(:disabled),:root:not(#_) .btn.primary:active,:root:not(#_) .stage button.primary:active:not(:disabled){transform:scale(.97);box-shadow:none}
 :root:not(#_) button.primary:disabled{box-shadow:none;transform:none}
 :root:not(#_) .stage .splash,:root:not(#_) .stage .splash.fire,:root:not(#_) .stage .splash.clutch{box-shadow:0 10px 24px -12px rgba(0,0,0,.6)}
+
+/* ---------- Typography (Lin, 16 Nov): two families only, for a professional, smart look ----------
+   Archivo = brand + headings (italic 900 for the logo and big moments, upright 800 for headings).
+   Inter   = everything you read or tap: body, hints, buttons, labels, numbers (tabular figures). */
+:root:not(#_){--f-display:"Archivo","Arial Black",system-ui,sans-serif;--f-body:"Inter","Segoe UI",system-ui,sans-serif;--f-mono:"Inter","Segoe UI",system-ui,sans-serif}
+:root:not(#_) body{font-family:var(--f-body);font-feature-settings:"cv11","ss01";-webkit-font-smoothing:antialiased}
+:root:not(#_) h1,:root:not(#_) h2,:root:not(#_) .lbview h2{font-family:var(--f-display);font-weight:800;letter-spacing:-.02em}
+:root:not(#_) .eyebrow,:root:not(#_) .me-strip .k,:root:not(#_) .rankcard .lvl,:root:not(#_) .records span,:root:not(#_) .lbl{font-family:var(--f-body);font-weight:600;letter-spacing:.12em}
+:root:not(#_) button,:root:not(#_) .btn,:root:not(#_) button.primary,:root:not(#_) .stage button.primary{font-family:var(--f-body);font-weight:700;letter-spacing:.04em;font-style:normal}
+:root:not(#_) .hint p,:root:not(#_) .stage .hint p{font-family:var(--f-body);font-weight:600;letter-spacing:-.01em}
+:root:not(#_) .stage .hint .tag,:root:not(#_) .hint .tag{font-family:var(--f-body);font-weight:800;font-size:.68rem;letter-spacing:.12em;background:#C7F58B}
+:root:not(#_) .stage .clock,:root:not(#_) .clock{font-family:var(--f-body);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+:root:not(#_) .stats,:root:not(#_) .me,:root:not(#_) .lb .sv,:root:not(#_) .lb .tm{font-family:var(--f-body);font-variant-numeric:tabular-nums}
+:root:not(#_) #final,:root:not(#_) .bigscore,:root:not(#_) .me-strip b,:root:not(#_) .records b,:root:not(#_) .lb .sc,:root:not(#_) .lobbyclock,:root:not(#_) .place{font-family:var(--f-display);font-weight:800;font-style:normal;font-variant-numeric:tabular-nums}
+:root:not(#_) .stage .msg,:root:not(#_) .msg,:root:not(#_) .big-msg{font-family:var(--f-body);font-weight:700;letter-spacing:-.01em}
+:root:not(#_) .rankcard .ttl,:root:not(#_) .bestgap.new,:root:not(#_) .answer{font-family:var(--f-display);font-weight:900;font-style:italic;letter-spacing:-.02em}
+:root:not(#_) .stage .splash b{font-family:var(--f-display);font-weight:900;font-style:italic;letter-spacing:-.01em}
+:root:not(#_) .stage .splash span{font-family:var(--f-body);font-weight:600}
+:root:not(#_) .mode .mt>b,:root:not(#_) .mode .mt>span:first-child{font-family:var(--f-display);font-weight:800;font-style:normal}
+:root:not(#_) .mode small{font-family:var(--f-body);font-weight:500}
+:root:not(#_) .tagline{font-family:var(--f-body);font-weight:700;font-style:normal;letter-spacing:.24em;font-size:.72rem}
+:root:not(#_) .badge{font-family:var(--f-body);font-weight:700}
+:root:not(#_) .countdown b{font-family:var(--f-display);font-weight:800}
+:root:not(#_) .slots{font-family:var(--f-body);font-weight:700}
+:root:not(#_) input[type=text],:root:not(#_) .stage input[type=text]{font-family:var(--f-body);font-weight:700}
+:root:not(#_) .grid{font-family:var(--f-body)}
+:root:not(#_) #log .w{font-family:var(--f-body);font-weight:700;letter-spacing:.06em}
+/* Next word + Skip: centred, same quiet style */
+:root:not(#_) .row.ctl{justify-content:center;gap:10px}
+:root:not(#_) .stage .row.ctl button.ghost{min-width:140px;background:rgba(246,248,240,.06);color:#F6F8F0;border:1px solid rgba(246,248,240,.14);box-shadow:none;border-radius:14px;padding:12px 18px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.85rem}
+:root:not(#_) .stage .row.ctl button.ghost:active{transform:scale(.97)}
+
+/* Praise sits where the answer box was, in the flow, until the next word (no floating pill) */
+:root:not(#_) .stage .splash.inline{position:static;transform:none;width:auto;max-width:none;display:none;flex-direction:column;align-items:center;gap:4px;
+  padding:14px 16px;border-radius:16px;background:rgba(199,245,139,.1);border:1px solid rgba(199,245,139,.35);box-shadow:none;opacity:1;text-align:center}
+:root:not(#_) .stage .splash.inline.go{display:flex;animation:praiseIn .35s ease-out}
+:root:not(#_) .stage .splash.inline b{font-family:var(--f-display);font-weight:900;font-style:italic;font-size:clamp(1.5rem,7vw,2rem);letter-spacing:-.01em;color:#C7F58B;text-shadow:none;line-height:1}
+:root:not(#_) .stage .splash.inline span{display:block;font-family:var(--f-body);font-weight:600;font-size:.78rem;letter-spacing:.04em;text-transform:none;color:#A9BBAC;opacity:1;background:none;padding:0;white-space:normal}
+:root:not(#_) .stage .splash.inline.clutch,:root:not(#_) .stage .splash.inline.fire{background:rgba(255,201,139,.1);border-color:rgba(255,201,139,.4)}
+:root:not(#_) .stage .splash.inline.clutch b,:root:not(#_) .stage .splash.inline.fire b{color:#FFC98B}
+:root:not(#_) .stage.won .guess{display:none}
+@keyframes praiseIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){:root:not(#_) .stage .splash.inline.go{animation:none}}
