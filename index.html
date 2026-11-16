@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ms">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -121,14 +121,6 @@ td .w{font-family:var(--f-display);font-weight:800;letter-spacing:.06em}
     </div>
     <div class="tiles" id="demo" aria-hidden="true"></div>
     <div style="display:grid;gap:8px">
-      <p class="eyebrow" data-i="langPick"></p>
-      <div class="seg" role="radiogroup">
-        <label><input type="radio" name="lang" id="lang-ms" value="ms" checked>Bahasa Melayu<small>Kata &amp; hint BM</small></label>
-        <label><input type="radio" name="lang" id="lang-en" value="en">English<small>Words &amp; hints in English</small></label>
-        <label><input type="radio" name="lang" id="lang-mix" value="mix">Campur / Both<small>BM + English</small></label>
-      </div>
-    </div>
-    <div style="display:grid;gap:8px">
       <p class="eyebrow" data-i="timePick"></p>
       <div class="seg" role="radiogroup">
         <label><input type="radio" name="time" id="time-45" value="45"><span data-i="fast"></span><small>45 s</small></label>
@@ -177,77 +169,70 @@ td .w{font-family:var(--f-display);font-weight:800;letter-spacing:.06em}
 </div>
 
 <script>
-const WORDS = {
-  ms: [
-    ["KUCING","Haiwan peliharaan yang suka mengiau"],
-    ["PISANG","Buah panjang berkulit kuning"],
-    ["SEKOLAH","Tempat murid belajar setiap hari"],
-    ["PAYUNG","Dibuka apabila hujan turun"],
-    ["JAMBATAN","Merentangi sungai supaya kita boleh menyeberang"],
-    ["KETUPAT","Dianyam daripada daun kelapa, dihidang pada Hari Raya"],
-    ["DURIAN","Raja segala buah, kulitnya berduri"],
-    ["GASING","Permainan tradisional yang berputar laju"],
-    ["BULAN","Bersinar di langit pada waktu malam"],
-    ["PELANGI","Muncul selepas hujan dengan tujuh warna"],
-    ["PERPUSTAKAAN","Tempat meminjam buku"],
-    ["HARIMAU","Haiwan berbelang, lambang negara"],
-    ["RENDANG","Lauk daging bersantan yang dimasak lama"],
-    ["WAU","Layang-layang tradisional dari Pantai Timur"],
-    ["BATIK","Kain bercorak yang dilukis dengan lilin"],
-    ["TELEFON","Alat untuk bercakap dengan orang yang jauh"],
-    ["KASUT","Dipakai di kaki sebelum keluar rumah"],
-    ["GURU","Orang yang mengajar di sekolah"],
-    ["HOSPITAL","Tempat doktor merawat pesakit"],
-    ["PANTAI","Tempat pasir bertemu laut"],
-    ["BOMBA","Pasukan yang memadam kebakaran"],
-    ["KERETAPI","Kenderaan panjang yang bergerak di atas landasan"],
-    ["SAMBAL","Pedas, dibuat daripada cili yang ditumbuk"],
-    ["CERMIN","Memantulkan wajah kita"],
-    ["ANGKASAWAN","Orang yang pergi ke angkasa lepas"],
-    ["KELAPA","Buah berair yang tumbuh di pokok tinggi tepi pantai"],
-    ["SONGKOK","Dipakai di kepala ketika majlis rasmi"],
-    ["PENYU","Bertelur di pantai, berenang di laut"],
-  ],
-  en: [
-    ["PENGUIN","A bird that cannot fly but swims very well"],
-    ["VOLCANO","A mountain that can erupt with lava"],
-    ["LIBRARY","You borrow books here"],
-    ["UMBRELLA","Keeps you dry in the rain"],
-    ["ORCHESTRA","Many musicians playing together"],
-    ["PASSPORT","You need this to travel to another country"],
-    ["GIRAFFE","The tallest animal on land"],
-    ["BICYCLE","Two wheels, pedals, no engine"],
-    ["CACTUS","A desert plant covered in spines"],
-    ["TELESCOPE","Helps you see faraway stars"],
-    ["PYRAMID","Ancient tomb with four triangular sides"],
-    ["KEYBOARD","You type on it"],
-    ["DIAMOND","The hardest natural stone"],
-    ["SANDWICH","Bread with a filling in the middle"],
-    ["ISLAND","Land surrounded by water"],
-    ["LIGHTHOUSE","A tower that guides ships at night"],
-    ["COMPASS","Its needle always points north"],
-    ["HONEY","Sweet and sticky, made by bees"],
-    ["CANDLE","Wax and a wick"],
-    ["PILLOW","Rest your head on it at night"],
-    ["ANCHOR","Keeps a ship from drifting away"],
-    ["GLACIER","A slow river of ice"],
-    ["BALLOON","Fill it with air or helium"],
-    ["KANGAROO","Hops around and carries its baby in a pouch"],
-    ["SNOWMAN","Built in winter with a carrot nose"],
-    ["DENTIST","The doctor who checks your teeth"],
-  ]
-};
+const WORDS = [
+  ["PENGUIN","A bird that cannot fly but swims very well"],
+  ["VOLCANO","A mountain that can erupt with lava"],
+  ["ORCHESTRA","Many musicians playing together under one conductor"],
+  ["PASSPORT","You need this to cross a border"],
+  ["TELESCOPE","Helps you see faraway stars"],
+  ["LIGHTHOUSE","A tower that guides ships at night"],
+  ["COMPASS","Its needle always points north"],
+  ["ANCHOR","Keeps a ship from drifting away"],
+  ["GLACIER","A slow river of ice"],
+  ["KANGAROO","Hops around and carries its baby in a pouch"],
+  ["DENTIST","The doctor who checks your teeth"],
+  ["ECLIPSE","When one body in the sky hides another"],
+  ["MARATHON","A race of a little over 42 kilometres"],
+  ["HARVEST","Gathering crops at the end of the season"],
+  ["BLUEPRINT","A detailed plan for a building"],
+  ["CHAMELEON","A lizard that changes colour"],
+  ["AVALANCHE","Snow rushing down a mountain"],
+  ["NOSTALGIA","A warm longing for the past"],
+  ["HAMMOCK","A swinging bed hung between two trees"],
+  ["JIGSAW","A puzzle of interlocking pieces"],
+  ["SUBMARINE","A vessel that travels underwater"],
+  ["MAGNET","Pulls iron towards it without touching"],
+  ["PODCAST","An audio show you can listen to anytime"],
+  ["RECEIPT","Proof that you paid"],
+  ["CAMPFIRE","Where you toast marshmallows outdoors"],
+  ["WHISPER","Speaking so softly only one person hears"],
+  ["SKELETON","The frame of bones inside your body"],
+  ["THUNDER","The sound that follows lightning"],
+  ["BAKERY","Where bread comes fresh from the oven"],
+  ["SUITCASE","You pack your clothes in it for a trip"],
+  ["FIREWORKS","Bright explosions in the sky at a celebration"],
+  ["ALLERGY","When your body overreacts to pollen, nuts or dust"],
+  ["ELEVATOR","Takes you between floors without stairs"],
+  ["HORIZON","Where the sky seems to meet the land or sea"],
+  ["MUSEUM","A building where you look at old and precious things"],
+  ["OCTOPUS","A sea creature with eight arms"],
+  ["PARACHUTE","Slows your fall from a plane"],
+  ["QUARANTINE","Staying apart so an illness does not spread"],
+  ["RIDDLE","A puzzling question with a clever answer"],
+  ["SCARECROW","Stands in a field to keep birds away"],
+  ["TREADMILL","You run on it without going anywhere"],
+  ["UMPIRE","Makes the calls in tennis or cricket"],
+  ["VACCINE","A shot that trains your body to fight a disease"],
+  ["WARDROBE","A tall cupboard for your clothes"],
+  ["YOGURT","A creamy food made by culturing milk"],
+  ["ZIPPER","Closes a jacket with tiny metal teeth"],
+  ["BRIDGE","Lets you cross a river or a road"],
+  ["CROSSWORD","A grid you fill with words from clues"],
+  ["DOMINO","Knock one over and the rest follow"],
+  ["FOSSIL","Remains of an ancient creature preserved in rock"],
+  ["GRAVITY","The force that keeps your feet on the ground"],
+  ["HEADPHONES","Let you listen without disturbing anyone"],
+  ["INVOICE","A bill sent asking for payment"],
+  ["LANTERN","A portable light with a protective case"],
+  ["MOSQUITO","A tiny insect whose bite itches"],
+  ["PASSWORD","A secret word that unlocks your account"],
+  ["SPOTLIGHT","A strong beam that follows the star on stage"],
+  ["WATERFALL","A river dropping over a cliff"],
+  ["BUTTERFLY","Once a caterpillar"],
+  ["CHOPSTICKS","A pair of sticks for eating noodles"],
+];
 
 const UI = {
-  ms:{round:"Pusingan",pts:"Mata",tag:"Teka sebelum terbongkar",title:"Satu perkataan. Satu hint. Masa berjalan.",
-    lead:"Setiap beberapa saat, satu huruf dibuka. Teka awal untuk mata lebih tinggi.",
-    langPick:"Bahasa perkataan",timePick:"Masa setiap perkataan",fast:"Pantas",normal:"Biasa",relaxed:"Santai",
-    rules:["<b>Baca hint</b> dan lihat berapa huruf perkataan itu.","<b>Huruf terbuka satu demi satu</b> apabila masa berjalan.","<b>Teka bila-bila masa.</b> Lebih awal, lebih banyak mata.","Salah teka? <b>Tolak 3 saat.</b>"],
-    start:"Mula main",best:"Skor terbaik:",guessBtn:"Teka",skip:"Langkau",nextWord:"Perkataan seterusnya",
-    nextIn:s=>`Huruf seterusnya dalam ${s}s`,lastHidden:"Huruf terakhir kekal tersembunyi",
-    right:(p)=>`Betul! +${p} mata`,wrong:"Bukan itu. −3 saat",timeup:w=>`Masa tamat. Jawapannya ${w}.`,skipped:w=>`Dilangkau. Jawapannya ${w}.`,
-    final:"Jumlah mata",menu:"Menu",again:"Main lagi",seeResults:"Lihat keputusan",
-    endNote:(c,n)=>`Anda teka ${c} daripada ${n} perkataan.`,newBest:" Skor terbaik baharu!",short:"Terlalu pendek"},
   en:{round:"Round",pts:"Points",tag:"Guess before it's revealed",title:"One word. One hint. The clock is running.",
     lead:"Every few seconds a letter flips open. Guess early to score more.",
     langPick:"Word language",timePick:"Time per word",fast:"Fast",normal:"Normal",relaxed:"Relaxed",
@@ -263,7 +248,7 @@ const ROUNDS = 10, PENALTY = 3;
 const $ = id => document.getElementById(id);
 const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}} };
 
-let uiLang = "ms", S = null, raf = 0;
+let uiLang = "en", S = null, raf = 0;
 
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function t(k){return UI[uiLang][k]}
@@ -279,22 +264,17 @@ function tileHTML(ch, open){return `<div class="t${open?" open":""}"><div class=
 
 // Demo tiles on the start screen, revealing themselves in a loop
 function demo(){
-  const w = uiLang==="en" ? "PENGUIN" : "PELANGI";
+  const w = "PENGUIN";
   $("demo").innerHTML = [...w].map(c=>tileHTML(c,false)).join("");
   const tiles=[...$("demo").children], order=shuffle(tiles.map((_,i)=>i));
   [order[0],order[2],order[4]].forEach(i=>tiles[i].classList.add("open"));
 }
 
-document.querySelectorAll('input[name=lang]').forEach(r=>r.addEventListener("change",()=>{
-  const v=document.querySelector('input[name=lang]:checked').value;
-  uiLang = v==="en" ? "en" : "ms"; store.set("reveal-lang",v); applyUI(); demo();
-}));
 document.querySelectorAll('input[name=time]').forEach(r=>r.addEventListener("change",()=>store.set("reveal-time",document.querySelector('input[name=time]:checked').value)));
 
 function newGame(){
-  const lang=document.querySelector('input[name=lang]:checked').value;
   const T=+document.querySelector('input[name=time]:checked').value;
-  let pool = lang==="mix" ? [...WORDS.ms.map(w=>[...w,"BM"]),...WORDS.en.map(w=>[...w,"EN"])] : WORDS[lang].map(w=>[...w,""]);
+  const pool = WORDS.map(w=>[...w,""]);
   S = { T, words: shuffle(pool).slice(0,ROUNDS), i:-1, score:0, log:[] };
   $("start").hidden=true; $("end").hidden=true; $("play").hidden=false; $("stats").hidden=false;
   $("rt").textContent=S.words.length; $("sc").textContent=0;
@@ -384,8 +364,7 @@ $("menu").addEventListener("click",()=>{$("end").hidden=true;$("start").hidden=f
 $("go").addEventListener("click",newGame);
 
 // restore remembered choices
-const savedLang=store.get("reveal-lang"), savedTime=store.get("reveal-time");
-if(savedLang&&$("lang-"+savedLang)){$("lang-"+savedLang).checked=true; uiLang=savedLang==="en"?"en":"ms";}
+const savedTime=store.get("reveal-time");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
 applyUI(); demo();
 </script>

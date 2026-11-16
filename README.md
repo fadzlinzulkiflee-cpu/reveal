@@ -8,7 +8,7 @@ Open `index.html` in any browser. It is a single self-contained file with no bui
 
 ## How it works
 
-- **Language:** Bahasa Melayu, English, or both mixed (Campur). The UI follows the chosen language.
+- **Language:** English, aimed at adults and families.
 - **Rounds:** 10 words per game, with 45, 60 or 90 seconds per word.
 - **Reveal:** one letter opens every `time / letters` seconds, in random order. The last letter stays hidden until time runs out.
 - **Scoring:** `50 + 100 × (time left / total time) + 15 × hidden letters`. A wrong guess costs 3 seconds.
@@ -16,4 +16,4 @@ Open `index.html` in any browser. It is a single self-contained file with no bui
 
 ## Word list
 
-The starter words and hints live in the `WORDS` object at the top of the script in `index.html` (28 Malay, 26 English). Add a word as `["WORD", "Hint text"]`, using letters A–Z only.
+The starter words and hints live in the `WORDS` array at the top of the script in `index.html` (60 words). Add a word as `["WORD", "Hint text"]`, using letters A–Z only.
