@@ -48,7 +48,7 @@ To use your own PeerJS server, add `?peerhost=HOST&peerport=PORT&peerpath=/PATH`
 
 ## Word list
 
-The starter words and hints live in `words.js` (956 words: 313 Easy, 320 Medium, 323 Hard). About a third (323) are reserved for ranked online Battle Royale (`RANKED_WORDS`) and never appear in Solo, Daily Play or Play Locally (`WORDS`, 633). The split is fixed by a hash of each word, so a newly added word lands in one pool automatically. Add a word as `["WORD", "Hint text", level]` (1 Easy, 2 Medium, 3 Hard), using letters A–Z only.
+The everyday words and hints live in `words.js` (956 words: 313 Easy, 320 Medium, 323 Hard), used by Solo, Daily Play, Play Locally and unranked online play. Ranked words are a separate set kept only in the Supabase database (`rk_words`), never in this repo, so they never appear in the other modes. Add an everyday word as `["WORD", "Hint text", level]` (1 Easy, 2 Medium, 3 Hard), using letters A–Z only.
 
 ## Drama and replay (drama.js, drama.css)
 - **Final 5 seconds:** heartbeat sound (vibration on phones), red pulsing edge, the tiles thump each second.
@@ -109,10 +109,10 @@ Tests mock Supabase (the session proxy blocks supabase.co), so the first real si
 Signed-in players get ranked matches that run inside Supabase, so no phone decides the result. Guests keep the unranked peer-to-peer game below.
 
 - `supabase/ranked.sql`: tables `rk_matches`, `rk_players`, `rk_words` (no direct access for players) and three functions players can call: `rk_join()`, `rk_state(match)` (polled about twice a second) and `rk_guess(match, text)`. Each call first runs `rk_tick`, which moves the match on when its time is up. The secret word is only sent after a round ends.
-- `supabase/ranked-words.sql`: the 323 ranked words. They are not in `words.js`, so they never appear in Solo, Daily Play, Play Locally or unranked online play. (Older versions of `words.js` in git history still contain them; new ranked words should only ever be added to the database.)
+- Ranked words live only in the `rk_words` table. They are loaded from a private SQL file kept outside this repo, and none of them are in `words.js`. The first ranked set was public here, so those words moved to the everyday list in November 2026. Add new ranked words only in the database, never in this repo.
 - Rules match the unranked game: 20 s per word, wrong or no answer is out, slowest correct is out, nobody out if nobody gets it, first correct wins with 2 left. Lobby waits 20 s, bots fill up to 10 players and never affect ratings. Settings are in `rk_conf()`.
 - Rating: everyone starts at 1000. At the end, every signed-in player is compared with every other by finishing place (ELO, K = 32 shared across opponents). A match is rated only with 3 or more signed-in players. Tiers: Bronze below 1100, Silver 1100, Gold 1300, Platinum 1500, Legend 1700.
-- Setup: run `supabase/ranked.sql`, then `supabase/ranked-words.sql`, in the SQL Editor.
+- Setup: run `supabase/ranked.sql` in the SQL Editor, then the private ranked word file.
 
 ## Online Battle Royale (beta, unranked)
 
