@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>REVEAL</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#17231D">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="REVEAL">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
@@ -111,10 +119,10 @@ header{min-height:36px}
 body:has(#start:not([hidden])) header{display:none}
 .seg4 label{min-width:70px}
 </style>
-<link rel="stylesheet" href="stage.css?v=20261116g">
+<link rel="stylesheet" href="stage.css?v=20261116h">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
-<link rel="stylesheet" href="theme.css?v=20261116g">
-<link rel="stylesheet" href="drama.css?v=20261116g">
+<link rel="stylesheet" href="theme.css?v=20261116h">
+<link rel="stylesheet" href="drama.css?v=20261116h">
 <style>#play.stage{--ring:80px}</style>
 </head>
 <body>
@@ -127,39 +135,54 @@ body:has(#start:not([hidden])) header{display:none}
 
   <!-- START -->
   <section class="card home" id="start">
-    <div style="display:grid;gap:14px;justify-items:center">
-      <div class="logo" aria-label="REVEAL">REVEAL<i aria-hidden="true"></i></div>
+    <button class="gear" id="gear" type="button" aria-label="Settings" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+    </button>
+    <div class="hero">
+      <h1 class="logo biglogo" aria-label="REVEAL"><span>R</span><span>E</span><span>V</span><span>E</span><span>A</span><span>L</span><i aria-hidden="true"></i></h1>
       <p class="tagline">Think fast. Guess faster.</p>
     </div>
     <div class="tiles" id="demo" aria-hidden="true"></div>
-    <div class="pitch">
-      <p>One clue. A hidden word.</p>
-      <p>Every second reveals another letter.</p>
-      <p><b>Can you guess it first?</b></p>
+    <p class="pitch">One clue. A hidden word. Every second reveals a letter.</p>
+    <div class="me-strip" id="meStrip">
+      <div><span class="k">Your rank</span><b id="homeRank">Warming Up</b></div>
+      <div><span class="k">Best</span><b id="best">0</b></div>
+      <div><span class="k">Games</span><b id="games">0</b></div>
     </div>
     <div class="actions">
-      <button class="btn primary" id="go">Play solo →</button>
+      <button class="btn primary playbtn" id="go"><span>Play</span><small id="goSub">Mixed · 30 s</small></button>
       <a class="btn" href="host.html">Play on TV with friends</a>
     </div>
-    <div class="settings">
-      <p class="eyebrow">Level</p>
-      <div class="seg seg4" role="radiogroup">
-        <label><input type="radio" name="level" id="level-easy" value="easy">Easy</label>
-        <label><input type="radio" name="level" id="level-medium" value="medium">Medium</label>
-        <label><input type="radio" name="level" id="level-hard" value="hard">Hard</label>
-        <label><input type="radio" name="level" id="level-mixed" value="mixed" checked>Mixed</label>
-      </div>
-    </div>
-    <div class="settings">
-      <p class="eyebrow" data-i="timePick"></p>
-      <div class="seg" role="radiogroup">
-        <label><input type="radio" name="time" id="time-20" value="20"><span data-i="fast"></span><small>20 s</small></label>
-        <label><input type="radio" name="time" id="time-30" value="30" checked><span data-i="normal"></span><small>30 s</small></label>
-        <label><input type="radio" name="time" id="time-45" value="45"><span data-i="relaxed"></span><small>45 s</small></label>
-      </div>
-    </div>
-    <p class="foot">Classic word game · Mobile first · <span data-i="best"></span> <b id="best">0</b></p>
+    <button class="install" id="install" type="button" hidden>Add REVEAL to your home screen</button>
+    <p class="install-tip" id="installTip" hidden>On iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>.</p>
   </section>
+
+  <dialog class="sheet" id="settings" aria-labelledby="setTitle">
+    <form method="dialog" class="sheet-in">
+      <div class="sheet-head"><h2 id="setTitle">Settings</h2><button class="ghost close" value="close" aria-label="Close">Done</button></div>
+      <div class="settings">
+        <p class="eyebrow">Level</p>
+        <div class="seg seg4" role="radiogroup">
+          <label><input type="radio" name="level" id="level-easy" value="easy">Easy</label>
+          <label><input type="radio" name="level" id="level-medium" value="medium">Medium</label>
+          <label><input type="radio" name="level" id="level-hard" value="hard">Hard</label>
+          <label><input type="radio" name="level" id="level-mixed" value="mixed" checked>Mixed</label>
+        </div>
+      </div>
+      <div class="settings">
+        <p class="eyebrow" data-i="timePick"></p>
+        <div class="seg" role="radiogroup">
+          <label><input type="radio" name="time" id="time-20" value="20"><span data-i="fast"></span><small>20 s</small></label>
+          <label><input type="radio" name="time" id="time-30" value="30" checked><span data-i="normal"></span><small>30 s</small></label>
+          <label><input type="radio" name="time" id="time-45" value="45"><span data-i="relaxed"></span><small>45 s</small></label>
+        </div>
+      </div>
+      <div class="toggles">
+        <label class="tog"><span>Sound</span><input type="checkbox" id="optSound" role="switch"></label>
+        <label class="tog"><span>Vibration</span><input type="checkbox" id="optVibe" role="switch"></label>
+      </div>
+    </form>
+  </dialog>
 
   <!-- PLAY -->
   <section class="card stage" id="play" data-sound="full" hidden>
@@ -200,7 +223,7 @@ body:has(#start:not([hidden])) header{display:none}
   </section>
 </div>
 
-<script src="words.js?v=20261116g"></script>
+<script src="words.js?v=20261116h"></script>
 <script>
 
 const UI = {
@@ -225,8 +248,31 @@ function t(k){return UI.en[k]}
 
 function applyUI(){
   document.querySelectorAll("[data-i]").forEach(el=>{const v=t(el.dataset.i); if(typeof v==="string") el.textContent=v;});
-  $("best").textContent = store.get("reveal-best") || "0";
+  const best = +(store.get("reveal-best")||0);
+  $("best").textContent = best;
+  $("games").textContent = store.get("reveal-games") || "0";
+  if(window.REVEAL_END) $("homeRank").textContent = REVEAL_END.title(best).name;
+  const lv = document.querySelector('input[name=level]:checked'), tm = document.querySelector('input[name=time]:checked');
+  $("goSub").textContent = `${lv.parentNode.textContent.trim()} · ${tm.value} s`;
+  $("optSound").checked = store.get("reveal-muted")!=="1";
+  $("optVibe").checked = store.get("reveal-vibe")!=="0";
 }
+addEventListener("load", applyUI);
+// add to home screen
+let installEvt = null;
+const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+addEventListener("beforeinstallprompt", e=>{ e.preventDefault(); installEvt = e; if(!standalone) $("install").hidden = false; });
+if(!standalone && /iphone|ipad|ipod/i.test(navigator.userAgent)) $("install").hidden = false;
+$("install").addEventListener("click", async ()=>{
+  if(installEvt){ installEvt.prompt(); try{ await installEvt.userChoice; }catch(e){} installEvt=null; $("install").hidden=true; }
+  else $("installTip").hidden = !$("installTip").hidden;
+});
+addEventListener("appinstalled", ()=>{ $("install").hidden = true; $("installTip").hidden = true; });
+$("gear").addEventListener("click",()=>{ const d=$("settings"); if(d.showModal) d.showModal(); else d.setAttribute("open",""); });
+$("settings").addEventListener("click",e=>{ if(e.target===$("settings")) $("settings").close(); });
+$("settings").addEventListener("close",applyUI);
+$("optSound").addEventListener("change",e=>{ store.set("reveal-muted", e.target.checked?"0":"1"); dispatchEvent(new Event("reveal-settings")); });
+$("optVibe").addEventListener("change",e=>{ store.set("reveal-vibe", e.target.checked?"1":"0"); dispatchEvent(new Event("reveal-settings")); if(e.target.checked && navigator.vibrate) navigator.vibrate(30); });
 
 function tileHTML(ch, open){return `<div class="t${open?" open":""}"><div class="in"><div class="f"></div><div class="b">${ch}</div></div></div>`}
 
@@ -245,8 +291,8 @@ function demo(){
   },1400);
 }
 
-document.querySelectorAll('input[name=time]').forEach(r=>r.addEventListener("change",()=>store.set("reveal-time-v2",document.querySelector('input[name=time]:checked').value)));
-document.querySelectorAll('input[name=level]').forEach(r=>r.addEventListener("change",()=>store.set("reveal-level",document.querySelector('input[name=level]:checked').value)));
+document.querySelectorAll('input[name=time]').forEach(r=>r.addEventListener("change",()=>{store.set("reveal-time-v2",document.querySelector('input[name=time]:checked').value);applyUI();}));
+document.querySelectorAll('input[name=level]').forEach(r=>r.addEventListener("change",()=>{store.set("reveal-level",document.querySelector('input[name=level]:checked').value);applyUI();}));
 
 function newGame(){
   const T=+document.querySelector('input[name=time]:checked').value;
@@ -343,6 +389,7 @@ function endGame(){
   const got=S.log.filter(l=>l.kind==="right").length;
   const prev=+(store.get("reveal-best")||0);
   const isBest = S.score>prev && S.score>0;
+  store.set("reveal-games", String(+(store.get("reveal-games")||0)+1));
   if(isBest){ store.set("reveal-best",S.score); window.REVEAL_SFX && REVEAL_SFX.fanfare(); }
   $("endNote").textContent=t("endNote")(got,S.log.length);
   countUp($("final"), S.score);
@@ -376,7 +423,7 @@ const savedTime=store.get("reveal-time-v2");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
 applyUI(); demo();
 </script>
-<script src="stage.js?v=20261116g"></script>
-<script src="drama.js?v=20261116g"></script>
+<script src="stage.js?v=20261116h"></script>
+<script src="drama.js?v=20261116h"></script>
 </body>
 </html>
