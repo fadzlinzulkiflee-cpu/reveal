@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>REVEAL</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#17231D">
+<meta name="theme-color" content="#E6EAF2">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="REVEAL">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Lilita+One&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
 /* Layout: one centred play column; a stage card with a draining time bar, flip tiles, hint, and guess bar. */
 :root{
@@ -119,10 +119,11 @@ header{min-height:36px}
 body:has(#start:not([hidden])) header{display:none}
 .seg4 label{min-width:70px}
 </style>
-<link rel="stylesheet" href="stage.css?v=20261116m">
+<link rel="stylesheet" href="stage.css?v=20261116n">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
-<link rel="stylesheet" href="theme.css?v=20261116m">
-<link rel="stylesheet" href="drama.css?v=20261116m">
+<link rel="stylesheet" href="theme.css?v=20261116n">
+<link rel="stylesheet" href="drama.css?v=20261116n">
+<link rel="stylesheet" href="look.css?v=20261116n">
 <style>#play.stage{--ring:80px}</style>
 </head>
 <body>
@@ -149,15 +150,11 @@ body:has(#start:not([hidden])) header{display:none}
       <div><span class="k">Best</span><b id="best">0</b></div>
       <div><span class="k">Games</span><b id="games">0</b></div>
     </div>
-    <button class="daily-card" id="dailyBtn" type="button">
-      <span class="dk" id="dailyDate">Daily Play</span>
-      <b id="dailyTitle">12 words. Same for everyone today.</b>
-      <span class="ds" id="dailySub"></span>
-    </button>
     <div class="actions menu">
-      <button class="btn primary playbtn" id="go"><span>Solo</span><small id="goSub">Mixed · 30 s</small></button>
-      <a class="btn menu-item" href="host.html"><span>Play Locally</span><small>One TV, everyone on their phone</small></a>
-      <a class="btn menu-item" id="rankedBtn" href="online.html"><span>Ranked Play <em class="badge">Beta</em></span><small>Online Battle Royale · last one standing</small></a>
+      <button class="daily-card mode m-daily" id="dailyBtn" type="button"><i class="mi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h1V3a1 1 0 0 1 1-1zM4 10v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-9H4zm4 3h3v3H8v-3z"/></svg></i><span class="mt"><b>Daily Play</b><small><span id="dailyDate"></span> · <span id="dailyTitle">12 words</span></small><small id="dailySub"></small></span></button>
+      <button class="mode m-solo" id="go" type="button"><i class="mi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13.5 2 4 13.5h6.5L9 22l11-12.5h-6.7z"/></svg></i><span class="mt"><b>Solo</b><small id="goSub">Mixed · 30 s</small></span></button>
+      <a class="mode m-local" href="host.html"><i class="mi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 6h14a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3zm3.3-4.7L12 4.6l3.7-3.3 1.3 1.5L13.6 6h-3.2L7 2.8z"/></svg></i><span class="mt"><b>Play Locally</b><small>One TV, everyone on their phone</small></span></a>
+      <a class="mode m-ranked" id="rankedBtn" href="online.html"><i class="mi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 11H5L3 7zm2 13h14v2H5z"/></svg></i><span class="mt"><b>Ranked Play <em class="badge">Beta</em></b><small>Online Battle Royale · last one standing</small></span></a>
     </div>
     <button class="install" id="lbBtn" type="button">Today's leaderboard</button>
     <button class="install" id="install" type="button" hidden>Add REVEAL to your home screen</button>
@@ -247,7 +244,7 @@ body:has(#start:not([hidden])) header{display:none}
   </section>
 </div>
 
-<script src="words.js?v=20261116m"></script>
+<script src="words.js?v=20261116n"></script>
 <script>
 
 const UI = {
@@ -481,8 +478,8 @@ function openBoard(){
 function paintDaily(){
   const D = window.REVEAL_DAILY; if(!D) return;
   const r = D.result(), st = D.streak();
-  $("dailyDate").textContent = "Daily Play · " + D.niceDate(D.today());
-  $("dailyTitle").textContent = r ? `Done today: ${r.score} points` : "12 words. Same for everyone today.";
+  $("dailyDate").textContent = D.niceDate(D.today());
+  $("dailyTitle").textContent = r ? `Done: ${r.score} points` : "12 words";
   $("dailySub").textContent = (st ? `${st}-day streak · ` : "") + (r ? `See where you rank · new words in ${D.hms(D.msToReset())}` : "Easy to hard · 30 s each · one try");
   $("dailyBtn").classList.toggle("done", !!r);
 }
@@ -510,8 +507,8 @@ const savedTime=store.get("reveal-time-v2");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
 applyUI(); demo();
 </script>
-<script src="stage.js?v=20261116m"></script>
-<script src="drama.js?v=20261116m"></script>
-<script src="daily.js?v=20261116m"></script>
+<script src="stage.js?v=20261116n"></script>
+<script src="drama.js?v=20261116n"></script>
+<script src="daily.js?v=20261116n"></script>
 </body>
 </html>
