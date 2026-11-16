@@ -111,9 +111,9 @@ header{min-height:36px}
 body:has(#start:not([hidden])) header{display:none}
 .seg4 label{min-width:70px}
 </style>
-<link rel="stylesheet" href="stage.css?v=20261116c">
+<link rel="stylesheet" href="stage.css?v=20261116d">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
-<link rel="stylesheet" href="theme.css?v=20261116c">
+<link rel="stylesheet" href="theme.css?v=20261116d">
 </head>
 <body>
 
@@ -194,7 +194,7 @@ body:has(#start:not([hidden])) header{display:none}
   </section>
 </div>
 
-<script src="words.js?v=20261116c"></script>
+<script src="words.js?v=20261116d"></script>
 <script>
 
 const UI = {
@@ -324,7 +324,7 @@ $("form").addEventListener("submit",e=>{
   c.penalty+=PENALTY;
   const inp=$("guess"); inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake");
   $("msg").className="msg bad"; $("msg").textContent = g.length<c.n ? `${t("short")} · ${t("wrong")}` : t("wrong");
-  inp.select();
+  inp.value=""; inp.focus({preventScroll:true});
 });
 $("skip").addEventListener("click",()=>finish("skip"));
 $("nextBtn").addEventListener("click",nextWord);
@@ -349,6 +349,6 @@ const savedTime=store.get("reveal-time-v2");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
 applyUI(); demo();
 </script>
-<script src="stage.js?v=20261116c"></script>
+<script src="stage.js?v=20261116d"></script>
 </body>
 </html>
