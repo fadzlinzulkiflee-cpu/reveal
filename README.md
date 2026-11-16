@@ -9,9 +9,12 @@ Open `index.html` in any browser. It is a single self-contained file with no bui
 ## How it works
 
 - **Language:** English, aimed at adults and families.
+- **Modes:**
+  - *Solo:* chase your best score. A wrong guess costs 3 seconds.
+  - *Duo (one phone):* both players get the same word. Tap your button first to answer: the clock stops and you have 10 seconds to type. Right takes the points; wrong locks you out of that word and the clock runs on for your rival.
 - **Rounds:** 10 words per game, with 45, 60 or 90 seconds per word.
 - **Reveal:** one letter opens every `time / letters` seconds, in random order. The last letter stays hidden until time runs out.
-- **Scoring:** `50 + 100 × (time left / total time) + 15 × hidden letters`. A wrong guess costs 3 seconds.
+- **Scoring:** `50 + 100 × (time left / total time) + 15 × hidden letters`. In Solo a wrong guess costs 3 seconds.
 - **Best score** is kept in the browser's local storage.
 
 ## Word list
