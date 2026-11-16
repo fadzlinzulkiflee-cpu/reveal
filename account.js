@@ -97,8 +97,8 @@
   A.on(async st=>{
     paint(st);
     const uid = st.user && st.user.id;
-    if(st.profile){ try{ localStorage.setItem("reveal-name", st.profile.username); }catch(e){} }   // online match name
+    if(st.profile){ try{ localStorage.setItem("reveal-name", st.profile.username); localStorage.setItem("reveal-avatar", st.profile.avatar); }catch(e){} }   // online match name
     if(st.profile && uid !== lastUser){ lastUser = uid; await A.syncStats(); if(typeof applyUI === "function") applyUI(); if(window.REVEAL_DAILY_CLAIM) REVEAL_DAILY_CLAIM(); }
-    if(!uid) lastUser = null;
+    if(!uid){ lastUser = null; if(st.loaded) try{ localStorage.removeItem("reveal-avatar"); }catch(e){} }
   });
 })();
