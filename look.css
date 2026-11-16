@@ -265,3 +265,40 @@
 :root:not(#_) .stage.won .guess{display:none}
 @keyframes praiseIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){:root:not(#_) .stage .splash.inline.go{animation:none}}
+
+/* Account: Sign in chip (top-left of home card), account sheet, avatar picker */
+:root:not(#_) .acct{position:absolute;top:14px;left:14px;height:44px;display:inline-flex;align-items:center;gap:8px;padding:0 16px;border-radius:999px;
+  background:rgba(246,248,240,.06);border:1px solid rgba(246,248,240,.14);color:#F6F8F0;font:700 .82rem var(--f-body);letter-spacing:.02em;box-shadow:none;text-transform:none;min-width:0;max-width:calc(100% - 90px)}
+:root:not(#_) .acct.in{padding:0 14px 0 5px}
+:root:not(#_) .acct-av{width:34px;height:34px;border-radius:50%;background:#23372B;display:grid;place-items:center;flex:none}
+:root:not(#_) .acct-av svg,:root:not(#_) .ac-big svg{width:86%;height:86%}
+:root:not(#_) .acct span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+:root:not(#_) .ac-pane{display:grid;gap:14px}
+:root:not(#_) .ac-pane[hidden]{display:none}
+:root:not(#_) .ac-pane .lead{margin:0;color:#A9BBAC;font-weight:500}
+:root:not(#_) .ac-note{margin:0;font-size:.85rem;text-align:center}
+:root:not(#_) .gbtn{display:flex;align-items:center;justify-content:center;gap:10px;background:#F6F8F0;color:#17231D;border:0}
+:root:not(#_) .gbtn svg{width:20px;height:20px;flex:none}
+:root:not(#_) .ac-name{display:flex;align-items:center;gap:2px;background:#23372B;border:1px solid rgba(246,248,240,.14);border-radius:14px;padding:0 14px}
+:root:not(#_) .ac-name:focus-within{border-color:#C7F58B}
+:root:not(#_) .ac-name span{font:700 1.1rem var(--f-body);color:#A9BBAC}
+:root:not(#_) .ac-name input{flex:1;min-width:0;background:none;border:0;outline:0;box-shadow:none;color:#F6F8F0;font:600 1.1rem var(--f-body);padding:14px 0;text-transform:lowercase}
+:root:not(#_) .ac-namemsg{margin:-6px 0 0;font-size:.85rem;color:#A9BBAC;min-height:1.2em}
+:root:not(#_) .ac-namemsg.good{color:#C7F58B}
+:root:not(#_) .ac-namemsg.bad{color:#FF8F85}
+:root:not(#_) .avpick{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+@media (max-width:420px){:root:not(#_) .avpick{grid-template-columns:repeat(4,1fr)}}
+:root:not(#_) .avopt{display:grid;justify-items:center;gap:4px;cursor:pointer;font-size:.72rem;font-weight:600;color:#A9BBAC}
+:root:not(#_) .avopt input{position:absolute;opacity:0;pointer-events:none}
+:root:not(#_) .avopt span{width:100%;aspect-ratio:1;border-radius:16px;background:#23372B;display:grid;place-items:center;border:2px solid transparent;transition:border-color .15s,transform .15s}
+:root:not(#_) .avopt span svg{width:78%;height:78%}
+:root:not(#_) .avopt input:checked+span{border-color:#C7F58B;background:#2c4535}
+:root:not(#_) .avopt input:checked~small{color:#F6F8F0}
+:root:not(#_) .avopt input:focus-visible+span{outline:2px solid #F6F8F0;outline-offset:2px}
+:root:not(#_) .ac-me{display:flex;align-items:center;gap:14px}
+:root:not(#_) .ac-big{width:72px;height:72px;border-radius:22px;background:#23372B;display:grid;place-items:center;flex:none}
+:root:not(#_) .ac-me b{display:block;font:800 1.4rem var(--f-display);color:#F6F8F0}
+:root:not(#_) .ac-me small{color:#A9BBAC;font-weight:500}
+:root:not(#_) .sheet .err{margin:0}
+:root:not(#_) .legal{margin:0;text-align:center;font-size:.8rem}
+:root:not(#_) .legal a,:root:not(#_) .ac-note a{color:#A9BBAC}

@@ -82,6 +82,27 @@ create policy "post for today only" on daily_scores for insert
   with check (day between current_date - 1 and current_date + 1);
 ```
 
+## Accounts (Google sign-in)
+
+Guests can play everything except ranked. Signing in is optional and adds a unique player name (`@name`, 3–14 lowercase letters, numbers or `_`, rude words blocked), one of 12 ready-made avatars, records saved to the account (fastest, streak, correct, games, best; merged with the device's records on sign-in), and Daily scores posted under the player name.
+
+- `auth.js` (REVEAL_AUTH): Supabase Auth with Google (PKCE), profile load/save, name checks, record sync. Uses only the publishable key.
+- `account.js`: the Sign in chip on the home screen and the account sheet. After the first Google sign-in it asks for a player name.
+- `avatars.js`: the 12 avatars as inline SVG.
+- `vendor/supabase-js-2.118.0.min.js`: Supabase client (MIT, `vendor/LICENSE-supabase-js`).
+- `supabase/accounts.sql`: `profiles` table with row level security (anyone can read, players write only their own name, avatar and stats; rating is server-only), plus `daily_scores.user_id`.
+
+One-time setup (do this before merging, or the Sign in button leads to an error):
+
+1. **Google Cloud Console** → create a project → *APIs & Services* → *OAuth consent screen*: External, app name REVEAL, your support email, then publish it. *Credentials* → *Create credentials* → *OAuth client ID* → *Web application*:
+   - Authorized JavaScript origins: `https://fadzlinzulkiflee-cpu.github.io`
+   - Authorized redirect URIs: `https://nnvgopfuenajnioiqmdk.supabase.co/auth/v1/callback`
+2. **Supabase** → *Authentication* → *Sign In / Providers* → *Google*: enable, paste the Client ID and Client secret from step 1. The client secret goes only into Supabase, never into this repo or a chat.
+3. **Supabase** → *Authentication* → *URL Configuration*: Site URL `https://fadzlinzulkiflee-cpu.github.io/reveal/`, and add the redirect URL `https://fadzlinzulkiflee-cpu.github.io/reveal/**`. With a custom domain later, add it in both places and in step 1's origins.
+4. **Supabase** → *SQL Editor* → paste `supabase/accounts.sql` → *Run*.
+
+Tests mock Supabase (the session proxy blocks supabase.co), so the first real sign-in happens live.
+
 ## Online Battle Royale (beta, unranked)
 
 `online.html` + `online.js`. Ranked Play on the menu opens it. No game server is needed:
@@ -97,4 +118,4 @@ Test overrides: `?lobby=6&t=8&rv=2&size=8&bots=0` plus the usual `peerhost/peerp
 
 ## Look v3 (playful, Lilac background)
 
-`look.css` loads last on every page. All screens use the dark green background (#17231D) again (light theme rules are kept in look.css but switched off) with chunky pressable buttons, the Lilita One display font, an italic "Frame" REVEAL wordmark (Archivo 900 italic, lime corner frame, lime dot), and one colour per mode: Daily sunshine, Solo lime, Play Locally sky, Ranked grape. Coral is only for wrong answers. The TV (`host.html`, `<html data-screen="tv">`) keeps the dark green background but shares the fonts, buttons and tiles. Style board: https://claude.ai/artifact/A971zhP6tkgwJShAcZ6fxK
+`look.css` loads last on every page. All screens use the dark green background (#17231D) again (light theme rules are kept in look.css but switched off) with flat buttons, Archivo (brand, headings, big numbers) and Inter (everything else), an italic "Frame" REVEAL wordmark (Archivo 900 italic, lime corner frame, lime dot), and one colour per mode: Daily sunshine, Solo lime, Play Locally sky, Ranked grape. Coral is only for wrong answers. The TV (`host.html`, `<html data-screen="tv">`) keeps the dark green background but shares the fonts, buttons and tiles. Style board: https://claude.ai/artifact/A971zhP6tkgwJShAcZ6fxK
