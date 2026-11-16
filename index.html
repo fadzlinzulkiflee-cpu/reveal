@@ -157,9 +157,9 @@ td .w{font-family:var(--f-display);font-weight:800;letter-spacing:.06em}
     <div style="display:grid;gap:8px">
       <p class="eyebrow" data-i="timePick"></p>
       <div class="seg" role="radiogroup">
-        <label><input type="radio" name="time" id="time-45" value="45"><span data-i="fast"></span><small>45 s</small></label>
-        <label><input type="radio" name="time" id="time-60" value="60" checked><span data-i="normal"></span><small>60 s</small></label>
-        <label><input type="radio" name="time" id="time-90" value="90"><span data-i="relaxed"></span><small>90 s</small></label>
+        <label><input type="radio" name="time" id="time-20" value="20"><span data-i="fast"></span><small>20 s</small></label>
+        <label><input type="radio" name="time" id="time-30" value="30" checked><span data-i="normal"></span><small>30 s</small></label>
+        <label><input type="radio" name="time" id="time-45" value="45"><span data-i="relaxed"></span><small>45 s</small></label>
       </div>
     </div>
     <ol class="rules" id="rules"></ol>
@@ -171,7 +171,7 @@ td .w{font-family:var(--f-display);font-weight:800;letter-spacing:.06em}
   <!-- PLAY -->
   <section class="card" id="play" hidden>
     <div class="toprow">
-      <span class="clock" id="clock">60</span>
+      <span class="clock" id="clock">30</span>
       <span class="next" id="next"></span>
     </div>
     <div class="timebar" id="bar"><i id="fill"></i></div>
@@ -254,7 +254,7 @@ function demo(){
   [order[0],order[2],order[4]].forEach(i=>tiles[i].classList.add("open"));
 }
 
-document.querySelectorAll('input[name=time]').forEach(r=>r.addEventListener("change",()=>store.set("reveal-time",document.querySelector('input[name=time]:checked').value)));
+document.querySelectorAll('input[name=time]').forEach(r=>r.addEventListener("change",()=>store.set("reveal-time-v2",document.querySelector('input[name=time]:checked').value)));
 document.querySelectorAll('input[name=mode]').forEach(r=>r.addEventListener("change",()=>{store.set("reveal-mode",mode()); applyUI();}));
 
 function newGame(){
@@ -426,7 +426,7 @@ $("menu").addEventListener("click",()=>{$("end").hidden=true;$("start").hidden=f
 $("go").addEventListener("click",newGame);
 
 // restore remembered choices
-const savedTime=store.get("reveal-time"), savedMode=store.get("reveal-mode");
+const savedTime=store.get("reveal-time-v2"), savedMode=store.get("reveal-mode");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
 if(savedMode&&$("mode-"+savedMode)) $("mode-"+savedMode).checked=true;
 applyUI(); demo();

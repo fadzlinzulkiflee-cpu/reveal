@@ -20,7 +20,7 @@ For big-screen games, the files must be served from a web address (for example G
   - *Party (big screen):* everyone guesses the same word on their own phone. Every correct guess scores, faster scores more, and the first correct guess gets +25. A wrong guess locks that phone for 3 seconds. 10 words.
   - *Royale (big screen, 2–12 players):* same word for everyone. A wrong guess, or missing the word, knocks you out at the end of the round, and so does the slowest correct answer. If nobody gets it, nobody is out. Last one standing wins.
   - *Duo (one phone):* both players get the same word. Tap your button first to answer: the clock stops and you have 10 seconds to type. Right takes the points; wrong locks you out of that word and the clock runs on for your rival.
-- **Rounds:** 10 words per game, with 45, 60 or 90 seconds per word.
+- **Rounds:** 10 words per game, with 20, 30 (default) or 45 seconds per word.
 - **Reveal:** one letter opens every `time / letters` seconds, in random order. The last letter stays hidden until time runs out.
 - **Scoring:** `50 + 100 × (time left / total time) + 15 × hidden letters`. In Solo a wrong guess costs 3 seconds.
 - **Best score** is kept in the browser's local storage.

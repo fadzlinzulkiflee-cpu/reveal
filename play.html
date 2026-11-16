@@ -65,7 +65,7 @@ form.join input{width:100%}
   <!-- PLAY -->
   <section class="card" id="play" hidden>
     <div class="toprow">
-      <span class="clock" id="clock">60</span>
+      <span class="clock" id="clock">30</span>
       <span class="eyebrow" id="roundLbl"></span>
     </div>
     <div class="timebar" id="bar"><i id="fill"></i></div>
@@ -204,6 +204,7 @@ function updatePlay(){
   if(st.out){ $("msg").className="msg"; $("msg").textContent="You're out. Watch the big screen."; }
   else if(st.correct){ $("msg").className="msg good"; if(!$("msg").textContent) $("msg").textContent="You got it! Waiting for the others."; }
   else if(!$("guess").disabled && document.activeElement!==$("guess")) $("guess").focus({preventScroll:true});
+  drawClock();
 }
 function drawClock(){
   const left=Math.max(0,(deadline-performance.now())/1000);
