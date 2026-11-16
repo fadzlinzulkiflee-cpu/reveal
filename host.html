@@ -7,13 +7,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="party.css">
+<link rel="stylesheet" href="stage.css">
 <style>
 /* Layout: TV-first. Main stage on the left, players rail on the right; stacks on narrow screens. */
 body{font-size:clamp(16px,1.25vw,22px)}
 .screen{min-height:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,26%);gap:24px;
   padding-block:24px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
 @media (max-width:820px){.screen{grid-template-columns:1fr;gap:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}}
-.stage{display:flex;flex-direction:column;gap:22px;min-width:0}
+.maincol{display:flex;flex-direction:column;gap:22px;min-width:0}
 .top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
 .roomtag{font-family:var(--f-mono);color:var(--muted)}
 .roomtag b{color:var(--ink);letter-spacing:.15em}
@@ -44,11 +45,12 @@ body{font-size:clamp(16px,1.25vw,22px)}
 .winner{font-family:var(--f-display);font-weight:800;font-size:clamp(2.2rem,6vw,5rem);line-height:1.05}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .err{color:var(--bad);font-weight:600}
+#play.stage{--ring:clamp(110px,11vw,190px)}
 </style>
 </head>
 <body>
 <div class="screen">
-  <main class="stage">
+  <main class="maincol">
     <div class="top">
       <div class="logo" aria-label="REVEAL"><span class="on">R</span><span>E</span><span class="on">V</span><span>E</span><span class="on">A</span><span>L</span></div>
       <span class="roomtag" id="roomtag" hidden>Room <b id="roomSmall"></b></span>
@@ -75,9 +77,9 @@ body{font-size:clamp(16px,1.25vw,22px)}
       <div style="display:grid;gap:8px">
         <p class="eyebrow">Time per word</p>
         <div class="seg">
-          <label><input type="radio" name="time" id="time-45" value="45">Fast<small>45 s</small></label>
-          <label><input type="radio" name="time" id="time-60" value="60" checked>Normal<small>60 s</small></label>
-          <label><input type="radio" name="time" id="time-90" value="90">Relaxed<small>90 s</small></label>
+          <label><input type="radio" name="time" id="time-20" value="20">Fast<small>20 s</small></label>
+          <label><input type="radio" name="time" id="time-30" value="30" checked>Normal<small>30 s</small></label>
+          <label><input type="radio" name="time" id="time-45" value="45">Relaxed<small>45 s</small></label>
         </div>
       </div>
       <div class="row">
@@ -87,9 +89,9 @@ body{font-size:clamp(16px,1.25vw,22px)}
     </section>
 
     <!-- PLAY -->
-    <section class="card" id="play" hidden>
+    <section class="card stage" id="play" hidden>
       <div class="toprow">
-        <span class="clock big" id="clock">60</span>
+        <span class="clock" id="clock">30</span>
         <span class="next" id="next"></span>
         <span class="eyebrow" id="roundLbl"></span>
       </div>
@@ -297,7 +299,7 @@ function tick(){
   while(c.shown<target){ const i=c.order[c.shown]; c.open[i]=true; $("tiles").children[i].classList.add("open"); c.shown++; changed=true; }
   if(changed) syncAll();
   $("clock").textContent=Math.ceil(left);
-  const low=left<=10; $("clock").classList.toggle("low",low); $("bar").classList.toggle("low",low);
+  const low=left<=5; $("clock").classList.toggle("low",low); $("bar").classList.toggle("low",low);
   $("fill").style.width=(left/H.T*100)+"%";
   $("next").textContent = c.shown<c.n-1 ? `Next letter in ${Math.max(1,Math.ceil((c.shown+1)*step-elapsed))}s` : "Last letter stays hidden";
   if(left<=0) return endRound();
@@ -401,5 +403,6 @@ window.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ") && doc
 
 openRoom(); renderPlayers();
 </script>
+<script src="stage.js"></script>
 </body>
 </html>

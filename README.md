@@ -4,7 +4,7 @@ An original word-guessing game. You get a hint and a hidden word. A countdown ru
 
 ## Play
 
-Open `index.html` in any browser for Solo and Duo. There is no build step, and it works on phones.
+Open `index.html` in any browser for Solo. There is no build step, and it works on phones.
 
 For big-screen games, the files must be served from a web address (for example GitHub Pages), not opened as a local file:
 
@@ -19,8 +19,8 @@ For big-screen games, the files must be served from a web address (for example G
   - *Solo:* chase your best score. A wrong guess costs 3 seconds.
   - *Party (big screen):* everyone guesses the same word on their own phone. Every correct guess scores, faster scores more, and the first correct guess gets +25. A wrong guess locks that phone for 3 seconds. 10 words.
   - *Royale (big screen, 2–12 players):* same word for everyone. A wrong guess, or missing the word, knocks you out at the end of the round, and so does the slowest correct answer. If nobody gets it, nobody is out. Last one standing wins.
-  - *Duo (one phone):* both players get the same word. Tap your button first to answer: the clock stops and you have 10 seconds to type. Right takes the points; wrong locks you out of that word and the clock runs on for your rival.
-- **Rounds:** 10 words per game, with 45, 60 or 90 seconds per word.
+
+- **Rounds:** 10 words per game, with 20, 30 (default) or 45 seconds per word.
 - **Reveal:** one letter opens every `time / letters` seconds, in random order. The last letter stays hidden until time runs out.
 - **Scoring:** `50 + 100 × (time left / total time) + 15 × hidden letters`. In Solo a wrong guess costs 3 seconds.
 - **Best score** is kept in the browser's local storage.
@@ -33,11 +33,12 @@ To use your own PeerJS server, add `?peerhost=HOST&peerport=PORT&peerpath=/PATH`
 
 ## Files
 
-- `index.html`: Solo and Duo
+- `index.html`: Solo
 - `host.html`: big screen (Party and Royale)
 - `play.html`: phone controller for big-screen games
 - `words.js`: the shared word list
 - `party.css`, `net.js`: shared styles and connection settings for big-screen mode
+- `stage.css`, `stage.js`: the game-show look of the guessing screen (countdown ring, gold tiles, confetti), used by every mode
 - `vendor/`: PeerJS 1.5.4 and qrcode-generator 1.4.4 (MIT), kept in the repo so the game does not depend on a CDN
 
 ## Word list

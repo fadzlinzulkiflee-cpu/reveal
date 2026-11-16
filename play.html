@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="party.css">
+<link rel="stylesheet" href="stage.css">
 <style>
 /* Layout: one phone column; header with room + score, one card that changes with the game phase. */
 .wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px;
@@ -28,6 +29,7 @@ form.join input{width:100%}
 .vip{display:grid;gap:6px}
 .pill{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-radius:6px;padding:2px 8px;background:var(--accent);color:var(--accent-ink)}
 .err{color:var(--bad);font-weight:600;text-align:center}
+#play.stage{--ring:96px}
 </style>
 </head>
 <body>
@@ -63,9 +65,9 @@ form.join input{width:100%}
   </section>
 
   <!-- PLAY -->
-  <section class="card" id="play" hidden>
+  <section class="card stage" id="play" hidden>
     <div class="toprow">
-      <span class="clock" id="clock">60</span>
+      <span class="clock" id="clock">30</span>
       <span class="eyebrow" id="roundLbl"></span>
     </div>
     <div class="timebar" id="bar"><i id="fill"></i></div>
@@ -204,11 +206,12 @@ function updatePlay(){
   if(st.out){ $("msg").className="msg"; $("msg").textContent="You're out. Watch the big screen."; }
   else if(st.correct){ $("msg").className="msg good"; if(!$("msg").textContent) $("msg").textContent="You got it! Waiting for the others."; }
   else if(!$("guess").disabled && document.activeElement!==$("guess")) $("guess").focus({preventScroll:true});
+  drawClock();
 }
 function drawClock(){
   const left=Math.max(0,(deadline-performance.now())/1000);
   $("clock").textContent=Math.ceil(left);
-  const low=left<=10; $("clock").classList.toggle("low",low); $("bar").classList.toggle("low",low);
+  const low=left<=5; $("clock").classList.toggle("low",low); $("bar").classList.toggle("low",low);
   $("fill").style.width=(st&&st.T? left/st.T*100 : 0)+"%";
   const cd = cooldownUntil-performance.now();
   if(st && !st.correct && !st.out && !st.failed){
@@ -245,5 +248,6 @@ $("guessForm").addEventListener("submit", e=>{
 $("startBtn").addEventListener("click", ()=>conn && conn.send({t:"start"}));
 $("nextBtn").addEventListener("click", ()=>conn && conn.send({t:"next"}));
 </script>
+<script src="stage.js"></script>
 </body>
 </html>
