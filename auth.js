@@ -78,9 +78,10 @@ window.REVEAL_AUTH = (function(){
     return { ok:true };
   }
 
-  // Records follow the account: fastest correct answer, longest streak, total correct, games, best score.
+  // Records follow the account: fastest correct answer, longest streak, total correct, games, best score,
+  // online Battle Royale matches and wins.
   const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}} };
-  const KEYS = { fastest:"reveal-rec-fastest", streak:"reveal-rec-streak", correct:"reveal-rec-correct", games:"reveal-games", best:"reveal-best" };
+  const KEYS = { fastest:"reveal-rec-fastest", streak:"reveal-rec-streak", correct:"reveal-rec-correct", games:"reveal-games", best:"reveal-best", matches:"reveal-br-matches", wins:"reveal-br-wins" };
   function localStats(){
     const o = {};
     Object.entries(KEYS).forEach(([k,key])=>{ const v = parseFloat(store.get(key)); if(isFinite(v)) o[k] = v; });

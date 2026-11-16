@@ -22,6 +22,12 @@
   const AV = ["#c7f58b","#8fd3ff","#ffc98b","#d9a7ff","#ff9fb0","#7fe0c4","#f6e27a","#b3c7ff","#ffb38a","#a8f0a0","#f0a8e0","#9be7ff"];
   const avColor = name => { let h=0; for(const c of name) h=(h*31+c.charCodeAt(0))>>>0; return AV[h%AV.length]; };
   const initial = n => esc((n.trim()[0]||"?").toUpperCase());
+  // Signed-in players show their avatar (saved by the home screen); guests show an initial.
+  const AVS = window.REVEAL_AVATARS, okAv = a => !!(AVS && a && AVS.has(a));
+  const myAv = okAv(store.get("reveal-avatar")) ? store.get("reveal-avatar") : null;
+  const avHTML = (p, cls="") => okAv(p.a)
+    ? `<span class="av pic${cls}" title="${esc(p.n)}${p.bot?" (bot)":""}">${AVS.svg(p.a)}</span>`
+    : `<span class="av${cls}" style="--av:${avColor(p.n)}" title="${esc(p.n)}${p.bot?" (bot)":""}">${initial(p.n)}</span>`;
   const BOT_NAMES = ["Nova","Pixel","Echo","Blaze","Juno","Orbit","Maple","Comet","Indigo","Rook","Sable","Kiwi","Atlas","Ember","Quill","Zephyr","Pepper","Lumen","Vega","Mochi","Sprout","Cobalt","Dune","Fable"];
   const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 
@@ -46,18 +52,20 @@
     st = m;
     $("me").hidden = false; $("meName").textContent = myName;
     $("meState").textContent = st.phase==="lobby" ? "In lobby" : st.phase==="over" ? ordinal(st.place||1)+" place" : st.out ? "Out" : "Still in";
-    if(st.phase==="lobby") return drawLobby();
+    if(st.phase==="lobby"){ overCounted = false; return drawLobby(); }
     clearInterval(lobbyTimer);
     if(st.phase==="countdown"){
       startPlay();
-      $("guess").disabled = true; $("guessBtn").disabled = true;
+      // answer box stays focused through the 3-2-1 so the keyboard is already up at GO! (guesses wait for "play")
+      $("guess").disabled = !!st.out; $("guessBtn").disabled = true;
+      if(!st.out) $("guess").focus({preventScroll:true});
       $("clock").textContent = st.T; $("fill").style.width = "100%"; $("clock").classList.remove("low");
       REVEAL_STAGE.banner(st.showdown ? "Final showdown · first correct answer wins" : null);
       if(!st.out) REVEAL_STAGE.countdown(null); else REVEAL_STAGE.cancelCountdown();
       drawAlive();
     } else if(st.phase==="play"){
       if(st.round!==playRound) startPlay();
-      else if(prev!=="play"){ REVEAL_STAGE.cancelCountdown(); clearInterval(clockTimer); clockTimer = setInterval(drawClock, 200); }
+      else if(prev!=="play"){ REVEAL_STAGE.cancelCountdown(); $("guess").value = ""; clearInterval(clockTimer); clockTimer = setInterval(drawClock, 200); }
       REVEAL_STAGE.banner(st.showdown ? "Final showdown · first correct answer wins" : null);
       updatePlay();
     } else if(st.phase==="reveal"){
@@ -75,6 +83,11 @@
     } else if(st.phase==="over"){
       clearInterval(clockTimer); REVEAL_STAGE.cancelCountdown(); REVEAL_STAGE.banner(null); show("over");
       const won = st.place===1;
+      if(!overCounted){   // count the match in your records (synced to your account next time the menu opens)
+        overCounted = true;
+        const bump = k => store.set(k, String(+(store.get(k)||0)+1));
+        bump("reveal-games"); bump("reveal-br-matches"); if(won) bump("reveal-br-wins");
+      }
       $("place").textContent = ordinal(st.place);
       $("myTitle").textContent = won ? (st.coWin ? "SURVIVOR" : "LAST ONE STANDING") : st.place<=3 ? "SO CLOSE" : "KNOCKED OUT";
       $("winner").textContent = st.winner;
@@ -92,7 +105,7 @@
     const humans = st.players.filter(p=>!p.bot).length;
     $("lobbyNote").textContent = humans>1 ? `${humans} players found. Bots fill the empty seats when the match starts.` : "Waiting for more players. Bots fill the empty seats when the match starts.";
     const now = new Set(st.players.map(p=>p.n));
-    $("bubbles").innerHTML = st.players.map(p=>`<span class="bub${p.n===myName?" mine":""}${lastBubbles.has(p.n)?"":" fresh"}"><span class="av" style="--av:${avColor(p.n)}">${initial(p.n)}</span>${esc(p.n)}${p.bot?' <small>BOT</small>':""}</span>`).join("");
+    $("bubbles").innerHTML = st.players.map(p=>`<span class="bub${p.n===myName?" mine":""}${lastBubbles.has(p.n)?"":" fresh"}">${avHTML(p)}${esc(p.n)}${p.bot?' <small>BOT</small>':""}</span>`).join("");
     lastBubbles = now;
     lobbyEnds = performance.now() + st.startsIn*1000;
     clearInterval(lobbyTimer);
@@ -102,7 +115,7 @@
 
   function drawAlive(){
     if(!st.players) return;
-    $("alive").innerHTML = st.players.map(p=>`<span class="av${p.out?" x":p.l?" ok":""}${p.n===myName?" mine":""}" style="--av:${avColor(p.n)}" title="${esc(p.n)}${p.bot?" (bot)":""}">${initial(p.n)}</span>`).join("");
+    $("alive").innerHTML = st.players.map(p=>avHTML(p, (p.out?" x":p.l?" ok":"")+(p.n===myName?" mine":""))).join("");
   }
 
   function startPlay(){
@@ -150,7 +163,7 @@
     $("guess").disabled = true; $("guessBtn").disabled = true;
     send({t:"guess", g});
   });
-  let shareText = "";
+  let shareText = "", overCounted = false;
   $("shareBtn").addEventListener("click", e=>REVEAL_END.share(shareText + "\nThink fast. Guess faster.", e.currentTarget));
 
   // ============ MATCHMAKING ============
@@ -221,7 +234,7 @@
     const c = me.connect(hostId, {reliable:true});
     let joined = false;
     const giveUp = setTimeout(()=>{ if(!joined){ drop(me); trySlot(slot+1); } }, 8000);
-    c.on("open", ()=>c.send({t:"hello", name:myName, token}));
+    c.on("open", ()=>c.send({t:"hello", name:myName, token, av:myAv}));
     c.on("data", m=>{
       if(m.t==="full"){ clearTimeout(giveUp); drop(me); return trySlot(slot+1); }
       if(m.t==="welcome"){ joined = true; clearTimeout(giveUp); searching = false; conn = c; myName = m.name; send = x=>{ try{ c.send(x); }catch(e){} }; return; }
@@ -244,7 +257,7 @@
     $("searchNote").textContent = "Opening a new lobby…";
     const game = newPeer();
     H = { beacon, game, phase:"lobby", players:[], nextId:1, startAt:performance.now()+LOBBY_SECS*1000, round:0, words:[], cur:null, total:0 };
-    const meP = { id:0, name:myName, bot:false, local:true, out:false };
+    const meP = { id:0, name:myName, bot:false, local:true, out:false, av:myAv };
     H.players.push(meP);
     send = m => hostHandle(meP, m);
     beacon.on("connection", c=>{
@@ -256,7 +269,7 @@
         if(!H) return;
         if(m && m.t==="hello"){
           if(H.phase!=="lobby" || H.players.length>=MAX){ try{ c.send({t:"full"}); }catch(e){} return; }
-          const p = { id:H.nextId++, name:uniqueName(String(m.name||"Player").slice(0,14)), bot:false, conn:c, out:false };
+          const p = { id:H.nextId++, name:uniqueName(String(m.name||"Player").slice(0,14)), bot:false, conn:c, out:false, av: okAv(m.av) ? m.av : null };
           H.players.push(p);
           c.send({t:"welcome", name:p.name});
           c.on("close", ()=>{ p.gone = true; if(H && H.phase==="lobby"){ H.players = H.players.filter(x=>x!==p); syncAll(); } else if(H) checkRoundEnd(); });
@@ -292,11 +305,12 @@
       const names = shuffle(BOT_NAMES.slice()).filter(n=>!H.players.some(p=>p.name.toLowerCase()===n.toLowerCase()));
       while(H.players.length < Math.max(FILL, 2) && names.length){
         const skill = .3 + Math.random()*.6;
-        H.players.push({ id:H.nextId++, name:names.pop(), bot:true, skill, out:false });
+        const bn = names.pop(), bid = bn.toLowerCase();
+        H.players.push({ id:H.nextId++, name:bn, bot:true, skill, out:false, av: okAv(bid) ? bid : AVS ? AVS.LIST[Math.floor(Math.random()*AVS.LIST.length)][0] : null });
       }
     }
     H.total = H.players.length;
-    H.words = shuffle(pickWords(60, "mixed").slice());
+    H.words = shuffle(pickWords(60, "mixed", true).slice());   // ranked-only words
     H.round = 0;
     nextRound();
   }
@@ -411,7 +425,7 @@
     const c = H.cur;
     const base = { t:"state", phase:H.phase, total:H.total || H.players.length, alive:alivePlayers().length, T,
       // "l" = locked in (answered, right or wrong). Correctness stays hidden until the round ends.
-      players: H.players.map(x=>({ n:x.name, bot:!!x.bot, out:!!x.out, l:!!(x.rd && (x.rd.correct || x.rd.failed) && H.phase==="play") })),
+      players: H.players.map(x=>({ n:x.name, a:x.av||null, bot:!!x.bot, out:!!x.out, l:!!(x.rd && (x.rd.correct || x.rd.failed) && H.phase==="play") })),
       locked: H.phase==="play" ? alivePlayers().filter(x=>x.rd && (x.rd.correct || x.rd.failed)).length : 0 };
     if(H.phase==="lobby") return Object.assign(base, { startsIn: Math.max(0,(H.startAt-performance.now())/1000) });
     if(H.phase==="over") return Object.assign(base, { place:p.place||1, outRound:p.outRound||0, winner:H.winner, coWin: alivePlayers().length>1 });

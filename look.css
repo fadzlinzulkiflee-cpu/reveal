@@ -302,3 +302,8 @@
 :root:not(#_) .sheet .err{margin:0}
 :root:not(#_) .legal{margin:0;text-align:center;font-size:.8rem}
 :root:not(#_) .legal a,:root:not(#_) .ac-note a{color:#A9BBAC}
+
+/* 3-2-1 countdown in the game's type: Archivo numbers, italic GO!, Inter label */
+:root:not(#_) .countdown b{font-family:var(--f-display);font-weight:800;font-style:normal;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
+:root:not(#_) .countdown b.go{font-weight:900;font-style:italic;letter-spacing:-.01em}
+:root:not(#_) .countdown .lbl{font-family:var(--f-body);font-weight:700;font-size:.75rem;letter-spacing:.24em;text-transform:uppercase;color:#C7F58B}

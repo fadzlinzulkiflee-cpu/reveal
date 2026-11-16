@@ -48,7 +48,7 @@ To use your own PeerJS server, add `?peerhost=HOST&peerport=PORT&peerpath=/PATH`
 
 ## Word list
 
-The starter words and hints live in `words.js` (957 words: 313 Easy, 320 Medium, 323 Hard), shared by every mode. Add a word as `["WORD", "Hint text", level]` (1 Easy, 2 Medium, 3 Hard), using letters A–Z only.
+The starter words and hints live in `words.js` (956 words: 313 Easy, 320 Medium, 323 Hard). About a third (323) are reserved for ranked online Battle Royale (`RANKED_WORDS`) and never appear in Solo, Daily Play or Play Locally (`WORDS`, 633). The split is fixed by a hash of each word, so a newly added word lands in one pool automatically. Add a word as `["WORD", "Hint text", level]` (1 Easy, 2 Medium, 3 Hard), using letters A–Z only.
 
 ## Drama and replay (drama.js, drama.css)
 - **Final 5 seconds:** heartbeat sound (vibration on phones), red pulsing edge, the tiles thump each second.
@@ -59,9 +59,9 @@ The starter words and hints live in `words.js` (957 words: 313 Easy, 320 Medium,
 - Palette (Lin, v2): background #17231D, lime #C7F58B, text #F6F8F0, surfaces #23372B, muted #A9BBAC.
 
 ## Daily Challenge (daily.js)
-- 12 words a day (4 Easy, 4 Medium, 4 Hard, in that order), the same for everyone. They're picked from the date (UTC) with a seeded shuffle, so no server is needed for the words.
-- 30 seconds per word, one ranked try per device per day. A daily streak shows on the home card.
-- Online leaderboard on Supabase, table `daily_scores` (SQL below). It's ranked by score, then by fastest total time (unsolved words count as 30 s).
+- 10 words a day (3 Easy, 4 Medium, 3 Hard, in that order), the same for everyone. They're picked from the date (UTC) with a seeded shuffle, so no server is needed for the words.
+- 20 seconds per word, one try per device per day (one per account when signed in). A daily streak shows on the home card.
+- Online leaderboard on Supabase, table `daily_scores` (SQL below). It's ranked by score, then by fastest total time (unsolved words count as 20 s).
 - Only the public **publishable** key is in the code. Never put the secret key in this repo.
 
 ```sql

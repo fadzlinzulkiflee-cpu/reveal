@@ -958,12 +958,21 @@ window.WORDS = [
   ["ZENITH","The highest point",3]
 ];
 
+// Ranked words are kept apart (Lin): about a third of each level goes to RANKED_WORDS for online Battle Royale,
+// and never appears in Solo, Daily Play or Play Locally, which use WORDS. The split is fixed by a hash of the word.
+(function(){
+  const h = w => { let x = 2166136261; for (const c of w) { x ^= c.charCodeAt(0); x = Math.imul(x, 16777619) >>> 0; } return x; };
+  const all = window.WORDS;
+  window.RANKED_WORDS = all.filter(w => h(w[0]) % 3 === 0);
+  window.WORDS = all.filter(w => h(w[0]) % 3 !== 0);
+})();
+
 // Pick n words for a difficulty ("easy" | "medium" | "hard" | "mixed").
 // Words already seen on this device are skipped until every word at that level has been played.
-window.pickWords = function(n, level){
+window.pickWords = function(n, level, ranked){
   const lv = {easy:1, medium:2, hard:3}[level];
-  const pool = window.WORDS.filter(w => !lv || w[2] === lv);
-  const key = "reveal-seen-" + (level || "mixed");
+  const pool = (ranked ? window.RANKED_WORDS : window.WORDS).filter(w => !lv || w[2] === lv);
+  const key = "reveal-seen-" + (ranked ? "ranked-" : "") + (level || "mixed");
   let seen = [];
   try { seen = JSON.parse(localStorage.getItem(key) || "[]"); } catch(e) {}
   let fresh = pool.filter(w => !seen.includes(w[0]));

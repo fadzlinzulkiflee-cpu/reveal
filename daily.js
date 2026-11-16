@@ -1,4 +1,4 @@
-// REVEAL Daily Challenge: the same 12 words for everyone each day (UTC), plus an online leaderboard.
+// REVEAL Daily Challenge: the same 10 words for everyone each day (UTC), plus an online leaderboard.
 // Leaderboard storage: Supabase table `daily_scores` (see README). Only the public publishable key is used here.
 window.REVEAL_CONFIG = Object.assign({
   supabaseUrl: "https://nnvgopfuenajnioiqmdk.supabase.co",
@@ -6,7 +6,7 @@ window.REVEAL_CONFIG = Object.assign({
 }, window.REVEAL_CONFIG || {});
 
 window.REVEAL_DAILY = (function(){
-  const COUNT = { easy:4, medium:4, hard:4 }, T = 30;
+  const COUNT = { easy:3, medium:4, hard:3 }, T = 20, N = COUNT.easy + COUNT.medium + COUNT.hard;   // 10 words, 20 s each (Lin)
   const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}} };
 
   function today(){ return new Date().toISOString().slice(0,10); }            // UTC day, same for everyone
@@ -84,8 +84,8 @@ window.REVEAL_DAILY = (function(){
     if(!rows.length){ el.innerHTML = `<p class="lb-empty">No scores yet today. Be the first!</p>`; return; }
     const myId = store.get("reveal-daily-id-"+today()), uid = me && me.uid;
     const meIdx = rows.findIndex(r=>(uid && r.user_id===uid) || (myId && String(r.id)===myId));
-    el.innerHTML = `<ol class="lb">` + rows.map((r,i)=>`<li class="${i===meIdx?"me":""}${i<3?" top":""}"><span class="pos">${i+1}</span><span class="nm">${esc(r.name)}</span><span class="sv">${r.solved}/12</span><span class="tm">${(r.time_ms/1000).toFixed(1)}s</span><b class="sc">${r.score}</b></li>`).join("") + `</ol>`
+    el.innerHTML = `<ol class="lb">` + rows.map((r,i)=>`<li class="${i===meIdx?"me":""}${i<3?" top":""}"><span class="pos">${i+1}</span><span class="nm">${esc(r.name)}</span><span class="sv">${r.solved}/${N}</span><span class="tm">${(r.time_ms/1000).toFixed(1)}s</span><b class="sc">${r.score}</b></li>`).join("") + `</ol>`
       + (meIdx<0 && result() ? `<p class="lb-empty">You're not in the top ${rows.length} yet.</p>` : "");
   }
-  return { T, today, niceDate, msToReset, hms, words, device, result, saveResult, streak, submit, board, accountRow, claim, renderBoard, online, store };
+  return { T, N, today, niceDate, msToReset, hms, words, device, result, saveResult, streak, submit, board, accountRow, claim, renderBoard, online, store };
 })();
