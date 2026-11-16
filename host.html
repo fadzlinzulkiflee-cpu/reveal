@@ -38,6 +38,9 @@ body{font-size:clamp(16px,1.25vw,22px)}
 .players .st.ok{background:var(--good);color:#fff}
 .players .st.bad{background:var(--bad);color:#fff}
 .players li.out{opacity:.45}
+.players .rk{font-family:var(--f-display);color:var(--lime,#c8f28a);min-width:1.2em;text-align:center}
+.players .tm{font-family:var(--f-mono);font-weight:700;color:var(--lime,#c8f28a);font-variant-numeric:tabular-nums}
+.players li.done{border-color:color-mix(in srgb,var(--lime,#c8f28a) 50%,transparent)}
 .players li.out .nm{text-decoration:line-through}
 .players li.off .nm::after{content:" · offline";font-weight:400;color:var(--muted)}
 .empty{color:var(--muted);border:2px dashed var(--line);border-radius:12px;padding:16px;text-align:center}
@@ -72,7 +75,7 @@ body{font-size:clamp(16px,1.25vw,22px)}
         <p class="eyebrow">Mode</p>
         <div class="seg">
           <label><input type="radio" name="mode" id="mode-party" value="party" checked>Party<small>10 words. Everyone scores, fastest scores most.</small></label>
-          <label><input type="radio" name="mode" id="mode-royale" value="royale">Royale<small>Up to 12 players. Wrong or slowest each round is out. Last one standing wins.</small></label>
+          <label><input type="radio" name="mode" id="mode-royale" value="royale">Royale<small>Up to 12 players. Wrong, out of time, or slowest correct: you're out. Last one standing wins.</small></label>
         </div>
       </div>
       <div style="display:grid;gap:8px">
@@ -123,6 +126,7 @@ body{font-size:clamp(16px,1.25vw,22px)}
     <p class="eyebrow" id="railLbl">Players</p>
     <ul class="players" id="players"></ul>
     <p class="empty" id="noPlayers">No one has joined yet.</p>
+    <p class="muted" id="royaleRule" hidden style="font-size:.85rem">Royale: answer wrong or run out of time and you are disqualified. The slowest correct answer each round is out too.</p>
   </aside>
 </div>
 
@@ -139,7 +143,7 @@ const NET = window.REVEAL_NET;
 
 const H = { code:"", peer:null, players:new Map(), phase:"lobby", mode:"party", T:60, words:[], i:-1, cur:null, raf:0, nextId:1 };
 
-function show(id){ ["lobby","play","reveal","over"].forEach(s=>$(s).hidden = s!==id); $("roomtag").hidden = id==="lobby"; }
+function show(id){ ["lobby","play","reveal","over"].forEach(s=>$(s).hidden = s!==id); $("roomtag").hidden = id==="lobby"; $("royaleRule").hidden = !(H.mode==="royale" && (id==="play"||id==="reveal")); }
 function playerList(){ return [...H.players.values()]; }
 function activePlayers(){ return playerList().filter(p=>p.online && !p.out); }
 function send(p,msg){ if(p.online && p.conn && p.conn.open){ try{ p.conn.send(msg); }catch(e){} } }
@@ -250,15 +254,24 @@ function lobbyState(){
 document.querySelectorAll('input[name=mode]').forEach(r=>r.addEventListener("change",lobbyState));
 
 function renderPlayers(){
-  const list = playerList().slice().sort((a,b)=> (a.out-b.out) || (b.score-a.score));
+  const playing = H.phase==="play" && H.cur;
+  const order = p => p.out ? 3 : !playing ? 0 : p.rd.correct ? 0 : p.rd.failed ? 2 : 1;
+  const list = playerList().slice().sort((a,b)=> (order(a)-order(b)) || (playing && a.rd.correct && b.rd.correct ? a.rd.at-b.rd.at : 0) || (b.score-a.score));
   $("noPlayers").hidden = list.length>0;
-  $("railLbl").textContent = H.phase==="lobby" ? `Players (${list.filter(p=>p.online).length})` : H.mode==="royale" ? `Still in: ${activePlayers().length}` : "Scores";
+  const left = activePlayers().length, total = H.startCount || left;
+  $("railLbl").textContent = H.phase==="lobby" ? `Players (${list.filter(p=>p.online).length})`
+    : H.mode==="royale" ? (playing ? `Live ranking · ${left} / ${total} remaining` : `Players remaining ${left} / ${total}`)
+    : playing ? "Live ranking" : "Scores";
+  let rank = 0;
   $("players").innerHTML = list.map(p=>{
-    let st="";
-    if(H.phase==="play" && !p.out){ st = p.rd.correct ? '<span class="st ok">Got it</span>' : p.rd.failed ? '<span class="st bad">Wrong</span>' : '<span class="st">Thinking</span>'; }
+    let st="", tm="", rk="";
+    if(playing && !p.out){
+      if(p.rd.correct){ rank++; rk=`<span class="rk">${rank}</span>`; tm=`<span class="tm">${((p.rd.at-H.cur.start)/1000).toFixed(1)}s</span>`; }
+      else st = p.rd.failed ? '<span class="st bad">Wrong</span>' : '<span class="st">Still guessing</span>';
+    }
     if(p.out) st='<span class="st bad">Out</span>';
-    const score = H.mode==="party" || H.phase==="lobby" ? `<span class="sc">${p.score}</span>` : "";
-    return `<li class="${p.out?"out":""} ${p.online?"":"off"}"><span class="nm">${esc(p.name)}${p.vip?" ★":""}</span>${st}${H.phase==="lobby"?"":score}</li>`;
+    const score = (H.mode==="party" && H.phase!=="lobby") ? `<span class="sc">${p.score}</span>` : "";
+    return `<li class="${p.out?"out":""} ${p.online?"":"off"} ${playing&&p.rd.correct?"done":""}">${rk}<span class="nm">${esc(p.name)}${p.vip?" ★":""}</span>${st}${tm}${score}</li>`;
   }).join("");
 }
 
@@ -273,6 +286,7 @@ function startGame(){
   H.words = H.mode==="party" ? pool.slice(0,PARTY_ROUNDS) : pool;
   H.i = -1;
   playerList().forEach(p=>{ p.score=0; p.out=!p.online; });
+  H.startCount = activePlayers().length;
   nextRound();
 }
 
@@ -287,7 +301,7 @@ function nextRound(){
   $("tiles").innerHTML = [...word].map(c=>`<div class="t"><div class="in"><div class="f"></div><div class="b">${c}</div></div></div>`).join("");
   $("hint").textContent = hint;
   $("msg").textContent = ""; $("msg").className="msg";
-  $("roundLbl").textContent = H.mode==="party" ? `Word ${H.i+1} of ${H.words.length}` : `Round ${H.i+1} · ${activePlayers().length} left`;
+  $("roundLbl").textContent = H.mode==="party" ? `Word ${H.i+1} of ${H.words.length}` : `Round ${H.i+1} · ${activePlayers().length} / ${H.startCount} remaining`;
   show("play"); renderPlayers(); syncAll();
   cancelAnimationFrame(H.raf); tick();
 }
