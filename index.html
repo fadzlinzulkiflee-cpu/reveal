@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="REVEAL">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@1,800;1,900&family=Archivo+Black&family=Lilita+One&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,900;1,800;1,900&family=Inter:wght@600&family=Archivo+Black&family=Lilita+One&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
 /* Layout: one centred play column; a stage card with a draining time bar, flip tiles, hint, and guess bar. */
 :root{
@@ -119,11 +119,11 @@ header{min-height:36px}
 body:has(#start:not([hidden])) header{display:none}
 .seg4 label{min-width:70px}
 </style>
-<link rel="stylesheet" href="stage.css?v=20261116o">
+<link rel="stylesheet" href="stage.css?v=20261116q">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
-<link rel="stylesheet" href="theme.css?v=20261116o">
-<link rel="stylesheet" href="drama.css?v=20261116o">
-<link rel="stylesheet" href="look.css?v=20261116o">
+<link rel="stylesheet" href="theme.css?v=20261116q">
+<link rel="stylesheet" href="drama.css?v=20261116q">
+<link rel="stylesheet" href="look.css?v=20261116q">
 <style>#play.stage{--ring:80px}</style>
 </head>
 <body>
@@ -244,7 +244,7 @@ body:has(#start:not([hidden])) header{display:none}
   </section>
 </div>
 
-<script src="words.js?v=20261116o"></script>
+<script src="words.js?v=20261116q"></script>
 <script>
 
 const UI = {
@@ -339,7 +339,7 @@ function nextWord(){
   $("hint").textContent = hint;
   $("msg").textContent=""; $("msg").className="msg";
   $("guess").value=""; $("guess").disabled=false; $("submit").disabled=false;
-  $("guess").maxLength=n+4; $("guess").placeholder="Type your answer…";
+  $("guess").maxLength=n+4; $("guess").placeholder="";
   $("skip").hidden=true; $("nextBtn").hidden=true;
   $("guess").disabled=true; $("submit").disabled=true;
   $("clock").textContent=S.T; $("fill").style.width="100%"; $("clock").classList.remove("low"); $("next").textContent="";
@@ -507,8 +507,8 @@ const savedTime=store.get("reveal-time-v2");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
 applyUI(); demo();
 </script>
-<script src="stage.js?v=20261116o"></script>
-<script src="drama.js?v=20261116o"></script>
-<script src="daily.js?v=20261116o"></script>
+<script src="stage.js?v=20261116q"></script>
+<script src="drama.js?v=20261116q"></script>
+<script src="daily.js?v=20261116q"></script>
 </body>
 </html>

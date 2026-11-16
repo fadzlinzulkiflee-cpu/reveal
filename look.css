@@ -82,14 +82,21 @@
 :root:not([data-screen="tv"]):not(#_) .seg small{color:var(--muted)}
 :root:not([data-screen="tv"]):not(#_) .seg label:has(input:checked) small{color:#17231D}
 
-/* ---------- tiles (home demo + game) ---------- */
-:root:not(#_) .t .f,:root:not(#_) .t .b{border-radius:11px}
-:root:not([data-screen="tv"]):not(#_) .t .f,:root:not([data-screen="tv"]):not(#_) .stage .t .f{background:var(--raised);border:0;box-shadow:inset 0 -4px 0 rgba(0,0,0,.06),0 4px 0 var(--edge)}
-:root:not([data-screen="tv"]):not(#_) .t .f::after,:root:not([data-screen="tv"]):not(#_) .stage .t .f::after{color:var(--muted)}
-:root:not(#_) .t .b,:root:not(#_) .stage .t .b{background:var(--lime);color:#17231D;box-shadow:inset 0 -4px 0 rgba(0,0,0,.12),0 4px 0 var(--lime-d)}
-:root:not([data-screen="tv"]):not(#_) .stage .t.beat .b{background:#FFFFFF;box-shadow:inset 0 -4px 0 rgba(0,0,0,.06),0 4px 0 var(--lime-d)}
-:root:not(#_) .t.missed .b,:root:not(#_) .stage .t.missed .b{background:var(--coral);color:#3a0905;box-shadow:inset 0 -4px 0 rgba(0,0,0,.12),0 4px 0 var(--coral-d)}
-:root:not(#_) .stage .tiles{padding-bottom:10px}
+/* ---------- tiles (home demo + game): Lin's reference, 16 Nov ----------
+   Flat, near-square, softly rounded. Hidden = deep green with a white "?", revealed = lime with a dark letter.
+   Clean sans letters (Inter 600), no 3D edge, no gradient, no glow. Same on phones and TV. */
+:root:not(#_) .t{--tf:"Inter","Segoe UI",system-ui,sans-serif}
+:root:not(#_) .t .f,:root:not(#_) .t .b,:root:not(#_) .stage .t .f,:root:not(#_) .stage .t .b{border-radius:10px;border:0;box-shadow:none;font-family:var(--tf);font-weight:600;font-style:normal;letter-spacing:0}
+:root:not(#_) .t .f,:root:not(#_) .stage .t .f{background:#334A3D;color:#FFFFFF}
+:root:not(#_) .t .f::after,:root:not(#_) .stage .t .f::after{content:"?";color:#FFFFFF;font-family:var(--tf);font-weight:600;font-size:calc(var(--s)*.42);transform:none;background:none;width:auto;height:auto}
+:root:not(#_) .t .b,:root:not(#_) .stage .t .b{background:#C7F58B;color:#17231D;font-size:calc(var(--s)*.46)}
+:root:not(#_) .stage .t .b::after{display:none}
+:root:not(#_) .stage .t.beat .b{background:#C7F58B;color:#17231D;box-shadow:inset 0 0 0 3px #FFFFFF}
+:root:not(#_) .t.missed .b,:root:not(#_) .stage .t.missed .b{background:#FF7E73;color:#3a0905}
+:root:not(#_) .stage .t{height:calc(var(--s)*1.05)}
+:root:not(#_) .stage[data-long] .t{height:calc(var(--s)*1.5)}
+:root:not(#_) .stage .tiles,:root:not(#_) .home .tiles{gap:8px;padding-bottom:4px}
+:root:not(#_) .stage .t{--smax:72px}
 
 /* ---------- guessing stage ---------- */
 :root:not([data-screen="tv"]):not(#_) .stage{--st-ink:#1E2433;--st-muted:#5D6578;--st-edge:#C9D0DE;--st-glass:#FFFFFF;--st-bad:#D0493F;--st-good:#3E7A1E;--st-gold1:#C7F58B;
