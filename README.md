@@ -104,6 +104,16 @@ One-time setup (do this before merging, or the Sign in button leads to an error)
 
 Tests mock Supabase (the session proxy blocks supabase.co), so the first real sign-in happens live.
 
+## Ranked Battle Royale (server-run)
+
+Signed-in players get ranked matches that run inside Supabase, so no phone decides the result. Guests keep the unranked peer-to-peer game below.
+
+- `supabase/ranked.sql`: tables `rk_matches`, `rk_players`, `rk_words` (no direct access for players) and three functions players can call: `rk_join()`, `rk_state(match)` (polled about twice a second) and `rk_guess(match, text)`. Each call first runs `rk_tick`, which moves the match on when its time is up. The secret word is only sent after a round ends.
+- `supabase/ranked-words.sql`: the 323 ranked words. They are not in `words.js`, so they never appear in Solo, Daily Play, Play Locally or unranked online play. (Older versions of `words.js` in git history still contain them; new ranked words should only ever be added to the database.)
+- Rules match the unranked game: 20 s per word, wrong or no answer is out, slowest correct is out, nobody out if nobody gets it, first correct wins with 2 left. Lobby waits 20 s, bots fill up to 10 players and never affect ratings. Settings are in `rk_conf()`.
+- Rating: everyone starts at 1000. At the end, every signed-in player is compared with every other by finishing place (ELO, K = 32 shared across opponents). A match is rated only with 3 or more signed-in players. Tiers: Bronze below 1100, Silver 1100, Gold 1300, Platinum 1500, Legend 1700.
+- Setup: run `supabase/ranked.sql`, then `supabase/ranked-words.sql`, in the SQL Editor.
+
 ## Online Battle Royale (beta, unranked)
 
 `online.html` + `online.js`. Ranked Play on the menu opens it. No game server is needed:

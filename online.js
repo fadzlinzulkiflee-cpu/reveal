@@ -1,5 +1,8 @@
-// REVEAL Online Battle Royale (beta, unranked).
-// No game server: the first player to look for a match claims a well-known "lobby beacon" id on the
+// REVEAL Online Battle Royale.
+// Ranked (signed in): the match runs on the server (supabase/ranked.sql). This page joins with rk_join(),
+// polls rk_state() about twice a second and sends answers with rk_guess(). The server's state has the same
+// shape as the unranked host's messages, so both modes share the screens below.
+// Unranked (guests), no game server: the first player to look for a match claims a well-known "lobby beacon" id on the
 // PeerJS broker and hosts the match on their own device. Others who search find the beacon, learn the
 // host's game id, and connect. When the match starts the host drops the beacon, so the next searcher
 // opens a new lobby. Empty seats are filled with bots (clearly marked BOT).
@@ -92,6 +95,13 @@
       $("myTitle").textContent = won ? (st.coWin ? "SURVIVOR" : "LAST ONE STANDING") : st.place<=3 ? "SO CLOSE" : "KNOCKED OUT";
       $("winner").textContent = st.winner;
       $("overNote").textContent = `You finished ${ordinal(st.place)} of ${st.total}` + (st.outRound ? `, out in round ${st.outRound}.` : ".");
+      const rl = $("rateLine"); rl.hidden = !ranked;
+      if(ranked){
+        if(st.rated && st.ratingAfter != null){
+          const d = st.ratingAfter - st.ratingBefore, A = window.REVEAL_AUTH;
+          rl.innerHTML = `Rating ${st.ratingBefore} → <b>${st.ratingAfter}</b> <span class="${d>=0?"up":"down"}">(${d>=0?"+":""}${d})</span> · ${A ? A.tier(st.ratingAfter) : ""}`;
+        } else rl.textContent = "Not rated: a rated match needs 3 or more signed-in players.";
+      }
       if(won && prev!=="over" && window.REVEAL_SFX) REVEAL_SFX.fanfare();
       shareText = won ? `REVEAL Battle Royale: I was the last one standing out of ${st.total}!` : `REVEAL Battle Royale: I finished ${ordinal(st.place)} of ${st.total}.`;
       $("hostNote2").hidden = true;
@@ -169,6 +179,7 @@
   // ============ MATCHMAKING ============
   let peers = [], searching = false, conn = null;
   function teardown(){
+    if(ranked){ clearTimeout(ranked.timer); ranked = null; }
     searching = false; conn = null; isHost = false; H = null;
     clearInterval(clockTimer); clearInterval(lobbyTimer); clearInterval(hostTimer);
     peers.forEach(p=>{ try{ p.destroy(); }catch(e){} }); peers = [];
@@ -191,6 +202,7 @@
   $("lostBtn").addEventListener("click", ()=>{ teardown(); find(); });
 
   function find(){
+    if(rankedOn()) return findRanked();
     teardown(); searching = true; show("searching"); $("findErr").hidden = true;
     $("searchNote").textContent = "Looking for players online.";
     trySlot(0);
@@ -243,7 +255,63 @@
     c.on("close", ()=>{ if(joined && conn===c && !(st && st.phase==="over")) hostLost(); });
     me.on("disconnected", ()=>{ try{ me.reconnect(); }catch(e){} });
   }
-  function hostLost(){
+  // ============ RANKED (server-run) ============
+  let ranked = null;
+  const AU = window.REVEAL_AUTH;
+  const rankedOn = () => { const s = AU && AU.state(); return !!(s && s.profile); };
+  function paintFind(s){
+    const p = s && s.profile;
+    $("rankedBox").hidden = !p; $("findForm").hidden = !!p; $("guestNote").hidden = !!p;
+    $("modeTag").textContent = p ? "Ranked" : "Unranked";
+    if(p){
+      $("rkName").textContent = "@" + p.username;
+      $("rkRating").textContent = `Rating ${p.rating ?? 1000} · ${AU.tier(p.rating ?? 1000)}`;
+      $("rkAv").innerHTML = okAv(p.avatar) ? AVS.svg(p.avatar) : "";
+    }
+  }
+  if(AU) AU.on(paintFind);
+  $("rankedBtn").addEventListener("click", ()=>find());
+
+  async function findRanked(){
+    teardown(); show("searching"); $("findErr").hidden = true;
+    $("searchNote").textContent = "Finding a ranked match…";
+    myName = AU.state().profile.username;
+    const { data, error } = await AU.rpc("rk_join");
+    if(error || !data) return findErr(error ? error.message : "Couldn't reach the ranked server. Try again.");
+    ranked = { mid:data, fails:0, timer:0 };
+    send = m => { if(m && m.t==="guess") rankedGuess(m.g); };
+    poll();
+  }
+  async function poll(){
+    const r = ranked; if(!r) return;
+    clearTimeout(r.timer);
+    const { data, error } = await AU.rpc("rk_state", { m:r.mid });
+    if(r !== ranked) return;
+    if(error || !data){
+      if(++r.fails >= 6) return rankedLost();
+    } else {
+      r.fails = 0; onMsg(data);
+      if(data.phase === "over"){ AU.syncStats(); AU.reloadProfile(); return; }
+    }
+    r.timer = setTimeout(poll, data && data.phase === "lobby" ? 1000 : 500);
+  }
+  async function rankedGuess(g){
+    const r = ranked; if(!r) return;
+    const { data, error } = await AU.rpc("rk_guess", { m:r.mid, g });
+    if(r !== ranked) return;
+    if(error || !data){ $("guess").disabled = false; $("guessBtn").disabled = false; $("msg").className = "msg bad"; $("msg").textContent = "Couldn't send your answer. Try again."; }
+    else if(!data.late) onMsg(data);
+    poll();
+  }
+  function rankedLost(){
+    if(ranked){ clearTimeout(ranked.timer); ranked = null; }
+    $("lostTitle").textContent = "Lost connection to the match.";
+    $("lostNote").textContent = "Check your internet. If the match is still going, Find a match puts you back in.";
+    hostLost(true);
+  }
+
+  function hostLost(keepText){
+    if(!keepText){ $("lostTitle").textContent = "The match host left."; $("lostNote").textContent = "This unranked match ran on one player's phone. Find a new match to keep playing."; }
     clearInterval(clockTimer); clearInterval(lobbyTimer);
     try{ REVEAL_STAGE.cancelCountdown(); REVEAL_STAGE.banner(null); }catch(e){}
     ["find","searching","lobby","play","reveal","over"].forEach(s=>$(s).hidden = true);
@@ -310,7 +378,7 @@
       }
     }
     H.total = H.players.length;
-    H.words = shuffle(pickWords(60, "mixed", true).slice());   // ranked-only words
+    H.words = shuffle(pickWords(60, "mixed").slice());   // unranked: everyday words (ranked words live on the server)
     H.round = 0;
     nextRound();
   }

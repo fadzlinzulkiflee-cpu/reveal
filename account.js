@@ -39,7 +39,7 @@
       showPane("acIn"); $("acTitle").textContent = "Your account"; $("acClose").textContent = "Done";
       $("acMeAv").innerHTML = AV.svg(p.avatar);
       $("acMeName").textContent = "@" + p.username;
-      $("acMeSub").textContent = `Rating ${p.rating ?? 1000} · ranked play coming soon`;
+      $("acMeSub").textContent = `Rating ${p.rating ?? 1000} · ${A.tier(p.rating ?? 1000)}`;
       $("acRecords").innerHTML = recordsHTML(p.stats);
     } else { showPane("acOut"); $("acTitle").textContent = "Sign in"; $("acClose").textContent = "Close"; }
     // First time back from Google: ask for a player name right away

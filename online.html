@@ -14,8 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="REVEAL">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="party.css?v=20261116za">
-<link rel="stylesheet" href="stage.css?v=20261116za">
+<link rel="stylesheet" href="party.css?v=20261116zb">
+<link rel="stylesheet" href="stage.css?v=20261116zb">
 <style>
 .wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px;
   padding-block:18px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -35,6 +35,11 @@ form.find input{width:100%}
 .center{text-align:center}
 .err{color:var(--bad);font-weight:600;text-align:center}
 .beta{display:inline-block;font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;border-radius:6px;padding:2px 8px;background:var(--surface,#23372B);color:var(--muted);vertical-align:middle}
+.rkbox{display:grid;gap:12px}.rkbox[hidden]{display:none}
+.rkme{display:flex;align-items:center;gap:12px}.rkme b{display:block;font-family:var(--f-display);font-weight:800;font-size:1.15rem}.rkme small{color:var(--muted);font-weight:600}
+.rkav{width:48px;height:48px;border-radius:14px;background:#23372B;display:grid;place-items:center;flex:none}.rkav svg{width:86%;height:86%}
+.rknote{font-size:.85rem;margin:0}
+.rateline{margin:0;font-weight:700;font-variant-numeric:tabular-nums}.rateline .up{color:var(--good,#C7F58B)}.rateline .down{color:#FF8F85}
 .rules{margin:0;padding-left:1.1em;color:var(--muted);display:grid;gap:4px;font-size:.95rem;text-align:left}
 #play.stage{--ring:78px}
 /* lobby + alive strip */
@@ -60,9 +65,9 @@ form.find input{width:100%}
 @keyframes spin{to{transform:rotate(1turn)}}
 @media (prefers-reduced-motion: reduce){.spinner{animation-duration:3s}.bub.fresh{animation:none}}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261116za">
-<link rel="stylesheet" href="drama.css?v=20261116za">
-<link rel="stylesheet" href="look.css?v=20261116za">
+<link rel="stylesheet" href="theme.css?v=20261116zb">
+<link rel="stylesheet" href="drama.css?v=20261116zb">
+<link rel="stylesheet" href="look.css?v=20261116zb">
 </head>
 <body>
 <div class="wrap">
@@ -75,7 +80,7 @@ form.find input{width:100%}
   <!-- FIND -->
   <section class="card" id="find">
     <div style="display:grid;gap:6px">
-      <p class="eyebrow">Online Battle Royale <span class="beta">Beta · unranked</span></p>
+      <p class="eyebrow">Online Battle Royale <span class="beta" id="modeTag">Unranked</span></p>
       <h1 style="font-size:1.7rem">Last one standing wins.</h1>
     </div>
     <ul class="rules">
@@ -84,11 +89,16 @@ form.find input{width:100%}
       <li>The slowest correct answer each round is out too.</li>
       <li>If nobody gets it, everyone stays in.</li>
     </ul>
+    <div class="rkbox" id="rankedBox" hidden>
+      <div class="rkme"><span class="rkav" id="rkAv" aria-hidden="true"></span><div><b id="rkName"></b><small id="rkRating"></small></div></div>
+      <button class="primary" type="button" id="rankedBtn">Find a ranked match</button>
+      <p class="muted rknote">Rated when 3 or more signed-in players are in the match. Bots fill empty seats and never change your rating.</p>
+    </div>
     <form class="find" id="findForm" autocomplete="off">
       <input type="text" id="nameIn" maxlength="14" placeholder="Your name" aria-label="Your name" autocorrect="off">
       <button class="primary" type="submit" id="findBtn">Find a match</button>
     </form>
-    <p class="muted" style="font-size:.85rem;margin:0">Empty seats are filled with bots (marked BOT). Ranked matches with ratings come with accounts.</p>
+    <p class="muted" id="guestNote" style="font-size:.85rem;margin:0">You're playing unranked as a guest. Empty seats are filled with bots (marked BOT). <a href="./">Sign in on the home screen</a> to play ranked.</p>
     <p class="err" id="findErr" hidden></p>
   </section>
 
@@ -145,24 +155,28 @@ form.find input{width:100%}
     <div class="rankcard"><span class="lvl">Battle Royale</span><span class="ttl" id="myTitle"></span></div>
     <p class="big-msg" id="winner" style="font-size:1.3rem"></p>
     <p class="muted" id="overNote"></p>
+    <p class="rateline" id="rateLine" hidden></p>
     <button class="primary" id="againBtn" type="button">Play again</button>
     <button class="ghost" id="shareBtn" type="button">Share my result</button>
   </section>
 
   <p class="hostnote" id="hostNote2" hidden>You're hosting this match. Keep this screen open until it ends.</p>
   <div class="card center" id="lost" hidden>
-    <p class="big-msg bad" style="font-size:1.3rem">The match host left.</p>
-    <p class="muted">This prototype runs each match on one player's phone. Find a new match to keep playing.</p>
+    <p class="big-msg bad" style="font-size:1.3rem" id="lostTitle">The match host left.</p>
+    <p class="muted" id="lostNote">This unranked match ran on one player's phone. Find a new match to keep playing.</p>
     <button class="primary" id="lostBtn" type="button">Find a new match</button>
   </div>
 </div>
 
 <script src="vendor/peerjs-1.5.4.min.js"></script>
-<script src="net.js?v=20261116za"></script>
-<script src="words.js?v=20261116za"></script>
-<script src="avatars.js?v=20261116za"></script>
-<script src="online.js?v=20261116za"></script>
-<script src="stage.js?v=20261116za"></script>
-<script src="drama.js?v=20261116za"></script>
+<script src="net.js?v=20261116zb"></script>
+<script src="words.js?v=20261116zb"></script>
+<script src="avatars.js?v=20261116zb"></script>
+<script src="daily.js?v=20261116zb"></script>
+<script src="vendor/supabase-js-2.118.0.min.js"></script>
+<script src="auth.js?v=20261116zb"></script>
+<script src="online.js?v=20261116zb"></script>
+<script src="stage.js?v=20261116zb"></script>
+<script src="drama.js?v=20261116zb"></script>
 </body>
 </html>
