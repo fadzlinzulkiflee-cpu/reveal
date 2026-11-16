@@ -6,8 +6,8 @@
 <title>REVEAL Controller</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
-<link rel="stylesheet" href="party.css?v=20261116e">
-<link rel="stylesheet" href="stage.css?v=20261116e">
+<link rel="stylesheet" href="party.css?v=20261116f">
+<link rel="stylesheet" href="stage.css?v=20261116f">
 <style>
 /* Layout: one phone column; header with room + score, one card that changes with the game phase. */
 .wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px;
@@ -31,7 +31,8 @@ form.join input{width:100%}
 .err{color:var(--bad);font-weight:600;text-align:center}
 #play.stage{--ring:96px}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261116e">
+<link rel="stylesheet" href="theme.css?v=20261116f">
+<link rel="stylesheet" href="drama.css?v=20261116f">
 </head>
 <body>
 <div class="wrap">
@@ -93,15 +94,18 @@ form.join input{width:100%}
   <!-- OVER -->
   <section class="card center" id="over" hidden>
     <p class="eyebrow">Game over</p>
-    <p class="big-msg" id="winner"></p>
+    <div class="rankcard"><span class="lvl" id="myLvl"></span><span class="ttl" id="myTitle"></span></div>
     <p class="muted" id="overNote"></p>
+    <p class="big-msg" id="winner"></p>
+    <button class="ghost" id="shareBtn" type="button">Share my result</button>
+    <p class="muted">Want a rematch? Tap “Play again” on the big screen.</p>
   </section>
 
   <p class="err" id="lost" hidden>Connection to the big screen dropped. <button class="ghost" id="rejoin" type="button">Reconnect</button></p>
 </div>
 
 <script src="vendor/peerjs-1.5.4.min.js"></script>
-<script src="net.js?v=20261116e"></script>
+<script src="net.js?v=20261116f"></script>
 <script>
 const $ = id => document.getElementById(id);
 const NET = window.REVEAL_NET;
@@ -175,6 +179,7 @@ function onMsg(m){
     updatePlay();
   } else if(st.phase==="reveal"){
     clearInterval(timer); show("reveal");
+    if(!st.got && window.REVEAL_DRAMA) REVEAL_DRAMA.combo(0);
     $("answer").textContent = st.word;
     const rm=$("revealMsg");
     if(st.mode==="royale"){
@@ -190,7 +195,13 @@ function onMsg(m){
     $("nextBtn").textContent = st.last ? "Show the winner" : "Next word for everyone";
   } else if(st.phase==="over"){
     clearInterval(timer); show("over");
-    $("winner").textContent = st.winner;
+    $("winner").textContent = st.winner || "";
+    const won = st.mode==="party" ? (st.rank===1 && st.score>0) : !st.out;
+    const ttl = st.mode==="party" ? (won ? "CHAMPION" : st.rank<=3 ? "ON THE PODIUM" : "CONTENDER") : (won ? "LAST ONE STANDING" : "KNOCKED OUT");
+    $("myTitle").textContent = ttl;
+    $("myLvl").textContent = st.mode==="party" ? "Party" : "Royale";
+    shareText = st.mode==="party" ? `REVEAL. I finished #${st.rank} with ${st.score} points · ${ttl}` : `REVEAL Royale: ${won ? "I was the last one standing!" : `I got knocked out. ${st.winner}`}`;
+    if(won && prevPhase!=="over" && window.REVEAL_SFX) REVEAL_SFX.fanfare();
     $("overNote").textContent = st.mode==="party" ? `You finished #${st.rank} with ${st.score} points.` : (st.out ? "Better luck next Royale." : "You were still standing at the end!");
   }
 }
@@ -239,6 +250,7 @@ function onResult(r){
     st.correct=true; m.className="msg good";
     if(st.mode!=="royale"){ st.score += r.pts; $("meScore").textContent = `${st.score} pts`; }
     m.textContent = `Correct! +${r.pts} points` + (r.first ? " (first!)" : "") + (r.bonus ? ` · Streak ×${r.streak}` : "");
+    if(st.mode!=="royale" && window.REVEAL_DRAMA) REVEAL_DRAMA.combo(r.streak||0);
     inp.disabled=true; $("guessBtn").disabled=true;
   } else if(r.out){
     st.failed=true; m.className="msg bad"; m.textContent="Wrong! You're out after this round.";
@@ -258,9 +270,12 @@ $("guessForm").addEventListener("submit", e=>{
   const g=$("guess").value.trim(); if(!g) return;
   conn.send({t:"guess", g});
 });
+let shareText = "";
+$("shareBtn").addEventListener("click", e=>REVEAL_END.share(shareText + "\nThink fast. Guess faster.", e.currentTarget));
 $("startBtn").addEventListener("click", ()=>conn && conn.send({t:"start"}));
 $("nextBtn").addEventListener("click", ()=>conn && conn.send({t:"next"}));
 </script>
-<script src="stage.js?v=20261116e"></script>
+<script src="stage.js?v=20261116f"></script>
+<script src="drama.js?v=20261116f"></script>
 </body>
 </html>

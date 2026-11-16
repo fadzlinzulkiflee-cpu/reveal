@@ -111,9 +111,10 @@ header{min-height:36px}
 body:has(#start:not([hidden])) header{display:none}
 .seg4 label{min-width:70px}
 </style>
-<link rel="stylesheet" href="stage.css?v=20261116e">
+<link rel="stylesheet" href="stage.css?v=20261116f">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
-<link rel="stylesheet" href="theme.css?v=20261116e">
+<link rel="stylesheet" href="theme.css?v=20261116f">
+<link rel="stylesheet" href="drama.css?v=20261116f">
 </head>
 <body>
 
@@ -184,17 +185,21 @@ body:has(#start:not([hidden])) header{display:none}
     <div style="display:grid;gap:6px">
       <p class="eyebrow" data-i="final"></p>
       <div class="score-big" id="final">0</div>
-            <p class="lead" id="endNote"></p>
+      <p class="bestgap" id="bestGap"></p>
     </div>
+    <div class="rankcard" id="rank"></div>
+    <div class="grid" id="grid" aria-hidden="true"></div>
+    <p class="lead" id="endNote"></p>
     <table id="log"></table>
+    <button class="primary again-hot" id="again" data-i="again"></button>
     <div class="row">
       <button class="ghost" id="menu" data-i="menu"></button>
-      <button class="primary" id="again" data-i="again"></button>
+      <button class="ghost" id="share" type="button">Share my score</button>
     </div>
   </section>
 </div>
 
-<script src="words.js?v=20261116e"></script>
+<script src="words.js?v=20261116f"></script>
 <script>
 
 const UI = {
@@ -205,7 +210,7 @@ const UI = {
     start:"Start game",best:"Best",guessBtn:"Guess",skip:"Skip",nextWord:"Next word",
     nextIn:s=>`Next letter in ${s}s`,lastHidden:"The last letter stays hidden",
     right:(p)=>`Correct! +${p} points`,wrong:"Not it. −50 points",timeup:w=>`Time's up. It was ${w}.`,skipped:w=>`Skipped. It was ${w}.`,
-    final:"Final score",menu:"Menu",again:"Play again",seeResults:"See results",
+    final:"Final score",menu:"Menu",again:"Play again →",seeResults:"See results",
     endNote:(c,n)=>`You guessed ${c} of ${n} words.`,newBest:" New best score!",short:"Too short"}
 };
 
@@ -246,6 +251,7 @@ function newGame(){
   const T=+document.querySelector('input[name=time]:checked').value;
   const level=document.querySelector('input[name=level]:checked').value;
   S = { T, words: pickWords(ROUNDS, level), i:-1, score:0, streak:0, log:[] };
+  window.REVEAL_DRAMA && REVEAL_DRAMA.combo(0);
   $("start").hidden=true; $("end").hidden=true; $("play").hidden=false; $("stats").hidden=false;
   $("rt").textContent=S.words.length; $("sc").textContent=0;
   nextWord();
@@ -309,7 +315,8 @@ function finish(kind){
   const m=$("msg");
   m.className="msg "+(kind==="right"?"good":"bad");
   m.textContent = kind==="right" ? t("right")(pts) + (bonus ? ` · Streak ×${S.streak} (+${bonus})` : "") : kind==="skip" ? t("skipped")(c.word) : t("timeup")(c.word);
-  S.log.push({word:c.word,pts,kind});
+  S.log.push({word:c.word,pts,kind,fast: kind==="right" && (S.T-((performance.now()-c.start)/1000+c.penalty))/S.T>=.75});
+  window.REVEAL_DRAMA && REVEAL_DRAMA.combo(S.streak);
   $("guess").disabled=true; $("submit").disabled=true; $("skip").hidden=true;
   $("nextBtn").textContent = S.i+1>=S.words.length ? t("seeResults") : t("nextWord");
   $("nextBtn").hidden=false; $("nextBtn").focus({preventScroll:true});
@@ -334,11 +341,30 @@ function endGame(){
   $("final").textContent=S.score;
   const got=S.log.filter(l=>l.kind==="right").length;
   const prev=+(store.get("reveal-best")||0);
-  let note=t("endNote")(got,S.log.length);
-  if(S.score>prev){store.set("reveal-best",S.score); note+=t("newBest"); window.REVEAL_SFX && REVEAL_SFX.fanfare();}
-  $("endNote").textContent=note;
+  const isBest = S.score>prev && S.score>0;
+  if(isBest){ store.set("reveal-best",S.score); window.REVEAL_SFX && REVEAL_SFX.fanfare(); }
+  $("endNote").textContent=t("endNote")(got,S.log.length);
+  countUp($("final"), S.score);
+  const gap=$("bestGap");
+  if(isBest){ gap.className="bestgap new"; gap.textContent = prev ? `NEW BEST! +${S.score-prev} on your old record` : "NEW BEST!"; }
+  else if(prev-S.score<=200){ gap.className="bestgap close"; gap.textContent = S.score===prev ? `Tied your best (${prev}). One more?` : `So close! Only ${prev-S.score} points off your best (${prev}).`; }
+  else { gap.className="bestgap"; gap.textContent = `Your best: ${prev}. You can beat it.`; }
+  const T = REVEAL_END.title(S.score);
+  $("rank").innerHTML = `<span class="lvl">Your rank · ${T.level} of ${T.of}</span><span class="ttl">${T.name}</span>`
+    + `<span class="pips">${Array.from({length:T.of},(_,i)=>`<i class="${i<T.level?"on":""}"></i>`).join("")}</span>`
+    + (T.next ? `<span class="nxt">${T.next.need} more points to reach <b>${T.next.name}</b></span>` : `<span class="nxt">Top rank. Can you keep it?</span>`);
+  S.grid = S.log.map(l=>l.kind!=="right"?"🟥":l.fast?"⚡":"🟩").join("");
+  $("grid").textContent = S.grid;
+  S.title = T.name;
   $("log").innerHTML=S.log.map(l=>`<tr><td><span class="w">${l.word}</span></td><td>${l.kind==="right"?`<span class="pop">+${l.pts}</span>`:"—"}</td></tr>`).join("");
 }
+function countUp(el, to){
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduce || to<=0){ el.textContent=to; return; }
+  const t0=performance.now(), dur=Math.min(1600, 500+to/2);
+  (function f(now){ const k=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-k,3); el.textContent=Math.round(to*e); if(k<1) requestAnimationFrame(f); })(t0);
+}
+$("share").addEventListener("click",e=>REVEAL_END.share(`REVEAL. I scored ${S.score} · ${S.title}\n${S.grid}\nThink fast. Guess faster. Can you beat me?`, e.currentTarget));
 $("again").addEventListener("click",newGame);
 $("menu").addEventListener("click",()=>{$("end").hidden=true;$("start").hidden=false;applyUI();demo();});
 $("go").addEventListener("click",newGame);
@@ -349,6 +375,7 @@ const savedTime=store.get("reveal-time-v2");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
 applyUI(); demo();
 </script>
-<script src="stage.js?v=20261116e"></script>
+<script src="stage.js?v=20261116f"></script>
+<script src="drama.js?v=20261116f"></script>
 </body>
 </html>

@@ -49,3 +49,11 @@ To use your own PeerJS server, add `?peerhost=HOST&peerport=PORT&peerpath=/PATH`
 ## Word list
 
 The starter words and hints live in `words.js` (334 words: 119 Easy, 116 Medium, 99 Hard), shared by every mode. Add a word as `["WORD", "Hint text", level]` (1 Easy, 2 Medium, 3 Hard), using letters A–Z only.
+
+## Drama and replay (drama.js, drama.css)
+- **Final 5 seconds:** heartbeat sound (vibration on phones), red pulsing edge, the tiles thump each second.
+- **Correct guess splash:** LIGHTNING! (75% of the time left), CLUTCH! (last 3 seconds), GENIUS! (half the letters still hidden), ON FIRE! (3+ streak), with the points flying up.
+- **Combo meter** from 2 in a row; it heats up in colour as the streak grows. Wrong guesses shake the stage; a missed word gets a drum roll and crash.
+- **End of Solo:** rank title (7 levels, from Warming Up to REVEAL Legend) with points to the next title, gap to your best ("So close!"), a result grid (⚡ fast, 🟩 right, 🟥 missed) and a Share button.
+- **End of Party/Royale on phones:** your title (Champion, On the podium, Last one standing…) and a Share button.
+- Palette (Lin, v2): background #17231D, lime #C7F58B, text #F6F8F0, surfaces #23372B, muted #A9BBAC.

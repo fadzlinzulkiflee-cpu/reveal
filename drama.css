@@ -1,0 +1,76 @@
+/* REVEAL drama layer (drama.js): danger zone, splashes, combo, score bumps, end-of-game hooks.
+   Uses the brand tokens from theme.css (lime on forest green). */
+
+/* --- final seconds: red vignette that throbs, stage thump --- */
+.stage .vignette{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;transition:opacity .4s;
+  background:radial-gradient(120% 90% at 50% 50%, transparent 45%, rgba(255,90,70,.30) 100%)}
+.stage.lowtime:not(.frozen) .vignette{opacity:1;animation:throb 1s ease-in-out infinite}
+@keyframes throb{0%,100%{opacity:.55}12%{opacity:1}24%{opacity:.7}36%{opacity:.95}}
+.stage.lowtime:not(.frozen) .hint{border-color:rgba(255,122,107,.6)}
+.stage.thump .tiles{animation:thump .32s ease-out}
+@keyframes thump{0%{transform:scale(1)}30%{transform:scale(1.035) translateX(-2px)}60%{transform:scale(.995) translateX(2px)}100%{transform:none}}
+.stage.lowtime:not(.frozen) .clock{text-shadow:0 0 18px rgba(255,90,80,.9)}
+
+/* --- wrong guess: shake the whole stage --- */
+.stage.shake{animation:stageshake .42s cubic-bezier(.36,.07,.19,.97)}
+@keyframes stageshake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+
+/* --- big splash on a correct guess --- */
+.stage .splash{position:absolute;left:0;right:0;top:0;bottom:0;align-content:center;background:radial-gradient(70% 45% at 50% 50%,rgba(18,28,23,.92),rgba(18,28,23,0) 100%);z-index:7;display:grid;justify-items:center;gap:4px;pointer-events:none;opacity:0;text-align:center}
+.stage .splash b{font-family:var(--f-display);font-weight:400;letter-spacing:-.02em;line-height:.95;
+  font-size:clamp(2.6rem,12vw,5.5rem);color:var(--lime);
+  text-shadow:0 4px 24px rgba(0,0,0,.45)}
+.stage .splash span{font:900 .95rem var(--f-body);letter-spacing:.16em;text-transform:uppercase;color:var(--ink);
+  background:#23372b;padding:6px 14px;border-radius:999px}
+.stage .splash.zap b{color:#f6f8f0}
+.stage .splash.clutch b{color:#ffb36b}
+.stage .splash.fire b{color:#ffb36b}
+.stage .splash.go{animation:splash 1.5s cubic-bezier(.2,1.4,.4,1) forwards}
+@keyframes splash{0%{opacity:0;transform:scale(.3) rotate(-8deg)}14%{opacity:1;transform:scale(1.12) rotate(2deg)}24%{transform:scale(1) rotate(-1deg)}
+  78%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.25) translateY(-20px)}}
+
+/* flying points */
+.stage .flypts{position:absolute;left:50%;z-index:8;pointer-events:none;font-family:var(--f-display);font-size:clamp(1.6rem,7vw,2.6rem);
+  color:var(--lime);text-shadow:0 3px 0 var(--lime-ink);transform:translateX(-50%);animation:fly 1.3s ease-out forwards}
+@keyframes fly{0%{opacity:0;transform:translate(-50%,10px) scale(.6)}15%{opacity:1;transform:translate(-50%,0) scale(1.15)}100%{opacity:0;transform:translate(-50%,-120px) scale(1)}}
+
+/* --- combo meter --- */
+.stage .combo{display:inline-flex;align-items:baseline;gap:6px;padding:4px 12px;border-radius:999px;
+  background:var(--lime);color:var(--lime-ink);font:900 .78rem var(--f-body);letter-spacing:.16em;box-shadow:0 0 22px rgba(199,245,139,.45)}
+.stage .combo b{font-family:var(--f-display);font-weight:400;font-size:1.15rem;letter-spacing:0}
+.stage .combo[data-heat="3"]{background:#ffd36b;box-shadow:0 0 26px rgba(255,200,90,.6)}
+.stage .combo[data-heat="4"]{background:#ff9c5b;color:#2a0b00;box-shadow:0 0 30px rgba(255,140,60,.75);animation:heat 1.2s ease-in-out infinite}
+.stage .combo.bump{animation:bump .5s cubic-bezier(.2,1.8,.4,1)}
+@keyframes bump{0%{transform:scale(.6)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes heat{50%{box-shadow:0 0 44px rgba(255,140,60,.95)}}
+
+/* score counters */
+.bump-up{display:inline-block;animation:sup .6s cubic-bezier(.2,1.8,.4,1);color:var(--lime)}
+.bump-down{display:inline-block;animation:sdown .45s ease-out;color:var(--bad)}
+@keyframes sup{0%{transform:scale(1)}40%{transform:scale(1.45)}100%{transform:scale(1)}}
+@keyframes sdown{0%,100%{transform:none}25%{transform:translateY(3px) scale(.92)}60%{transform:translateY(-1px)}}
+
+/* --- end of game: rank title, best gap, share --- */
+.rankcard{display:grid;justify-items:center;gap:6px;text-align:center;padding:18px 14px;border-radius:22px;
+  background:radial-gradient(90% 120% at 50% 0%, rgba(199,245,139,.22), transparent 70%), var(--raised);border:1px solid rgba(199,245,139,.35)}
+.rankcard .lvl{font:900 .75rem var(--f-body);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.rankcard .ttl{font-family:var(--f-display);font-weight:400;font-size:clamp(1.9rem,8vw,2.8rem);line-height:1;color:var(--lime);
+  text-shadow:0 4px 0 var(--lime-ink),0 0 30px rgba(199,245,139,.4);animation:crown .9s .2s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes crown{0%{opacity:0;transform:scale(.4) rotate(-6deg)}100%{opacity:1;transform:none}}
+.rankcard .pips{display:flex;gap:5px}
+.rankcard .pips i{width:18px;height:6px;border-radius:3px;background:rgba(255,255,255,.14)}
+.rankcard .pips i.on{background:var(--lime);box-shadow:0 0 8px rgba(199,245,139,.6)}
+.rankcard .nxt{font-weight:800;color:var(--ink)}
+.rankcard .nxt b{color:var(--lime)}
+.bestgap{font-weight:900;text-align:center;font-size:1.05rem}
+.bestgap.new{color:var(--lime);font-family:var(--f-display);font-weight:400;font-size:1.5rem;letter-spacing:.02em;animation:crown .8s .5s cubic-bezier(.2,1.6,.4,1) both}
+.bestgap.close{color:#ffd36b}
+.grid{font-size:1.5rem;letter-spacing:.12em;text-align:center;line-height:1.2}
+button.again-hot{font-size:1.2rem;padding:18px 20px;animation:hot 1.6s ease-in-out infinite;box-shadow:0 0 0 0 rgba(199,245,139,.6)}
+@keyframes hot{0%{box-shadow:0 0 0 0 rgba(199,245,139,.55)}70%{box-shadow:0 0 0 16px rgba(199,245,139,0)}100%{box-shadow:0 0 0 0 rgba(199,245,139,0)}}
+
+@media (prefers-reduced-motion:reduce){
+  .stage.lowtime .vignette,.stage.thump .tiles,.stage.shake,.stage .combo,.rankcard .ttl,.bestgap.new,button.again-hot,.bump-up,.bump-down{animation:none}
+  .stage .splash.go{animation:splash-calm 1.5s forwards}
+  @keyframes splash-calm{0%,100%{opacity:0}15%,80%{opacity:1}}
+}
