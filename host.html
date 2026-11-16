@@ -6,8 +6,8 @@
 <title>REVEAL Big Screen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
-<link rel="stylesheet" href="party.css?v=20261116b">
-<link rel="stylesheet" href="stage.css?v=20261116b">
+<link rel="stylesheet" href="party.css?v=20261116c">
+<link rel="stylesheet" href="stage.css?v=20261116c">
 <style>
 /* Layout: TV-first. Main stage on the left, players rail on the right; stacks on narrow screens. */
 body{font-size:clamp(16px,1.25vw,22px)}
@@ -48,9 +48,21 @@ body{font-size:clamp(16px,1.25vw,22px)}
 .winner{font-family:var(--f-display);font-weight:800;font-size:clamp(2.2rem,6vw,5rem);line-height:1.05}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .err{color:var(--bad);font-weight:600}
+#over{position:relative;overflow:hidden}
+#over canvas.confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.podium{display:flex;justify-content:center;align-items:flex-end;gap:14px;margin-top:8px}
+.pod{display:flex;flex-direction:column;align-items:center;gap:4px;width:min(30%,220px);min-width:0;text-align:center}
+.pod .pn{font-family:var(--f-display);font-size:clamp(1rem,2vw,1.6rem);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pod .ps{color:var(--muted);font-weight:800;font-size:.9rem}
+.pod .block{width:100%;display:grid;place-items:start center;padding-top:12px;border-radius:14px 14px 4px 4px;background:var(--raised,#2a3831);border:1px solid var(--line)}
+.pod .block b{font-family:var(--f-display);font-weight:400;font-size:clamp(2rem,4vw,3.4rem);color:var(--muted)}
+.pod.p1 .block{height:clamp(140px,22vh,220px);background:var(--lime,#c8f28a);border-color:transparent}
+.pod.p1 .block b{color:var(--lime-ink,#11200f)}
+.pod.p2 .block{height:clamp(100px,15vh,160px)}
+.pod.p3 .block{height:clamp(70px,10vh,110px)}
 #play.stage{--ring:clamp(110px,11vw,190px)}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261116b">
+<link rel="stylesheet" href="theme.css?v=20261116c">
 </head>
 <body>
 <div class="screen">
@@ -79,6 +91,15 @@ body{font-size:clamp(16px,1.25vw,22px)}
         </div>
       </div>
       <div style="display:grid;gap:8px">
+        <p class="eyebrow">Level</p>
+        <div class="seg">
+          <label><input type="radio" name="level" id="level-easy" value="easy">Easy</label>
+          <label><input type="radio" name="level" id="level-medium" value="medium">Medium</label>
+          <label><input type="radio" name="level" id="level-hard" value="hard">Hard</label>
+          <label><input type="radio" name="level" id="level-mixed" value="mixed" checked>Mixed</label>
+        </div>
+      </div>
+      <div style="display:grid;gap:8px">
         <p class="eyebrow">Time per word</p>
         <div class="seg">
           <label><input type="radio" name="time" id="time-20" value="20">Fast<small>20 s</small></label>
@@ -93,7 +114,7 @@ body{font-size:clamp(16px,1.25vw,22px)}
     </section>
 
     <!-- PLAY -->
-    <section class="card stage" id="play" hidden>
+    <section class="card stage" id="play" data-sound="full" hidden>
       <div class="toprow">
         <span class="clock" id="clock">30</span>
         <span class="next" id="next"></span>
@@ -117,6 +138,7 @@ body{font-size:clamp(16px,1.25vw,22px)}
     <section class="card" id="over" hidden>
       <p class="eyebrow">Game over</p>
       <div class="winner" id="winner"></div>
+      <div class="podium" id="podium"></div>
       <p class="muted" id="overNote"></p>
       <div class="row"><button class="primary" id="againBtn">Play again with the same players</button></div>
     </section>
@@ -132,8 +154,8 @@ body{font-size:clamp(16px,1.25vw,22px)}
 
 <script src="vendor/peerjs-1.5.4.min.js"></script>
 <script src="vendor/qrcode-generator-1.4.4.js"></script>
-<script src="words.js?v=20261116b"></script>
-<script src="net.js?v=20261116b"></script>
+<script src="words.js?v=20261116c"></script>
+<script src="net.js?v=20261116c"></script>
 <script>
 const PARTY_ROUNDS = 10, ROYALE_MAX = 12, COOLDOWN = 3, FIRST_BONUS = 25;
 const $ = id => document.getElementById(id);
@@ -194,7 +216,7 @@ function onConnection(conn){
           setTimeout(()=>conn.close(),500); return;
         }
         const lateRoyale = H.phase!=="lobby" && H.mode==="royale";
-        player = { id:H.nextId++, token:msg.token||"", name:uniqueName(msg.name), conn, online:true, score:0, out:lateRoyale, rd:freshRound() };
+        player = { id:H.nextId++, token:msg.token||"", name:uniqueName(msg.name), conn, online:true, score:0, streak:0, out:lateRoyale, outRound:lateRoyale?-1:Infinity, rd:freshRound() };
         H.players.set(player.id, player);
       }
       assignVip();
@@ -226,10 +248,12 @@ function rankOf(p){ const sorted = playerList().slice().sort((a,b)=>b.score-a.sc
 
 function syncPlayer(p){
   const base = { t:"state", phase:H.phase, mode:H.mode, vip:!!p.vip, score:p.score, out:!!p.out, players:playerList().filter(x=>x.online).length };
-  if(H.phase==="play"){
+  if(H.phase==="countdown"){
+    Object.assign(base, { round:H.i+1, rounds:H.mode==="party"?H.words.length:0, hint:H.cur.hint, len:H.cur.n, T:H.T, showdown:!!H.cur.showdown });
+  } else if(H.phase==="play"){
     const c=H.cur;
     Object.assign(base, { round:H.i+1, rounds:H.mode==="party"?H.words.length:0, hint:c.hint, pattern:pattern(), left:timeLeft(), T:H.T,
-      correct:p.rd.correct, failed:p.rd.failed, cooldown:Math.max(0,(p.rd.cooldownUntil-performance.now())/1000) });
+      correct:p.rd.correct, failed:p.rd.failed, cooldown:Math.max(0,(p.rd.cooldownUntil-performance.now())/1000), showdown:!!c.showdown });
   } else if(H.phase==="reveal"){
     Object.assign(base, { word:H.cur.word, got:p.rd.correct, pts:p.rd.pts, rank:rankOf(p), eliminated:!!p.rd.eliminatedNow, last:H.i+1>=H.words.length });
   } else if(H.phase==="over"){
@@ -282,10 +306,10 @@ function startGame(){
   H.mode = getMode();
   if(H.mode==="royale" && playerList().filter(p=>p.online).length>ROYALE_MAX) return;
   H.T = +document.querySelector('input[name=time]:checked').value;
-  const pool = shuffle(window.WORDS);
-  H.words = H.mode==="party" ? pool.slice(0,PARTY_ROUNDS) : pool;
+  const level = document.querySelector('input[name=level]:checked').value;
+  H.words = pickWords(H.mode==="party" ? PARTY_ROUNDS : 40, level);
   H.i = -1;
-  playerList().forEach(p=>{ p.score=0; p.out=!p.online; });
+  playerList().forEach(p=>{ p.score=0; p.streak=0; p.out=!p.online; p.outRound=p.online?Infinity:-1; });
   H.startCount = activePlayers().length;
   nextRound();
 }
@@ -295,15 +319,24 @@ function nextRound(){
   if(H.i>=H.words.length) return gameOver();
   const [word,hint] = H.words[H.i];
   const n = word.length;
-  H.cur = { word, hint, n, order:shuffle([...Array(n).keys()]), shown:0, open:Array(n).fill(false), start:performance.now(), firstDone:false, ended:false };
+  const showdown = H.mode==="royale" && activePlayers().length===2;
+  H.cur = { word, hint, n, order:shuffle([...Array(n).keys()]), shown:0, open:Array(n).fill(false), start:performance.now(), firstDone:false, ended:false, showdown };
   playerList().forEach(p=>p.rd=freshRound());
-  H.phase = "play";
+  H.phase = "countdown";
   $("tiles").innerHTML = [...word].map(c=>`<div class="t"><div class="in"><div class="f"></div><div class="b">${c}</div></div></div>`).join("");
   $("hint").textContent = hint;
   $("msg").textContent = ""; $("msg").className="msg";
   $("roundLbl").textContent = H.mode==="party" ? `Word ${H.i+1} of ${H.words.length}` : `Round ${H.i+1} · ${activePlayers().length} / ${H.startCount} remaining`;
+  $("clock").textContent=H.T; $("fill").style.width="100%"; $("clock").classList.remove("low"); $("next").textContent="";
+  REVEAL_STAGE.banner(showdown ? "Final showdown · first correct answer wins" : null);
   show("play"); renderPlayers(); syncAll();
-  cancelAnimationFrame(H.raf); tick();
+  cancelAnimationFrame(H.raf);
+  const round = H.i;
+  REVEAL_STAGE.countdown(()=>{
+    if(H.i!==round || H.phase!=="countdown") return;
+    H.cur.start = performance.now(); H.phase = "play";
+    renderPlayers(); syncAll(); tick();
+  });
 }
 
 function tick(){
@@ -331,11 +364,14 @@ function onGuess(p, raw){
   if(g===c.word){
     const left=timeLeft(), hidden=c.n-c.shown;
     const first = !c.firstDone;
-    const pts = Math.round(50 + left/H.T*100 + hidden*15) + (first ? FIRST_BONUS : 0);
+    p.streak = (p.streak||0) + 1;
+    const bonus = H.mode==="party" ? Math.min(50,(p.streak-1)*10) : 0;
+    const pts = Math.round(50 + left/H.T*100 + hidden*15) + (first ? FIRST_BONUS : 0) + bonus;
     c.firstDone = true;
     p.rd.correct=true; p.rd.at=now; p.rd.pts=pts; p.score+=pts;
-    send(p,{t:"result", ok:true, pts, first});
-    $("msg").className="msg good"; $("msg").textContent = `${p.name} got it!`;
+    send(p,{t:"result", ok:true, pts, first, streak:p.streak, bonus});
+    $("msg").className="msg good"; $("msg").textContent = `${p.name} got it!` + (bonus ? ` Streak ×${p.streak}` : "");
+    if(c.showdown){ renderPlayers(); return endRound(); }
   } else if(H.mode==="royale"){
     p.rd.failed=true;
     send(p,{t:"result", ok:false, out:true});
@@ -359,6 +395,7 @@ function endRound(){
   [...$("tiles").children].forEach((el,i)=>{ if(!c.open[i]){ el.classList.add("missed"); el.classList.add("open"); }});
   const contenders = playerList().filter(p=>!p.out);
   const correct = contenders.filter(p=>p.rd.correct).sort((a,b)=>a.rd.at-b.rd.at);
+  contenders.forEach(p=>{ if(!p.rd.correct) p.streak=0; });
   let note = "";
   if(H.mode==="royale"){
     if(correct.length===0){
@@ -366,18 +403,19 @@ function endRound(){
     } else {
       const losers = contenders.filter(p=>!p.rd.correct);
       if(correct.length>=2) losers.push(correct[correct.length-1]);
-      losers.forEach(p=>{ p.out=true; p.rd.eliminatedNow=true; });
+      losers.forEach(p=>{ p.out=true; p.rd.eliminatedNow=true; p.outRound=H.i; });
       const slow = correct.length>=2 ? correct[correct.length-1] : null;
       const parts=[];
       const wrong = losers.filter(p=>p!==slow);
       if(wrong.length) parts.push(`Out for missing it: ${wrong.map(p=>p.name).join(", ")}.`);
       if(slow) parts.push(`Slowest correct answer: ${slow.name}, also out.`);
-      note = parts.join(" ") || "Everyone survives.";
+      note = c.showdown && correct.length ? `${correct[0].name} answered first and wins the showdown!` : (parts.join(" ") || "Everyone survives.");
     }
   } else {
     note = correct.length ? `${correct.length} of ${contenders.length} got it. Fastest: ${correct[0].name}.` : "Nobody got this one.";
   }
   H.phase = "reveal";
+  REVEAL_STAGE.banner(null);
   $("answer").textContent = c.word;
   $("revealNote").textContent = note;
   const finished = H.mode==="royale" ? activePlayers().length<=1 : H.i+1>=H.words.length;
@@ -408,16 +446,38 @@ function gameOver(){
   }
   H.winnerText = text;
   $("winner").textContent = text;
+  const ranked = H.mode==="royale"
+    ? playerList().filter(p=>p.outRound!==-1).sort((a,b)=>(b.outRound-a.outRound))
+    : playerList().slice().sort((a,b)=>b.score-a.score);
+  const top3 = ranked.slice(0,3);
+  const slots = [1,0,2].filter(i=>top3[i]);   // 2nd, 1st, 3rd
+  $("podium").innerHTML = slots.map(i=>{ const p=top3[i];
+    const sub = H.mode==="royale" ? (i===0 ? "Last one standing" : `Out in round ${p.outRound+1}`) : `${p.score} pts`;
+    return `<div class="pod p${i+1}"><span class="pn">${esc(p.name)}</span><span class="ps">${sub}</span><div class="block"><b>${i+1}</b></div></div>`; }).join("");
   show("over"); renderPlayers(); syncAll();
+  setTimeout(()=>{ REVEAL_SFX && REVEAL_SFX.fanfare(); celebrate(); }, 150);
+}
+
+// confetti on the game-over card
+function celebrate(){
+  const card=$("over"); if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let cv=card.querySelector("canvas.confetti"); if(!cv){ cv=document.createElement("canvas"); cv.className="confetti"; card.appendChild(cv); }
+  const r=card.getBoundingClientRect(), dpr=Math.min(2,devicePixelRatio||1); cv.width=r.width*dpr; cv.height=r.height*dpr;
+  const ctx=cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0);
+  const C=["#c8f28a","#e3fbbd","#ffffff","#8fb2ff","#ff8fa3","#f6b21b"];
+  let parts=[...Array(220)].map((_,i)=>({x:Math.random()*r.width,y:-20-Math.random()*r.height*.6,vx:(Math.random()-.5)*2,vy:Math.random()*2+2,s:Math.random()*7+5,rot:Math.random()*6,vr:(Math.random()-.5)*.3,c:C[i%C.length]}));
+  (function step(){ ctx.clearRect(0,0,r.width,r.height);
+    parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore();});
+    parts=parts.filter(p=>p.y<r.height+20); if(parts.length) requestAnimationFrame(step); })();
 }
 
 $("startBtn").addEventListener("click", startGame);
 $("nextBtn").addEventListener("click", hostNext);
-$("againBtn").addEventListener("click", ()=>{ H.phase="lobby"; playerList().forEach(p=>{p.score=0;p.out=false;p.rd=freshRound();}); show("lobby"); renderPlayers(); lobbyState(); syncAll(); });
+$("againBtn").addEventListener("click", ()=>{ H.phase="lobby"; playerList().forEach(p=>{p.score=0;p.streak=0;p.out=false;p.rd=freshRound();}); show("lobby"); renderPlayers(); lobbyState(); syncAll(); });
 window.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ") && document.activeElement===document.body){ if(H.phase==="lobby" && !$("startBtn").disabled) startGame(); else hostNext(); }});
 
 openRoom(); renderPlayers();
 </script>
-<script src="stage.js?v=20261116b"></script>
+<script src="stage.js?v=20261116c"></script>
 </body>
 </html>

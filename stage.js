@@ -95,3 +95,85 @@
   setInterval(render, 150);   // catches value resets done by the game code
   render();
 })();
+
+// Sound, vibration, countdown and banner.
+// data-sound on the stage: "full" (Solo, TV) or "feedback" (phones: only right/wrong sounds, plus vibration).
+(function(){
+  const stage = document.querySelector(".stage"); if(!stage) return;
+  const full = (stage.dataset.sound || "full") === "full";
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let ctx = null, muted = false;
+  try { muted = localStorage.getItem("reveal-muted") === "1"; } catch(e) {}
+  const unlock = () => { if(!ctx){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(ctx && ctx.state==="suspended") ctx.resume(); };
+  ["pointerdown","keydown","touchstart"].forEach(e=>addEventListener(e, unlock, {passive:true}));
+
+  function tone(freq, dur, type="sine", vol=.18, when=0, slideTo=0){
+    if(muted || !ctx) return;
+    const t0 = ctx.currentTime + when, o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t0);
+    if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0+dur);
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0+.01); g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+    o.connect(g).connect(ctx.destination); o.start(t0); o.stop(t0+dur+.02);
+  }
+  const buzz = p => { try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} };
+  const SFX = {
+    tick(){ tone(1200,.05,"square",.06); },
+    pop(){ tone(520,.12,"triangle",.14,0,900); },
+    good(){ [523,659,784,1046].forEach((f,i)=>tone(f,.18,"triangle",.16,i*.08)); buzz([40,40,80]); },
+    bad(){ tone(220,.25,"sawtooth",.09,0,140); buzz(160); },
+    beep(final){ tone(final?988:660, final?.35:.14, "square", .1); },
+    fanfare(){ [392,523,659,784,659,784,1046].forEach((f,i)=>tone(f,.22,"triangle",.17,i*.11)); }
+  };
+  window.REVEAL_SFX = SFX;
+
+  // mute button
+  const mb = document.createElement("button");
+  mb.type="button"; mb.className="mute"; mb.setAttribute("aria-label","Sound on or off");
+  const paint = () => { mb.textContent = muted ? "Sound off" : "Sound on"; mb.setAttribute("aria-pressed", String(!muted)); };
+  mb.addEventListener("click", ()=>{ muted=!muted; try{ localStorage.setItem("reveal-muted", muted?"1":"0"); }catch(e){} unlock(); paint(); });
+  paint(); stage.appendChild(mb);
+
+  // automatic sounds from what the page already shows
+  const tiles = stage.querySelector("#tiles"), clock = stage.querySelector("#clock"), msg = stage.querySelector("#msg");
+  if(full && tiles){
+    new MutationObserver(ms=>{ if(ms.some(m=>m.type==="attributes" && m.target.classList.contains("open") && !(m.oldValue||"").includes("open") && !m.target.classList.contains("beat") && !m.target.classList.contains("missed"))) SFX.pop(); })
+      .observe(tiles,{subtree:true,attributes:true,attributeFilter:["class"],attributeOldValue:true});
+  }
+  if(full && clock){
+    let lastT = "";
+    new MutationObserver(()=>{ const v=clock.textContent; if(v!==lastT){ lastT=v; if(clock.classList.contains("low") && +v>0) SFX.tick(); } })
+      .observe(clock,{childList:true,characterData:true,subtree:true});
+  }
+  if(msg){
+    let prevK="", prevT="";
+    new MutationObserver(()=>{
+      const k = msg.classList.contains("good") ? "good" : msg.classList.contains("bad") ? "bad" : "";
+      const tx = msg.textContent;
+      if(k==="good" && prevK!=="good") SFX.good();
+      if(k==="bad" && tx!==prevT && tx) SFX.bad();
+      prevK=k; prevT=tx;
+    }).observe(msg,{attributes:true,attributeFilter:["class"],childList:true,characterData:true,subtree:true});
+  }
+
+  // 3-2-1 countdown overlay
+  const ov = document.createElement("div"); ov.className="countdown"; ov.hidden=true; ov.setAttribute("aria-live","assertive");
+  stage.appendChild(ov);
+  let cdTimer = 0;
+  function countdown(cb, secs=3){
+    clearInterval(cdTimer); let n = secs;
+    ov.hidden=false; ov.innerHTML = `<span class="lbl">Get ready</span><b>${n}</b>`; SFX.beep(false);
+    cdTimer = setInterval(()=>{
+      n--;
+      if(n>0){ ov.innerHTML = `<span class="lbl">Get ready</span><b>${n}</b>`; SFX.beep(false); }
+      else if(n===0){ ov.innerHTML = `<b class="go">GO!</b>`; SFX.beep(true); }
+      else { clearInterval(cdTimer); ov.hidden=true; cb && cb(); }
+    }, reduce ? 700 : 800);
+  }
+  function cancelCountdown(){ clearInterval(cdTimer); ov.hidden=true; }
+
+  // banner (e.g. Royale final showdown)
+  const bn = document.createElement("div"); bn.className="banner"; bn.hidden=true; stage.insertBefore(bn, stage.firstChild);
+  function banner(text){ bn.hidden=!text; bn.textContent=text||""; }
+
+  window.REVEAL_STAGE = Object.assign(window.REVEAL_STAGE||{}, { countdown, cancelCountdown, banner, sfx:SFX });
+})();

@@ -18,8 +18,12 @@ For big-screen games, the files must be served from a web address (for example G
 - **Modes:**
   - *Solo:* chase your best score. A wrong guess costs 3 seconds.
   - *Party (big screen):* everyone guesses the same word on their own phone. Every correct guess scores, faster scores more, and the first correct guess gets +25. A wrong guess locks that phone for 3 seconds. 10 words.
-  - *Royale (big screen, 2–12 players):* same word for everyone. A wrong guess, or not answering before time runs out, disqualifies you, and so does the slowest correct answer. The TV shows a live ranking with answer times and how many players remain. If nobody gets it, nobody is out. Last one standing wins.
+  - *Royale (big screen, 2–12 players):* same word for everyone. A wrong guess, or not answering before time runs out, disqualifies you, and so does the slowest correct answer. The TV shows a live ranking with answer times and how many players remain. If nobody gets it, nobody is out. Last one standing wins. When two players are left it becomes a **final showdown**: the first correct answer wins.
 
+- **Level:** Easy, Medium, Hard or Mixed. Words don't repeat on a device until every word at that level has been played.
+- **Countdown:** "3, 2, 1, GO!" before every word.
+- **Streak:** +10 for each word in a row you get right, up to +50 (Solo and Party).
+- **Sound and vibration:** letter pops, a ticking last 5 seconds, right/wrong sounds; phones vibrate on right or wrong. Mute with the Sound button.
 - **Rounds:** 10 words per game, with 20, 30 (default) or 45 seconds per word.
 - **Reveal:** one letter opens every `time / letters` seconds, in random order. The last letter stays hidden until time runs out.
 - **Scoring:** `50 + 100 × (time left / total time) + 15 × hidden letters`. In Solo a wrong guess costs 3 seconds.
@@ -44,4 +48,4 @@ To use your own PeerJS server, add `?peerhost=HOST&peerport=PORT&peerpath=/PATH`
 
 ## Word list
 
-The starter words and hints live in `words.js` (60 words), shared by every mode. Add a word as `["WORD", "Hint text"]`, using letters A–Z only.
+The starter words and hints live in `words.js` (334 words: 119 Easy, 116 Medium, 99 Hard), shared by every mode. Add a word as `["WORD", "Hint text", level]` (1 Easy, 2 Medium, 3 Hard), using letters A–Z only.
