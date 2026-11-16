@@ -111,5 +111,13 @@ window.REVEAL_AUTH = (function(){
     return data.session ? data.session.access_token : null;
   }
 
-  return { ready, state, on(f){ listeners.push(f); f(state()); }, signIn, signOut, nameFree, saveProfile, nameProblem, clean, syncStats, token };
+  // Ranked tiers (Lin): Bronze below 1100, Silver 1100, Gold 1300, Platinum 1500, Legend 1700.
+  function tier(r){ r = +r || 0; return r >= 1700 ? "Legend" : r >= 1500 ? "Platinum" : r >= 1300 ? "Gold" : r >= 1100 ? "Silver" : "Bronze"; }
+  async function rpc(fn, args){
+    if(!sb) return { data:null, error:{ message:"The ranked server isn't available right now." } };
+    try{ return await sb.rpc(fn, args || {}); }catch(e){ return { data:null, error:{ message:String(e && e.message || e) } }; }
+  }
+  async function reloadProfile(){ await loadProfile(); emit(); return S.profile; }
+
+  return { tier, rpc, reloadProfile, ready, state, on(f){ listeners.push(f); f(state()); }, signIn, signOut, nameFree, saveProfile, nameProblem, clean, syncStats, token };
 })();
