@@ -110,7 +110,7 @@
     $("tiles").innerHTML = Array.from({length:n}, ()=>`<div class="t"><div class="in"><div class="f"></div><div class="b"></div></div></div>`).join("");
     $("hint").textContent = st.hint;
     $("guess").value = ""; $("msg").textContent = ""; $("msg").className = "msg";
-    $("guess").placeholder = "Type your answer…";
+    $("guess").placeholder = "";
     clearInterval(clockTimer); clockTimer = setInterval(drawClock, 200);
   }
   function updatePlay(){
