@@ -6,8 +6,8 @@
 <title>REVEAL Controller</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
-<link rel="stylesheet" href="party.css?v=20261116b">
-<link rel="stylesheet" href="stage.css?v=20261116b">
+<link rel="stylesheet" href="party.css?v=20261116c">
+<link rel="stylesheet" href="stage.css?v=20261116c">
 <style>
 /* Layout: one phone column; header with room + score, one card that changes with the game phase. */
 .wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px;
@@ -31,7 +31,7 @@ form.join input{width:100%}
 .err{color:var(--bad);font-weight:600;text-align:center}
 #play.stage{--ring:96px}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261116b">
+<link rel="stylesheet" href="theme.css?v=20261116c">
 </head>
 <body>
 <div class="wrap">
@@ -66,7 +66,7 @@ form.join input{width:100%}
   </section>
 
   <!-- PLAY -->
-  <section class="card stage" id="play" hidden>
+  <section class="card stage" id="play" data-sound="feedback" hidden>
     <div class="toprow">
       <span class="clock" id="clock">30</span>
       <span class="eyebrow" id="roundLbl"></span>
@@ -101,7 +101,7 @@ form.join input{width:100%}
 </div>
 
 <script src="vendor/peerjs-1.5.4.min.js"></script>
-<script src="net.js?v=20261116b"></script>
+<script src="net.js?v=20261116c"></script>
 <script>
 const $ = id => document.getElementById(id);
 const NET = window.REVEAL_NET;
@@ -160,8 +160,18 @@ function onMsg(m){
     show("lobby");
     $("vipStart").hidden = !st.vip;
     $("lobbyNote").textContent = st.vip ? "You joined first, so you can start the game from here or from the big screen." : "Watch the big screen. The game starts soon.";
+  } else if(st.phase==="countdown"){
+    st.pattern = "_".repeat(st.len);
+    startPlay(); clearInterval(timer);
+    $("guess").disabled=true; $("guessBtn").disabled=true;
+    $("clock").textContent=st.T; $("fill").style.width="100%"; $("clock").classList.remove("low");
+    $("roundLbl").textContent = st.mode==="party" ? `Word ${st.round} of ${st.rounds}` : `Round ${st.round}`;
+    REVEAL_STAGE.banner(st.showdown ? "Final showdown · first correct answer wins" : null);
+    if(!st.out) REVEAL_STAGE.countdown(null);
   } else if(st.phase==="play"){
-    if(prevPhase!=="play" || st.round!==playRound) startPlay();
+    if(st.round!==playRound) startPlay();
+    else if(prevPhase!=="play"){ REVEAL_STAGE.cancelCountdown(); clearInterval(timer); timer=setInterval(drawClock,200); }
+    REVEAL_STAGE.banner(st.showdown ? "Final showdown · first correct answer wins" : null);
     updatePlay();
   } else if(st.phase==="reveal"){
     clearInterval(timer); show("reveal");
@@ -228,7 +238,7 @@ function onResult(r){
   if(r.ok){
     st.correct=true; m.className="msg good";
     if(st.mode!=="royale"){ st.score += r.pts; $("meScore").textContent = `${st.score} pts`; }
-    m.textContent = `Correct! +${r.pts} points` + (r.first ? " (first!)" : "");
+    m.textContent = `Correct! +${r.pts} points` + (r.first ? " (first!)" : "") + (r.bonus ? ` · Streak ×${r.streak}` : "");
     inp.disabled=true; $("guessBtn").disabled=true;
   } else if(r.out){
     st.failed=true; m.className="msg bad"; m.textContent="Wrong! You're out after this round.";
@@ -249,6 +259,6 @@ $("guessForm").addEventListener("submit", e=>{
 $("startBtn").addEventListener("click", ()=>conn && conn.send({t:"start"}));
 $("nextBtn").addEventListener("click", ()=>conn && conn.send({t:"next"}));
 </script>
-<script src="stage.js?v=20261116b"></script>
+<script src="stage.js?v=20261116c"></script>
 </body>
 </html>

@@ -99,3 +99,20 @@ input[type=text]::placeholder{color:rgba(243,241,232,.28)}
 .slots .s.cur{color:var(--lime);animation:blink 1s steps(2) infinite}
 @keyframes blink{50%{opacity:.25}}
 @media (prefers-reduced-motion:reduce){.slots .s.cur{animation:none}}
+/* mute toggle, countdown, banner */
+.stage .mute{position:absolute;top:12px;right:12px;z-index:7;font:800 .72rem var(--f-body);letter-spacing:.06em;text-transform:uppercase;
+  padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.25);color:var(--st-muted);border:1px solid var(--st-edge)}
+.stage .mute[aria-pressed="false"]{color:var(--bad)}
+.countdown{position:absolute;inset:0;z-index:6;display:grid;place-content:center;justify-items:center;gap:6px;
+  background:radial-gradient(60% 60% at 50% 45%,rgba(18,28,23,.82),rgba(10,16,13,.95));backdrop-filter:blur(3px)}
+.countdown .lbl{font:900 .9rem var(--f-body);letter-spacing:.24em;text-transform:uppercase;color:var(--lime)}
+.countdown b{font-family:var(--f-display);font-weight:400;font-size:clamp(5rem,26vw,12rem);line-height:1;color:var(--ink);animation:cd .8s ease-out}
+.countdown b.go{color:var(--lime)}
+@keyframes cd{from{transform:scale(1.6);opacity:0}to{transform:scale(1);opacity:1}}
+.stage .banner{align-self:center;background:var(--bad);color:#fff;font:900 .8rem var(--f-body);letter-spacing:.16em;text-transform:uppercase;
+  padding:7px 14px;border-radius:999px;box-shadow:0 0 24px rgba(255,122,107,.5);animation:pulse 1.2s ease-in-out infinite}
+.streak{color:var(--lime);font-weight:900}
+@media (prefers-reduced-motion:reduce){.countdown b,.stage .banner{animation:none}}
+.stage button.mute{background:rgba(0,0,0,.28);color:var(--st-muted);border:1px solid var(--st-edge);padding:6px 10px;font-size:.7rem}
+.stage button.mute[aria-pressed="false"]{color:var(--bad)}
+.seg4 label{padding-inline:6px}
