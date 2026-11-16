@@ -115,13 +115,35 @@
     g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0+.01); g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
     o.connect(g).connect(ctx.destination); o.start(t0); o.stop(t0+dur+.02);
   }
-  const buzz = p => { try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} };
+  // Vibration: Android uses navigator.vibrate. iPhone Safari has no vibrate API, but toggling a
+  // hidden iOS "switch" checkbox gives a light haptic tap (iOS 18+), so we use that as a fallback.
+  let hap = null;
+  function iosTap(){
+    if(!hap){
+      hap = document.createElement("label"); hap.setAttribute("aria-hidden","true");
+      hap.style.cssText = "position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;opacity:0";
+      const cb = document.createElement("input"); cb.type = "checkbox"; cb.setAttribute("switch",""); cb.tabIndex = -1;
+      hap.appendChild(cb); document.body.appendChild(hap);
+    }
+    const keep = document.activeElement;
+    hap.click();
+    if(keep && keep !== document.activeElement && keep.focus) keep.focus({preventScroll:true});
+  }
+  const canVibrate = typeof navigator.vibrate === "function";
+  const buzz = p => {
+    try{
+      if(canVibrate){ navigator.vibrate(p); return; }
+      const pulses = Array.isArray(p) ? p.filter((_,i)=>i%2===0) : [p];
+      let at = 0; pulses.forEach(d=>{ setTimeout(iosTap, at); at += Math.max(90, d); });
+    }catch(e){}
+  };
   const SFX = {
     tick(){ tone(1200,.05,"square",.06); },
     pop(){ tone(520,.12,"triangle",.14,0,900); },
     good(){ [523,659,784,1046].forEach((f,i)=>tone(f,.18,"triangle",.16,i*.08)); buzz([40,40,80]); },
     bad(){ tone(220,.25,"sawtooth",.09,0,140); buzz(160); },
-    beep(final){ tone(final?988:660, final?.35:.14, "square", .1); },
+    beep(final){ tone(final?988:660, final?.35:.14, "square", .1); buzz(final?60:20); },
+    del(){ tone(340,.07,"triangle",.11,0,200); buzz(15); },
     fanfare(){ [392,523,659,784,659,784,1046].forEach((f,i)=>tone(f,.22,"triangle",.17,i*.11)); }
   };
   window.REVEAL_SFX = SFX;
@@ -132,6 +154,19 @@
   const paint = () => { mb.textContent = muted ? "Sound off" : "Sound on"; mb.setAttribute("aria-pressed", String(!muted)); };
   mb.addEventListener("click", ()=>{ muted=!muted; try{ localStorage.setItem("reveal-muted", muted?"1":"0"); }catch(e){} unlock(); paint(); });
   paint(); stage.appendChild(mb);
+
+  // delete / backspace in the answer box: soft click and tiny buzz
+  const ans = stage.querySelector("#guess");
+  if(ans){
+    let prevLen = 0;
+    ans.addEventListener("focus", ()=>{ prevLen = ans.value.length; });
+    ans.addEventListener("input", e=>{
+      const len = ans.value.length;
+      const deleted = e.inputType ? e.inputType.startsWith("delete") : len < prevLen;
+      if(deleted) SFX.del();
+      prevLen = len;
+    });
+  }
 
   // automatic sounds from what the page already shows
   const tiles = stage.querySelector("#tiles"), clock = stage.querySelector("#clock"), msg = stage.querySelector("#msg");

@@ -6,8 +6,8 @@
 <title>REVEAL Controller</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
-<link rel="stylesheet" href="party.css?v=20261116c">
-<link rel="stylesheet" href="stage.css?v=20261116c">
+<link rel="stylesheet" href="party.css?v=20261116d">
+<link rel="stylesheet" href="stage.css?v=20261116d">
 <style>
 /* Layout: one phone column; header with room + score, one card that changes with the game phase. */
 .wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px;
@@ -31,7 +31,7 @@ form.join input{width:100%}
 .err{color:var(--bad);font-weight:600;text-align:center}
 #play.stage{--ring:96px}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261116c">
+<link rel="stylesheet" href="theme.css?v=20261116d">
 </head>
 <body>
 <div class="wrap">
@@ -101,7 +101,7 @@ form.join input{width:100%}
 </div>
 
 <script src="vendor/peerjs-1.5.4.min.js"></script>
-<script src="net.js?v=20261116c"></script>
+<script src="net.js?v=20261116d"></script>
 <script>
 const $ = id => document.getElementById(id);
 const NET = window.REVEAL_NET;
@@ -227,9 +227,9 @@ function drawClock(){
   const cd = cooldownUntil-performance.now();
   if(st && !st.correct && !st.out && !st.failed){
     const wait = cd>0;
-    $("guessBtn").disabled = wait; $("guess").disabled = wait;
+    $("guessBtn").disabled = wait; $("guess").disabled = false;
     if(wait) $("guessBtn").textContent = Math.ceil(cd/1000)+"s";
-    else if($("guessBtn").textContent!=="Guess"){ $("guessBtn").textContent="Guess"; $("guess").focus({preventScroll:true}); $("guess").select(); }
+    else if($("guessBtn").textContent!=="Guess"){ $("guessBtn").textContent="Guess"; if($("msg").classList.contains("bad")){ $("msg").className="msg"; $("msg").textContent="Go again!"; } $("guess").focus({preventScroll:true}); }
   }
 }
 
@@ -244,21 +244,21 @@ function onResult(r){
     st.failed=true; m.className="msg bad"; m.textContent="Wrong! You're out after this round.";
     inp.disabled=true; $("guessBtn").disabled=true; shake();
   } else {
-    m.className="msg bad"; m.textContent=`Not it. Wait ${r.cooldown} seconds.`;
-    cooldownUntil = performance.now()+r.cooldown*1000; shake();
+    m.className="msg bad"; m.textContent=`Not it. Try again in ${r.cooldown} seconds.`;
+    inp.value=""; cooldownUntil = performance.now()+r.cooldown*1000; shake(); drawClock();
   }
 }
 function shake(){ const inp=$("guess"); inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake"); }
 
 $("guessForm").addEventListener("submit", e=>{
   e.preventDefault();
-  if(!conn || !st || st.phase!=="play" || $("guess").disabled) return;
+  if(!conn || !st || st.phase!=="play" || $("guess").disabled || $("guessBtn").disabled) return;
   const g=$("guess").value.trim(); if(!g) return;
   conn.send({t:"guess", g});
 });
 $("startBtn").addEventListener("click", ()=>conn && conn.send({t:"start"}));
 $("nextBtn").addEventListener("click", ()=>conn && conn.send({t:"next"}));
 </script>
-<script src="stage.js?v=20261116c"></script>
+<script src="stage.js?v=20261116d"></script>
 </body>
 </html>
