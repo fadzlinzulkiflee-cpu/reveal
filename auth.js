@@ -23,6 +23,18 @@ window.REVEAL_AUTH = (function(){
   }
   const clean = n => String(n||"").trim().toLowerCase().replace(/^@/,"");
 
+  // Daily leaderboard nicknames (guests type any name). Same rule as reveal_nick_ok() in supabase/launch.sql:
+  // long words anywhere, short ones only as a whole word, look-alike digits read as letters, repeated letters once.
+  const NICK_ANY = ["fuck","shit","cunt","bitch","nigg","fagg","whore","porn","penis","vagina","pukimak","puki","kontol","lancau","butoh","bangsat"];
+  const NICK_WORD = ["anal","dick","rape","babi","sial","slut","nazi","pantat","jubur","keparat","sex","fag","ass","cock","tits"];
+  function nickOk(n){
+    const s = String(n||"").toLowerCase().replace(/[013457$@]/g, c=>({"0":"o","1":"i","3":"e","4":"a","5":"s","7":"t","$":"s","@":"a"}[c]));
+    const flat = s.replace(/[^a-z]/g,""), squeezed = flat.replace(/(.)\1+/g,"$1");
+    if(NICK_ANY.some(w=>flat.includes(w) || squeezed.includes(w))) return false;
+    const words = s.split(/[^a-z]+/);
+    return !NICK_WORD.some(w=>words.includes(w));
+  }
+
   function emit(){ listeners.forEach(f=>{ try{ f(state()); }catch(e){ console.error(e); } }); }
   function state(){ return { available:!!sb, loaded:S.loaded, user:S.user, profile:S.profile, needsProfile:!!(S.user && S.loaded && !S.profile) }; }
 
@@ -118,6 +130,16 @@ window.REVEAL_AUTH = (function(){
     try{ return await sb.rpc(fn, args || {}); }catch(e){ return { data:null, error:{ message:String(e && e.message || e) } }; }
   }
   async function reloadProfile(){ await loadProfile(); emit(); return S.profile; }
+  // "Delete my account": removes the login, profile, records and Daily scores (delete_my_account() in supabase/launch.sql).
+  async function deleteAccount(){
+    if(!sb || !S.user) return { ok:false, msg:"Sign in first." };
+    const { error } = await rpc("delete_my_account");
+    if(error) return { ok:false, msg:"Couldn't delete your account right now. Try again in a minute." };
+    try{ await sb.auth.signOut(); }catch(e){}
+    ["reveal-name","reveal-avatar","reveal-nick"].forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
+    S.user = null; S.profile = null; emit();
+    return { ok:true };
+  }
 
-  return { tier, rpc, reloadProfile, ready, state, on(f){ listeners.push(f); f(state()); }, signIn, signOut, nameFree, saveProfile, nameProblem, clean, syncStats, token };
+  return { tier, rpc, reloadProfile, deleteAccount, nickOk, ready, state, on(f){ listeners.push(f); f(state()); }, signIn, signOut, nameFree, saveProfile, nameProblem, clean, syncStats, token };
 })();

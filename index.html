@@ -5,6 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>REVEAL</title>
 <link rel="manifest" href="manifest.webmanifest">
+<meta name="description" content="A free word game. One clue, a hidden word, and every second reveals a letter. Guess early for more points. Play solo, the Daily, with friends on one phone, or ranked online.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="REVEAL">
+<meta property="og:title" content="REVEAL · Think fast. Guess faster.">
+<meta property="og:description" content="A free word game. One clue, a hidden word, and every second reveals a letter. Guess early for more points. Play solo, the Daily, with friends on one phone, or ranked online.">
+<meta property="og:url" content="https://playreveal.app/">
+<meta property="og:image" content="https://playreveal.app/icons/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="REVEAL. Think fast. Guess faster.">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#17231D">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -119,13 +130,13 @@ header{min-height:36px}
 body:has(#start:not([hidden])) header{display:none}
 .seg4 label{min-width:70px}
 </style>
-<link rel="stylesheet" href="stage.css?v=20261116zf">
+<link rel="stylesheet" href="stage.css?v=20261116zg">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
-<link rel="stylesheet" href="theme.css?v=20261116zf">
-<link rel="stylesheet" href="drama.css?v=20261116zf">
-<link rel="stylesheet" href="look.css?v=20261116zf">
+<link rel="stylesheet" href="theme.css?v=20261116zg">
+<link rel="stylesheet" href="drama.css?v=20261116zg">
+<link rel="stylesheet" href="look.css?v=20261116zg">
 <style>#play.stage{--ring:80px}</style>
-<script src="exit.js?v=20261116zf"></script>
+<script src="exit.js?v=20261116zg"></script>
 </head>
 <body>
 
@@ -214,6 +225,12 @@ body:has(#start:not([hidden])) header{display:none}
         <div class="ac-me"><span class="ac-big" id="acMeAv"></span><div><b id="acMeName"></b><small id="acMeSub"></small></div></div>
         <div class="records" id="acRecords" aria-label="Your records"></div>
         <div class="row ctl"><button class="ghost" type="button" id="acEditBtn">Edit profile</button><button class="ghost" type="button" id="acOutBtn">Sign out</button></div>
+        <button class="ac-del" type="button" id="acDelBtn">Delete my account</button>
+        <div class="ac-delbox" id="acDelBox" hidden>
+          <p><b>Delete your account?</b> This removes your player name, avatar, records, rating and Daily scores. It can't be undone. Records on this device stay until you clear the site's data.</p>
+          <div class="row ctl"><button class="ghost" type="button" id="acDelNo">Keep my account</button><button class="danger" type="button" id="acDelYes">Delete forever</button></div>
+          <p class="err" id="acDelErr" hidden></p>
+        </div>
       </div>
     </div>
   </dialog>
@@ -275,7 +292,7 @@ body:has(#start:not([hidden])) header{display:none}
   </section>
 </div>
 
-<script src="words.js?v=20261116zf"></script>
+<script src="words.js?v=20261116zg"></script>
 <script>
 
 const UI = {
@@ -510,6 +527,10 @@ async function postDaily(){
   const D = REVEAL_DAILY, r = D.result(), A = window.REVEAL_AUTH, me = A && A.state().profile;
   const name = me ? me.username : $("nick").value.trim().slice(0,16);
   if(!name || !r) return;
+  if(!me && A && A.nickOk && !A.nickOk(name)){   // the leaderboard is public: no rude nicknames
+    store.set("reveal-nick", ""); $("nickForm").hidden = false; $("nick").value = ""; $("nick").focus();
+    $("dailyMsg").textContent = "Please pick a different nickname."; loadBoard($("dailyBoard")); return;
+  }
   if(!me) store.set("reveal-nick", name);
   $("nickGo").disabled = true; $("dailyMsg").textContent = "Posting your score…";
   const row = { day:D.today(), name, score:r.score, solved:r.solved, time_ms:r.time_ms, device:D.device() };
@@ -607,12 +628,13 @@ const savedTime=store.get("reveal-time-v2");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
 applyUI(); demo();
 </script>
-<script src="stage.js?v=20261116zf"></script>
-<script src="drama.js?v=20261116zf"></script>
-<script src="daily.js?v=20261116zf"></script>
+<script src="stage.js?v=20261116zg"></script>
+<script src="drama.js?v=20261116zg"></script>
+<script src="daily.js?v=20261116zg"></script>
 <script src="vendor/supabase-js-2.118.0.min.js"></script>
-<script src="avatars.js?v=20261116zf"></script>
-<script src="auth.js?v=20261116zf"></script>
-<script src="account.js?v=20261116zf"></script>
+<script src="avatars.js?v=20261116zg"></script>
+<script src="auth.js?v=20261116zg"></script>
+<script src="account.js?v=20261116zg"></script>
+<!-- Cloudflare Web Analytics: cookie-free visit counts --><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "ceaa5e1436764861bf9d4f2a0235b555"}'></script>
 </body>
 </html>

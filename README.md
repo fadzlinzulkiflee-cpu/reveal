@@ -41,7 +41,7 @@ To use your own PeerJS server, add `?peerhost=HOST&peerport=PORT&peerpath=/PATH`
 - `index.html`: Solo
 - `host.html`: big screen (Party and Royale)
 - `play.html`: phone controller for Play Locally (also shown on top of `host.html` when a phone hosts)
-- `exit.js`: the Exit button and its confirm sheet, used on every game screen
+- `exit.js`: the green Exit button and its confirm sheet, used on every game screen
 - `words.js`: the shared word list
 - `party.css`, `net.js`: shared styles and connection settings for big-screen mode
 - `theme.css`: the REVEAL brand (forest green, lime, Archivo Black wordmark), loaded last on every page
@@ -105,6 +105,17 @@ One-time setup (do this before merging, or the Sign in button leads to an error)
 5. **Supabase** → *SQL Editor* → paste `supabase/daily-accounts.sql` → *Run*. Daily becomes one try per account (still one per device for guests), a guest score from today moves to the account on sign-in, and device ids are no longer readable by other players.
 
 Tests mock Supabase (the session proxy blocks supabase.co), so the first real sign-in happens live.
+
+## Launch setup (supabase/launch.sql)
+
+Run `supabase/launch.sql` once in the Supabase SQL Editor. It adds:
+- `reveal_nick_ok()`, a rude-word check on Daily leaderboard nicknames. `auth.js` (`nickOk`) runs the same check in the browser.
+- `delete_my_account()`, which backs the **Delete my account** button in the account sheet. It removes the login, profile, records and Daily scores.
+
+Other launch bits:
+- Link previews: Open Graph tags on every page, with the image at `icons/og.png` (1200×630).
+- Visit counts: Cloudflare Web Analytics beacon on every page (no cookies). The privacy page mentions it.
+- Relay for strict mobile networks: paste the Metered Open Relay username and credential into `RELAY` in `net.js`. PeerJS's own small EU/US relay is used until then.
 
 ## Ranked Battle Royale (server-run)
 
