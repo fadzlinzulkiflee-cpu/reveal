@@ -83,3 +83,7 @@ input[type=text]::placeholder{color:rgba(243,241,232,.28)}
 .home .foot{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase}
 .home .tiles .t{--s:clamp(48px,14vw,62px)}
 .stage .hint p{font-family:var(--f-body);font-weight:800}
+/* while guessing, hidden tiles show "_" so players can count the letters left */
+.stage .t .f::after{content:"_";font-family:var(--f-display);font-size:calc(var(--s)*.5);line-height:1;transform:translateY(-.12em);color:rgba(243,241,232,.75)}
+.stage input[type=text]{font-family:var(--f-body);font-weight:800;letter-spacing:.06em}
+.stage input[type=text]:placeholder-shown{letter-spacing:0;font-weight:600}

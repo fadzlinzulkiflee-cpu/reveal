@@ -193,7 +193,7 @@ function startPlay(){
   $("tiles").innerHTML = [...st.pattern].map(()=>`<div class="t"><div class="in"><div class="f"></div><div class="b"></div></div></div>`).join("");
   $("hint").textContent = st.hint;
   $("guess").value=""; $("msg").textContent=""; $("msg").className="msg";
-  $("guess").placeholder = "_ ".repeat(st.pattern.length).trim();
+  $("guess").placeholder = "Type your answer…";
   clearInterval(timer); timer = setInterval(drawClock, 200);
 }
 function updatePlay(){

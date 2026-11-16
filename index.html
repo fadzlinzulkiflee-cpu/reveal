@@ -250,7 +250,7 @@ function nextWord(){
   $("hint").textContent = hint;
   $("msg").textContent=""; $("msg").className="msg";
   $("guess").value=""; $("guess").disabled=false; $("submit").disabled=false;
-  $("guess").maxLength=n+4; $("guess").placeholder="_ ".repeat(n).trim();
+  $("guess").maxLength=n+4; $("guess").placeholder="Type your answer…";
   $("skip").hidden=false; $("nextBtn").hidden=true;
   $("guess").focus({preventScroll:true});
   cancelAnimationFrame(raf); tick();
