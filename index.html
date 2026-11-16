@@ -106,25 +106,9 @@ td .w{font-family:var(--f-display);font-weight:800;letter-spacing:.06em}
 .bigscreen{display:grid;gap:2px;padding:14px 16px;border-radius:12px;border:2px dashed var(--line);color:var(--ink);text-decoration:none;font-weight:700}
 .bigscreen span{font-weight:400;color:var(--muted);font-size:.88rem}
 .bigscreen:hover,.bigscreen:focus-visible{border-color:var(--accent)}
-/* duo */
-.names{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.names input{width:100%;min-width:0;font:600 1rem var(--f-body);padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:var(--surface);color:var(--ink)}
-.names input#n1{border-color:var(--p1)} .names input#n2{border-color:var(--p2)}
-.buzzers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.buzz{display:grid;gap:2px;padding:16px 10px;border-radius:16px;color:var(--p-ink);text-align:center;touch-action:manipulation}
-.buzz .nm{font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.buzz .ps{font-family:var(--f-mono);font-size:1.5rem;font-variant-numeric:tabular-nums}
-.buzz .st{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;opacity:.85}
-.buzz.p1{background:var(--p1)} .buzz.p2{background:var(--p2)}
-.buzz:disabled{opacity:.35;cursor:not-allowed}
-.buzz.active{outline:4px solid var(--accent);outline-offset:3px}
-.turn{font-weight:700;text-align:center}
-.turn.p1{color:var(--p1)} .turn.p2{color:var(--p2)}
-.who{font-size:.75rem;font-weight:700;border-radius:5px;padding:1px 6px;color:var(--p-ink);margin-left:6px}
-.who.p1{background:var(--p1)} .who.p2{background:var(--p2)}
-.winner{font-family:var(--f-display);font-weight:800;font-size:2rem;line-height:1.1}
 @media (prefers-reduced-motion:reduce){.t .in{transition:none}.shake{animation:none}}
 </style>
+<link rel="stylesheet" href="stage.css">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 </head>
 <body>
@@ -144,17 +128,6 @@ td .w{font-family:var(--f-display);font-weight:800;letter-spacing:.06em}
     </div>
     <div class="tiles" id="demo" aria-hidden="true"></div>
     <div style="display:grid;gap:8px">
-      <p class="eyebrow">Mode</p>
-      <div class="seg" role="radiogroup">
-        <label><input type="radio" name="mode" id="mode-solo" value="solo" checked>Solo<small>Chase your best score</small></label>
-        <label><input type="radio" name="mode" id="mode-duo" value="duo">Duo<small>Two players, one phone</small></label>
-      </div>
-      <div class="names" id="names" hidden>
-        <input type="text" id="n1" maxlength="14" value="Player 1" aria-label="Player 1 name">
-        <input type="text" id="n2" maxlength="14" value="Player 2" aria-label="Player 2 name">
-      </div>
-    </div>
-    <div style="display:grid;gap:8px">
       <p class="eyebrow" data-i="timePick"></p>
       <div class="seg" role="radiogroup">
         <label><input type="radio" name="time" id="time-20" value="20"><span data-i="fast"></span><small>20 s</small></label>
@@ -164,12 +137,12 @@ td .w{font-family:var(--f-display);font-weight:800;letter-spacing:.06em}
     </div>
     <ol class="rules" id="rules"></ol>
     <button class="primary" id="go" data-i="start"></button>
-    <a class="bigscreen" href="host.html">Play on a big screen <span>TV or laptop shows the word, everyone guesses on their phone. Party and Royale modes.</span></a>
+    <a class="bigscreen" href="host.html">Playing with friends? Use the big screen <span>TV or laptop shows the word, everyone guesses on their own phone. Party for 2 or more, Royale for up to 12.</span></a>
     <p class="foot"><span data-i="best"></span> <b id="best">0</b></p>
   </section>
 
   <!-- PLAY -->
-  <section class="card" id="play" hidden>
+  <section class="card stage" id="play" hidden>
     <div class="toprow">
       <span class="clock" id="clock">30</span>
       <span class="next" id="next"></span>
@@ -177,16 +150,11 @@ td .w{font-family:var(--f-display);font-weight:800;letter-spacing:.06em}
     <div class="timebar" id="bar"><i id="fill"></i></div>
     <div class="tiles" id="tiles"></div>
     <div class="hint"><span class="tag">Hint</span><p id="hint"></p></div>
-    <p class="turn" id="turn" hidden></p>
     <form class="guess" id="form" autocomplete="off">
       <input type="text" id="guess" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="go" aria-label="Your guess">
       <button class="primary" type="submit" id="submit" data-i="guessBtn"></button>
     </form>
     <p class="msg" id="msg" aria-live="polite"></p>
-    <div class="buzzers" id="buzzers" hidden>
-      <button type="button" class="buzz p1" id="b1"><span class="nm" id="b1n">Player 1</span><span class="ps" id="b1s">0</span><span class="st" id="b1t">Tap to answer</span></button>
-      <button type="button" class="buzz p2" id="b2"><span class="nm" id="b2n">Player 2</span><span class="ps" id="b2s">0</span><span class="st" id="b2t">Tap to answer</span></button>
-    </div>
     <div class="row">
       <button class="ghost" type="button" id="skip" data-i="skip"></button>
       <button type="button" id="nextBtn" hidden data-i="nextWord"></button>
@@ -196,10 +164,9 @@ td .w{font-family:var(--f-display);font-weight:800;letter-spacing:.06em}
   <!-- END -->
   <section class="card" id="end" hidden>
     <div style="display:grid;gap:6px">
-      <p class="eyebrow" id="finalLabel" data-i="final"></p>
+      <p class="eyebrow" data-i="final"></p>
       <div class="score-big" id="final">0</div>
-      <div class="winner" id="winner" hidden></div>
-      <p class="lead" id="endNote"></p>
+            <p class="lead" id="endNote"></p>
     </div>
     <table id="log"></table>
     <div class="row">
@@ -217,32 +184,25 @@ const UI = {
     lead:"Every few seconds a letter flips open. Guess early to score more.",
     timePick:"Time per word",fast:"Fast",normal:"Normal",relaxed:"Relaxed",
     rules:["<b>Read the hint</b> and count the letters.","<b>Letters flip open one by one</b> as time runs.","<b>Guess any time.</b> The earlier, the more points.","Wrong guess? <b>Lose 3 seconds.</b>"],
-    rulesDuo:["<b>Same word, same hint</b> for both players.","Know it? <b>Tap your button first.</b> The clock stops and you have 10 seconds to type.","<b>Right:</b> you take the points. The earlier, the more.","<b>Wrong:</b> you are locked out of this word and the clock runs on for your rival."],
-    start:"Start game",best:"Best solo score:",guessBtn:"Guess",skip:"Skip",nextWord:"Next word",
+    start:"Start game",best:"Best score:",guessBtn:"Guess",skip:"Skip",nextWord:"Next word",
     nextIn:s=>`Next letter in ${s}s`,lastHidden:"The last letter stays hidden",
     right:(p)=>`Correct! +${p} points`,wrong:"Not it. −3 seconds",timeup:w=>`Time's up. It was ${w}.`,skipped:w=>`Skipped. It was ${w}.`,
     final:"Final score",menu:"Menu",again:"Play again",seeResults:"See results",
     endNote:(c,n)=>`You guessed ${c} of ${n} words.`,newBest:" New best score!",short:"Too short"}
 };
 
-const ROUNDS = 10, PENALTY = 3, ANSWER_SECS = 10;
+const ROUNDS = 10, PENALTY = 3;
 const $ = id => document.getElementById(id);
 const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}} };
-const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-
-let uiLang = "en", S = null, raf = 0;
+let S = null, raf = 0;
 
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function t(k){return UI[uiLang][k]}
-function mode(){return document.querySelector('input[name=mode]:checked').value}
+function t(k){return UI.en[k]}
 
 function applyUI(){
   document.querySelectorAll("[data-i]").forEach(el=>{const v=t(el.dataset.i); if(typeof v==="string") el.textContent=v;});
-  const duo = mode()==="duo";
-  $("rules").innerHTML = t(duo?"rulesDuo":"rules").map(r=>`<li>${r}</li>`).join("");
-  $("names").hidden = !duo;
+  $("rules").innerHTML = t("rules").map(r=>`<li>${r}</li>`).join("");
   $("best").textContent = store.get("reveal-best") || "0";
-  document.documentElement.lang = uiLang;
 }
 
 function tileHTML(ch, open){return `<div class="t${open?" open":""}"><div class="in"><div class="f"></div><div class="b">${ch}</div></div></div>`}
@@ -255,25 +215,13 @@ function demo(){
 }
 
 document.querySelectorAll('input[name=time]').forEach(r=>r.addEventListener("change",()=>store.set("reveal-time-v2",document.querySelector('input[name=time]:checked').value)));
-document.querySelectorAll('input[name=mode]').forEach(r=>r.addEventListener("change",()=>{store.set("reveal-mode",mode()); applyUI();}));
 
 function newGame(){
   const T=+document.querySelector('input[name=time]:checked').value;
-  const duo = mode()==="duo";
-  const names = [ $("n1").value.trim()||"Player 1", $("n2").value.trim()||"Player 2" ];
-  S = { T, duo, words: shuffle(WORDS).slice(0,ROUNDS), i:-1, score:0, scores:[0,0], names, log:[] };
+  S = { T, words: shuffle(WORDS).slice(0,ROUNDS), i:-1, score:0, log:[] };
   $("start").hidden=true; $("end").hidden=true; $("play").hidden=false; $("stats").hidden=false;
   $("rt").textContent=S.words.length; $("sc").textContent=0;
-  $("sc").parentElement.hidden = duo;
-  $("buzzers").hidden = !duo;
-  $("b1n").textContent=names[0]; $("b2n").textContent=names[1];
-  $("b1s").textContent=0; $("b2s").textContent=0;
   nextWord();
-}
-
-function setForm(on){
-  $("form").hidden = !on; $("guess").disabled=!on; $("submit").disabled=!on;
-  if(on){ $("guess").value=""; $("guess").focus({preventScroll:true}); }
 }
 
 function nextWord(){
@@ -281,50 +229,28 @@ function nextWord(){
   if(S.i>=S.words.length) return endGame();
   const [word,hint]=S.words[S.i];
   const n=word.length;
-  S.cur={word,hint,n,order:shuffle([...Array(n).keys()]),shown:0,start:performance.now(),penalty:0,done:false,
-         buzzer:-1,pausedAt:0,answerEnd:0,locked:[false,false]};
+  S.cur={word,hint,n,order:shuffle([...Array(n).keys()]),shown:0,start:performance.now(),penalty:0,done:false};
   $("rn").textContent=S.i+1;
   $("tiles").innerHTML=[...word].map(c=>tileHTML(c,false)).join("");
   $("hint").textContent = hint;
   $("msg").textContent=""; $("msg").className="msg";
+  $("guess").value=""; $("guess").disabled=false; $("submit").disabled=false;
   $("guess").maxLength=n+4; $("guess").placeholder="_ ".repeat(n).trim();
-  $("skip").hidden=false; $("nextBtn").hidden=true; $("turn").hidden=true;
-  if(S.duo){ setForm(false); updateBuzzers(); } else setForm(true);
+  $("skip").hidden=false; $("nextBtn").hidden=true;
+  $("guess").focus({preventScroll:true});
   cancelAnimationFrame(raf); tick();
-}
-
-function updateBuzzers(){
-  const c=S.cur;
-  [0,1].forEach(p=>{
-    const b=$("b"+(p+1));
-    b.disabled = c.done || c.locked[p] || c.buzzer!==-1;
-    b.classList.toggle("active", c.buzzer===p);
-    $("b"+(p+1)+"t").textContent = c.locked[p] ? "Locked out" : c.buzzer===p ? "Answering" : c.done ? "" : "Tap to answer";
-    $("b"+(p+1)+"s").textContent = S.scores[p];
-  });
-}
-
-function elapsedNow(){
-  const c=S.cur, now = c.buzzer!==-1 ? c.pausedAt : performance.now();
-  return (now-c.start)/1000 + c.penalty;
 }
 
 function tick(){
   const c=S.cur; if(c.done) return;
-  if(c.buzzer!==-1){
-    const rem=Math.max(0,(c.answerEnd-performance.now())/1000);
-    $("turn").textContent=`${S.names[c.buzzer]}, type your answer · ${Math.ceil(rem)}s`;
-    if(rem<=0) return duoWrong(true);
-    raf=requestAnimationFrame(tick); return;
-  }
-  const elapsed=elapsedNow();
+  const elapsed=(performance.now()-c.start)/1000 + c.penalty;
   const left=Math.max(0,S.T-elapsed);
   const step=S.T/c.n;                       // one letter per step; final letter stays hidden until time runs out
   const target=Math.min(c.n-1,Math.floor(elapsed/step));
   const tiles=$("tiles").children;
   while(c.shown<target){tiles[c.order[c.shown]].classList.add("open");c.shown++;}
   $("clock").textContent=Math.ceil(left);
-  const low=left<=10; $("clock").classList.toggle("low",low); $("bar").classList.toggle("low",low);
+  const low=left<=5; $("clock").classList.toggle("low",low); $("bar").classList.toggle("low",low);
   $("fill").style.width=(left/S.T*100)+"%";
   $("next").textContent = c.shown<c.n-1 ? t("nextIn")(Math.max(1,Math.ceil((c.shown+1)*step-elapsed))) : t("lastHidden");
   if(left<=0) return finish("timeup");
@@ -332,52 +258,22 @@ function tick(){
 }
 
 function points(){
-  const c=S.cur, left=Math.max(0,S.T-elapsedNow()), hidden=c.n-c.shown;
+  const c=S.cur, elapsed=(performance.now()-c.start)/1000+c.penalty;
+  const left=Math.max(0,S.T-elapsed), hidden=c.n-c.shown;
   return Math.round(50 + left/S.T*100 + hidden*15);
-}
-
-function buzz(p){
-  const c=S&&S.cur; if(!S||!S.duo||!c||c.done||c.locked[p]||c.buzzer!==-1) return;
-  c.buzzer=p; c.pausedAt=performance.now(); c.answerEnd=c.pausedAt+ANSWER_SECS*1000;
-  $("turn").className="turn p"+(p+1); $("turn").hidden=false;
-  $("msg").textContent=""; $("msg").className="msg";
-  $("next").textContent="Clock stopped";
-  setForm(true); updateBuzzers();
-}
-
-function resumeClock(){
-  const c=S.cur; c.start += performance.now()-c.pausedAt; c.buzzer=-1; c.pausedAt=0;
-  $("turn").hidden=true; setForm(false); updateBuzzers();
-}
-
-function duoWrong(timedOut){
-  const c=S.cur, p=c.buzzer;
-  c.locked[p]=true;
-  $("msg").className="msg bad";
-  $("msg").textContent = `${S.names[p]} ${timedOut?"ran out of time":"guessed wrong"} and is locked out.`;
-  if(c.locked[0]&&c.locked[1]){ c.buzzer=-1; return finish("nobody"); }
-  resumeClock(); cancelAnimationFrame(raf); tick();
 }
 
 function finish(kind){
   const c=S.cur; if(c.done) return;
-  let pts=0, who=-1;
-  if(kind==="right"){
-    pts=points();
-    if(S.duo){ who=c.buzzer; S.scores[who]+=pts; } else { S.score+=pts; $("sc").textContent=S.score; }
-  }
-  c.done=true; c.buzzer=-1; cancelAnimationFrame(raf);
-  [...$("tiles").children].forEach((el,i)=>{ if(!el.classList.contains("open")){ el.classList.add(kind==="right"?"beat":"missed"); setTimeout(()=>el.classList.add("open"), 60*i);} });
+  let pts=0;
+  if(kind==="right"){pts=points(); S.score+=pts; $("sc").textContent=S.score;}
+  c.done=true; cancelAnimationFrame(raf);
+  [...$("tiles").children].forEach((el,i)=>{ if(!el.classList.contains("open")){ el.classList.add(kind==="right"?"beat":"missed"); setTimeout(()=>el.classList.add("open"), 70*i);} });
   const m=$("msg");
   m.className="msg "+(kind==="right"?"good":"bad");
-  if(kind==="right") m.textContent = S.duo ? `${S.names[who]} got it! +${pts} points` : t("right")(pts);
-  else if(kind==="skip") m.textContent = t("skipped")(c.word);
-  else if(kind==="nobody") m.textContent = `Both locked out. It was ${c.word}.`;
-  else m.textContent = t("timeup")(c.word);
-  S.log.push({word:c.word,pts,kind,who});
-  setForm(!S.duo); $("guess").disabled=true; $("submit").disabled=true;
-  $("turn").hidden=true; $("skip").hidden=true;
-  if(S.duo) updateBuzzers();
+  m.textContent = kind==="right" ? t("right")(pts) : kind==="skip" ? t("skipped")(c.word) : t("timeup")(c.word);
+  S.log.push({word:c.word,pts,kind});
+  $("guess").disabled=true; $("submit").disabled=true; $("skip").hidden=true;
   $("nextBtn").textContent = S.i+1>=S.words.length ? t("seeResults") : t("nextWord");
   $("nextBtn").hidden=false; $("nextBtn").focus({preventScroll:true});
   $("next").textContent="";
@@ -385,51 +281,35 @@ function finish(kind){
 
 $("form").addEventListener("submit",e=>{
   e.preventDefault(); const c=S&&S.cur; if(!c||c.done) return;
-  if(S.duo && c.buzzer===-1) return;
   const g=$("guess").value.toUpperCase().replace(/[^A-Z]/g,"");
   if(!g) return;
   if(g===c.word) return finish("right");
-  if(S.duo) return duoWrong(false);
   c.penalty+=PENALTY;
   const inp=$("guess"); inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake");
   $("msg").className="msg bad"; $("msg").textContent = g.length<c.n ? `${t("short")} · ${t("wrong")}` : t("wrong");
   inp.select();
 });
-$("b1").addEventListener("click",()=>buzz(0));
-$("b2").addEventListener("click",()=>buzz(1));
-$("skip").addEventListener("click",()=>{ if(S.cur.buzzer!==-1) return; finish("skip"); });
+$("skip").addEventListener("click",()=>finish("skip"));
 $("nextBtn").addEventListener("click",nextWord);
 
 function endGame(){
   $("play").hidden=true; $("end").hidden=false; $("stats").hidden=true;
-  if(S.duo){
-    const [a,b]=S.scores;
-    $("finalLabel").textContent = `${S.names[0]} ${a} · ${S.names[1]} ${b}`;
-    $("final").hidden=true; $("winner").hidden=false;
-    $("winner").textContent = a===b ? "It's a draw!" : `${S.names[a>b?0:1]} wins!`;
-    $("winner").className = "winner" + (a===b ? "" : " turn p"+(a>b?1:2));
-    const g0=S.log.filter(l=>l.who===0).length, g1=S.log.filter(l=>l.who===1).length;
-    $("endNote").textContent = `${S.names[0]} guessed ${g0}, ${S.names[1]} guessed ${g1}, out of ${S.log.length} words.`;
-  } else {
-    $("finalLabel").textContent=t("final"); $("final").hidden=false; $("winner").hidden=true;
-    $("final").textContent=S.score;
-    const got=S.log.filter(l=>l.kind==="right").length;
-    const prev=+(store.get("reveal-best")||0);
-    let note=t("endNote")(got,S.log.length);
-    if(S.score>prev){store.set("reveal-best",S.score); note+=t("newBest");}
-    $("endNote").textContent=note;
-  }
-  $("log").innerHTML=S.log.map(l=>`<tr><td><span class="w">${l.word}</span>${l.who>=0?`<span class="who p${l.who+1}">${esc(S.names[l.who])}</span>`:""}</td><td>${l.kind==="right"?`<span class="pop">+${l.pts}</span>`:"—"}</td></tr>`).join("");
+  $("final").textContent=S.score;
+  const got=S.log.filter(l=>l.kind==="right").length;
+  const prev=+(store.get("reveal-best")||0);
+  let note=t("endNote")(got,S.log.length);
+  if(S.score>prev){store.set("reveal-best",S.score); note+=t("newBest");}
+  $("endNote").textContent=note;
+  $("log").innerHTML=S.log.map(l=>`<tr><td><span class="w">${l.word}</span></td><td>${l.kind==="right"?`<span class="pop">+${l.pts}</span>`:"—"}</td></tr>`).join("");
 }
 $("again").addEventListener("click",newGame);
 $("menu").addEventListener("click",()=>{$("end").hidden=true;$("start").hidden=false;applyUI();demo();});
 $("go").addEventListener("click",newGame);
 
-// restore remembered choices
-const savedTime=store.get("reveal-time-v2"), savedMode=store.get("reveal-mode");
+const savedTime=store.get("reveal-time-v2");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
-if(savedMode&&$("mode-"+savedMode)) $("mode-"+savedMode).checked=true;
 applyUI(); demo();
 </script>
+<script src="stage.js"></script>
 </body>
 </html>
