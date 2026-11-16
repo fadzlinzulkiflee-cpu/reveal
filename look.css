@@ -307,3 +307,20 @@
 :root:not(#_) .countdown b{font-family:var(--f-display);font-weight:800;font-style:normal;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
 :root:not(#_) .countdown b.go{font-weight:900;font-style:italic;letter-spacing:-.01em}
 :root:not(#_) .countdown .lbl{font-family:var(--f-body);font-weight:700;font-size:.75rem;letter-spacing:.24em;text-transform:uppercase;color:#C7F58B}
+
+/* 3-2-1 countdown as a square tile (Lin): numbers sit in a hidden-letter tile, GO! in a lime revealed tile */
+:root:not(#_) .countdown b{border-radius:14px;border:0;background:#334A3D;color:#FFFFFF;box-shadow:none;width:clamp(84px,24vw,120px);aspect-ratio:1;display:grid;place-items:center}
+:root:not(#_) .countdown b.go{background:#C7F58B;color:#17231D;border:0;box-shadow:none}
+
+/* Exit button on every game screen, and its confirm sheet */
+:root:not(#_) .exitbtn{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 12px 6px 10px;border-radius:999px;border:1px solid rgba(246,248,240,.18);background:transparent;color:#A9BBAC;font:700 .85rem var(--f-body);cursor:pointer;box-shadow:none;width:auto}
+:root:not(#_) .exitbtn:hover,:root:not(#_) .exitbtn:focus-visible{color:#F6F8F0;border-color:rgba(246,248,240,.4)}
+:root:not(#_) .exitbtn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round}
+:root:not(#_) .exitsheet{position:fixed;inset:0;z-index:50;display:grid;place-items:end center;background:rgba(10,18,14,.6);padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
+:root:not(#_) .exitsheet[hidden]{display:none}
+:root:not(#_) .exitbox{width:min(440px,100%);background:#23372B;border-radius:18px;padding:22px 20px 18px;display:grid;gap:10px;color:#F6F8F0}
+:root:not(#_) .exitbox h2{margin:0;font:800 1.3rem var(--f-display)}
+:root:not(#_) .exitbox p{margin:0;color:#A9BBAC}
+:root:not(#_) .exitrow{display:flex;gap:10px;margin-top:8px}
+:root:not(#_) .exitrow button{flex:1}
+@media (min-width:600px){ :root:not(#_) .exitsheet{place-items:center} }

@@ -6,11 +6,12 @@ An original word-guessing game. You get a hint and a hidden word. A countdown ru
 
 Open `index.html` in any browser for Solo. There is no build step, and it works on phones.
 
-For big-screen games, the files must be served from a web address (for example GitHub Pages), not opened as a local file:
+Play Locally needs the files served from a web address (for example GitHub Pages), not opened as a local file. It works two ways:
 
-1. Open `host.html` on the TV, laptop or tablet. It opens a room and shows a QR code and a 4-character code.
-2. Players scan the QR code (or open `play.html` and type the code) and enter their name.
-3. Start from the big screen, or from the phone of the first player who joined (marked ★).
+- **One phone hosts (no TV needed):** open Play Locally on a phone. That phone opens a room, shows a QR code and a 4-character code, and its owner plays too. Friends scan the code (or tap Play Locally → "Enter their code"). The host starts each game and each next word, and can show the QR code again with Invite. Everyone sees the ranking after each word. The room lives on the host's phone, so if that phone locks or leaves the page for long, the game stops for everyone.
+- **Big screen:** open `host.html` on a TV, laptop or tablet (screens wider than 820 px, or add `?tv=1`). Players scan the QR code and enter their name. Start from the big screen, or from the phone of the first player who joined (marked ★).
+
+Every game screen has an **Exit** button back to the menu. Leaving Daily Play ends that day's try, and the score so far counts.
 
 ## How it works
 
@@ -39,7 +40,8 @@ To use your own PeerJS server, add `?peerhost=HOST&peerport=PORT&peerpath=/PATH`
 
 - `index.html`: Solo
 - `host.html`: big screen (Party and Royale)
-- `play.html`: phone controller for big-screen games
+- `play.html`: phone controller for Play Locally (also shown on top of `host.html` when a phone hosts)
+- `exit.js`: the Exit button and its confirm sheet, used on every game screen
 - `words.js`: the shared word list
 - `party.css`, `net.js`: shared styles and connection settings for big-screen mode
 - `theme.css`: the REVEAL brand (forest green, lime, Archivo Black wordmark), loaded last on every page

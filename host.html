@@ -14,8 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="REVEAL">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="party.css?v=20261116zc">
-<link rel="stylesheet" href="stage.css?v=20261116zc">
+<link rel="stylesheet" href="party.css?v=20261116zd">
+<link rel="stylesheet" href="stage.css?v=20261116zd">
 <style>
 /* Layout: TV-first. Main stage on the left, players rail on the right; stacks on narrow screens. */
 body{font-size:clamp(16px,1.25vw,22px)}
@@ -80,25 +80,46 @@ body{font-size:clamp(16px,1.25vw,22px)}
 .pod.p2 .block{height:clamp(100px,15vh,160px)}
 .pod.p3 .block{height:clamp(70px,10vh,110px)}
 #play.stage{--ring:clamp(96px,9vw,150px)}
+.topr{display:flex;align-items:center;gap:12px}
+/* Phone hosting: one phone opens the room and plays too. The player screen (play.html) sits on top during the game. */
+.hostme{display:grid;gap:6px}
+.hostme input{width:100%}
+.alt{font-size:.85rem;color:var(--muted);margin:0}
+.alt a{color:var(--lime,#c7f58b)}
+body.phonehost .rail{display:none}
+body.phonehost .screen{grid-template-columns:1fr}
+body.phonehost .qr{width:min(220px,62vw)}
+body.phonehost .code{font-size:2.6rem}
+body.phonehost .joinurl{display:none}
+.meframe{position:fixed;inset:0;z-index:40;background:#17231D;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.meframe[hidden]{display:none}
+.meframe iframe{display:block;width:100%;height:100%;border:0}
+.invbox{text-align:center;justify-items:center}
+.invbox .qr{width:min(240px,64vw)}
+.invbox .code{font-size:2.4rem}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261116zc">
-<link rel="stylesheet" href="drama.css?v=20261116zc">
-<link rel="stylesheet" href="look.css?v=20261116zc">
+<link rel="stylesheet" href="theme.css?v=20261116zd">
+<link rel="stylesheet" href="drama.css?v=20261116zd">
+<link rel="stylesheet" href="look.css?v=20261116zd">
 </head>
 <body>
 <div class="screen">
   <main class="maincol">
     <div class="top">
       <div class="logo" aria-label="REVEAL">REVEAL<i aria-hidden="true"></i></div>
-      <span class="roomtag" id="roomtag" hidden>Room <b id="roomSmall"></b></span>
+      <div class="topr"><span class="roomtag" id="roomtag" hidden>Room <b id="roomSmall"></b></span><span id="exitSlot"></span></div>
     </div>
 
     <!-- LOBBY -->
     <section class="card" id="lobby">
+      <div class="hostme" id="hostMe" hidden>
+        <p class="eyebrow">You're the host, and you play too</p>
+        <input type="text" id="hostName" maxlength="14" placeholder="Your name" aria-label="Your name" autocorrect="off">
+      </div>
       <div class="lobby">
         <div class="qr" id="qr" aria-label="QR code to join"></div>
         <div style="display:grid;gap:14px;min-width:0">
-          <p class="eyebrow">Scan to join, or open the link and enter the code</p>
+          <p class="eyebrow" id="scanLbl">Scan to join, or open the link and enter the code</p>
           <div class="code" id="code">····</div>
           <p class="joinurl" id="joinurl">Opening a room…</p>
           <p class="err" id="neterr" hidden></p>
@@ -132,6 +153,11 @@ body{font-size:clamp(16px,1.25vw,22px)}
       <div class="row">
         <button class="primary" id="startBtn" disabled>Start game</button>
         <span class="muted" id="startNote">Waiting for players to join</span>
+      </div>
+      <p class="err" id="selfErr" hidden></p>
+      <div id="phoneAlt" hidden style="display:grid;gap:6px">
+        <p class="alt">Joining a friend's game instead? <a href="play.html" id="joinLink">Enter their code</a></p>
+        <p class="alt">Got a TV or laptop? Open <b>playreveal.app/host.html</b> on it to use it as the big screen.</p>
       </div>
     </section>
 
@@ -174,18 +200,42 @@ body{font-size:clamp(16px,1.25vw,22px)}
   </aside>
 </div>
 
+<div class="meframe" id="meFrame" hidden></div>
+<div class="exitsheet" id="invite" hidden role="dialog" aria-modal="true" aria-label="Invite players">
+  <div class="exitbox invbox">
+    <h2>Invite players</h2>
+    <p>Friends scan this code. Or they open playreveal.app, tap Play Locally, then “Enter their code”.</p>
+    <div class="qr" id="invQr"></div>
+    <div class="code" id="invCode"></div>
+    <div class="exitrow" style="width:100%"><button type="button" class="primary" id="invClose">Done</button></div>
+  </div>
+</div>
 <script src="vendor/peerjs-1.5.4.min.js"></script>
 <script src="vendor/qrcode-generator-1.4.4.js"></script>
-<script src="words.js?v=20261116zc"></script>
-<script src="net.js?v=20261116zc"></script>
+<script src="words.js?v=20261116zd"></script>
+<script src="net.js?v=20261116zd"></script>
+<script src="exit.js?v=20261116zd"></script>
 <script>
 const PARTY_ROUNDS = 10, ROYALE_MAX = 12, WRONG_COST = 50, FIRST_BONUS = 25;
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const shuffle = a => {a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const NET = window.REVEAL_NET;
+const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}} };
+const Q = new URLSearchParams(location.search);
+// Phone hosting (Lin): on a phone this page opens the room AND plays. ?tv=1 forces the big-screen layout.
+const PHONE = Q.get("tv")!=="1" && (Q.get("phone")==="1" || matchMedia("(max-width: 820px)").matches);
+if(PHONE){
+  document.body.classList.add("phonehost");
+  $("play").dataset.sound = "none";       // the player screen on top makes the sounds
+  $("hostMe").hidden = false; $("phoneAlt").hidden = false;
+  $("scanLbl").textContent = "Friends scan this to join";
+  $("hostName").value = store.get("reveal-name") || "";
+  $("joinLink").href = "play.html" + (NET.passthrough ? "?"+NET.passthrough : "");
+}
 
-const H = { code:"", peer:null, players:new Map(), phase:"lobby", mode:"party", T:60, words:[], i:-1, cur:null, raf:0, nextId:1 };
+const H = { code:"", peer:null, players:new Map(), phase:"lobby", mode:"party", T:60, words:[], i:-1, cur:null, raf:0, nextId:1, self:null, selfWait:null };
+let hostToken = store.get("reveal-token"); if(!hostToken){ hostToken = Math.random().toString(36).slice(2)+Date.now().toString(36); store.set("reveal-token",hostToken); }
 
 function show(id){ ["lobby","play","reveal","over"].forEach(s=>$(s).hidden = s!==id); $("roomtag").hidden = id==="lobby"; $("royaleRule").hidden = !(H.mode==="royale" && (id==="play"||id==="reveal")); }
 function playerList(){ return [...H.players.values()]; }
@@ -241,6 +291,7 @@ function onConnection(conn){
         player = { id:H.nextId++, token:msg.token||"", name:uniqueName(msg.name), conn, online:true, score:0, streak:0, out:lateRoyale, outRound:lateRoyale?-1:Infinity, rd:freshRound() };
         H.players.set(player.id, player);
       }
+      if(PHONE && msg.token && msg.token===hostToken){ H.self = player; player.isHost = true; if(H.selfWait){ H.selfWait(); H.selfWait=null; } }
       assignVip();
       send(player, {t:"welcome", name:player.name, code:H.code});
       syncPlayer(player);
@@ -250,12 +301,14 @@ function onConnection(conn){
     if(!player) return;
     if(msg.t==="guess") onGuess(player, String(msg.g||""));
     if(msg.t==="next" && player.vip) hostNext();
-    if(msg.t==="start" && player.vip && H.phase==="lobby") startGame();
+    if(msg.t==="start" && player.vip && H.phase==="lobby" && !PHONE) startGame();
+    if(msg.t==="again" && player.vip && H.phase==="over") playAgain();
   });
   conn.on("close", ()=>{ if(player && player.conn===conn){ player.online=false; assignVip(); renderPlayers(); lobbyState(); if(H.phase==="play") checkRoundEnd(); } });
 }
 
 function assignVip(){
+  if(PHONE){ playerList().forEach(p=>{ const v = p===H.self && p.online; if(p.vip!==v){ p.vip=v; syncPlayer(p); } }); return; }   // only the host phone controls the game
   const list = playerList().filter(p=>p.online);
   const cur = list.find(p=>p.vip);
   if(cur) return;
@@ -269,7 +322,7 @@ function timeLeft(){ const c=H.cur; return Math.max(0, H.T - (performance.now()-
 function rankOf(p){ const sorted = playerList().slice().sort((a,b)=>b.score-a.score); return sorted.indexOf(p)+1; }
 
 function syncPlayer(p){
-  const base = { t:"state", phase:H.phase, mode:H.mode, vip:!!p.vip, score:p.score, out:!!p.out, players:playerList().filter(x=>x.online).length };
+  const base = { t:"state", phase:H.phase, mode:H.mode, vip:!!p.vip, score:p.score, out:!!p.out, players:playerList().filter(x=>x.online).length, screen:PHONE?"phone":"tv" };
   if(H.phase==="countdown"){
     Object.assign(base, { round:H.i+1, rounds:H.mode==="party"?H.words.length:0, hint:H.cur.hint, len:H.cur.n, T:H.T, showdown:!!H.cur.showdown });
   } else if(H.phase==="play"){
@@ -277,18 +330,25 @@ function syncPlayer(p){
     Object.assign(base, { round:H.i+1, rounds:H.mode==="party"?H.words.length:0, hint:c.hint, pattern:pattern(), left:timeLeft(), T:H.T,
       correct:p.rd.correct, failed:p.rd.failed, cooldown:Math.max(0,(p.rd.cooldownUntil-performance.now())/1000), showdown:!!c.showdown });
   } else if(H.phase==="reveal"){
-    Object.assign(base, { word:H.cur.word, got:p.rd.correct, pts:p.rd.pts, rank:rankOf(p), eliminated:!!p.rd.eliminatedNow, last:H.i+1>=H.words.length });
+    Object.assign(base, { word:H.cur.word, got:p.rd.correct, pts:p.rd.pts, rank:rankOf(p), eliminated:!!p.rd.eliminatedNow, last:!!H.finished, note:H.note||"", standings:standings(p) });
   } else if(H.phase==="over"){
-    Object.assign(base, { winner:H.winnerText, rank:rankOf(p), podium:H.podium||[] });
+    Object.assign(base, { winner:H.winnerText, rank:rankOf(p), podium:H.podium||[], standings:standings(p) });
   }
   send(p, base);
 }
 function syncAll(){ playerList().forEach(syncPlayer); }
+// The ranking every phone shows after each word: Party by score, Royale with players still in first.
+function standings(me){
+  const royale = H.mode==="royale";
+  const list = playerList().filter(p=>royale ? p.outRound!==-1 : (p.online || p.score>0));
+  list.sort(royale ? (a,b)=>(a.out-b.out) || (b.outRound-a.outRound) || a.name.localeCompare(b.name) : (a,b)=>b.score-a.score);
+  return list.map(p=>({ name:p.name, score:p.score, out:!!p.out, me:p===me, color:avColor(p.name) }));
+}
 
 /* ---------- lobby ---------- */
 function lobbyState(){
   if(H.phase!=="lobby") return;
-  const n = playerList().filter(p=>p.online).length;
+  const n = playerList().filter(p=>p.online).length + (PHONE && !(H.self && H.self.online) ? 1 : 0);
   const royale = getMode()==="royale";
   const need = royale ? 2 : 1;
   const tooMany = royale && n>ROYALE_MAX;
@@ -296,6 +356,8 @@ function lobbyState(){
   $("startNote").textContent = tooMany ? `Royale is for up to ${ROYALE_MAX} players. ${n} have joined: switch to Party or ask ${n-ROYALE_MAX} to leave.`
     : n<need ? (need===2&&n===1 ? "Royale needs at least 2 players" : "Waiting for players to join")
     : royale ? `${n} of ${ROYALE_MAX} Royale spots filled` : `${n} player${n>1?"s":""} ready`;
+  if(PHONE && n<need) $("startNote").textContent = "Royale needs at least one friend to join";
+  else if(PHONE && !tooMany) $("startNote").textContent = n===1 ? "Start now, or wait for friends to join" : `You and ${n-1} friend${n>2?"s":""} are in`;
 }
 document.querySelectorAll('input[name=mode]').forEach(r=>r.addEventListener("change",lobbyState));
 
@@ -328,7 +390,7 @@ function renderPlayers(){
   if(H.phase==="lobby"){
     const on = list.filter(p=>p.online);
     $("bubbles").innerHTML = on.length ? on.map(p=>`<span class="bub${now-p.shownAt<700?" fresh":""}"><span class="av" style="--av:${avColor(p.name)}">${esc((p.name.trim()[0]||"?").toUpperCase())}</span>${esc(p.name)}</span>`).join("")
-      : `<span class="bub wait">Waiting for the first player…</span>`;
+      : `<span class="bub wait">${PHONE ? "Friends who join show up here" : "Waiting for the first player…"}</span>`;
   }
 }
 
@@ -348,7 +410,7 @@ function startGame(){
 }
 
 function nextRound(){
-  H.i++;
+  H.i++; H.finished = false;
   if(H.i>=H.words.length) return gameOver();
   const [word,hint] = H.words[H.i];
   const n = word.length;
@@ -447,7 +509,7 @@ function endRound(){
   } else {
     note = correct.length ? `${correct.length} of ${contenders.length} got it. Fastest: ${correct[0].name}.` : "Nobody got this one.";
   }
-  H.phase = "reveal";
+  H.phase = "reveal"; H.note = note;
   REVEAL_STAGE.banner(null);
   $("answer").textContent = c.word;
   $("revealNote").textContent = note;
@@ -505,14 +567,58 @@ function celebrate(){
     parts=parts.filter(p=>p.y<r.height+20); if(parts.length) requestAnimationFrame(step); })();
 }
 
-$("startBtn").addEventListener("click", startGame);
+$("startBtn").addEventListener("click", ()=>PHONE ? phoneStart() : startGame());
 $("nextBtn").addEventListener("click", hostNext);
-$("againBtn").addEventListener("click", ()=>{ H.phase="lobby"; playerList().forEach(p=>{p.score=0;p.streak=0;p.out=false;p.rd=freshRound();}); show("lobby"); renderPlayers(); lobbyState(); syncAll(); });
+function playAgain(){ H.phase="lobby"; playerList().forEach(p=>{p.score=0;p.streak=0;p.out=false;p.rd=freshRound();}); show("lobby"); showFrame(false); renderPlayers(); lobbyState(); syncAll(); }
+$("againBtn").addEventListener("click", playAgain);
+
+/* ---------- phone hosting: this phone also plays, through play.html on top ---------- */
+function showFrame(on){ $("meFrame").hidden = !on; if(!on) $("invite").hidden = true; }
+function selfErr(t){ $("selfErr").hidden = !t; $("selfErr").textContent = t||""; }
+function joinSelf(name){
+  if(H.self && H.self.online) return Promise.resolve();
+  return new Promise((resolve, reject)=>{
+    H.selfWait = resolve;
+    const url = "play.html?embed=1&room="+H.code+"&name="+encodeURIComponent(name)+(NET.passthrough?"&"+NET.passthrough:"");
+    $("meFrame").innerHTML = `<iframe title="Your game" src="${esc(url)}"></iframe>`;
+    setTimeout(()=>{ if(H.selfWait===resolve){ H.selfWait=null; reject(); } }, 15000);
+  });
+}
+async function phoneStart(){
+  const name = $("hostName").value.trim();
+  if(!name){ selfErr("Type your name first, so others know who's winning."); $("hostName").focus(); return; }
+  if(!H.code || !H.peer || !H.peer.open){ selfErr("The room isn't open yet. Give it a second."); return; }
+  selfErr(""); store.set("reveal-name", name);
+  const b = $("startBtn"); b.disabled = true; b.textContent = "Starting…";
+  try{ await joinSelf(name); }
+  catch(e){ b.textContent = "Start game"; lobbyState(); return selfErr("Couldn't open your player screen. Check the internet connection and try again."); }
+  b.textContent = "Start game";
+  showFrame(true);
+  if(H.phase==="lobby") startGame();
+}
+$("hostName").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); if(!$("startBtn").disabled) phoneStart(); } });
+function openInvite(){
+  $("invQr").innerHTML = $("qr").innerHTML; $("invCode").textContent = H.code;
+  $("invite").hidden = false; $("invClose").focus({preventScroll:true});
+}
+$("invClose").addEventListener("click", ()=>{ $("invite").hidden = true; });
+async function exitRoom(){
+  const others = playerList().filter(p=>p.online && p!==H.self).length;
+  if(others || H.phase!=="lobby"){
+    const ok = await REVEAL_EXIT.ask({ title:"Close the room?", body: others ? "The game ends for everyone who joined." : "You'll go back to the main menu.", ok:"Close room" });
+    if(!ok) return;
+  }
+  try{ H.peer && H.peer.destroy(); }catch(e){}
+  REVEAL_EXIT.home();
+}
+$("exitSlot").appendChild(REVEAL_EXIT.button(exitRoom));
+// the player screen on top (play.html?embed=1) calls these
+window.REVEAL_HOST = { exit: exitRoom, invite: openInvite };
 window.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ") && document.activeElement===document.body){ if(H.phase==="lobby" && !$("startBtn").disabled) startGame(); else hostNext(); }});
 
-openRoom(); renderPlayers();
+openRoom(); renderPlayers(); lobbyState();
 </script>
-<script src="stage.js?v=20261116zc"></script>
-<script src="drama.js?v=20261116zc"></script>
+<script src="stage.js?v=20261116zd"></script>
+<script src="drama.js?v=20261116zd"></script>
 </body>
 </html>
