@@ -35,6 +35,8 @@
   function showSplash(word, sub, kind){
     splash.className = "splash " + (kind||"");
     splash.innerHTML = `<b>${word}</b>` + (sub ? `<span>${sub}</span>` : "");
+    const anchor = stage.querySelector(".slotwrap") || inp || msg, sr = stage.getBoundingClientRect();
+    if(anchor){ const r = anchor.getBoundingClientRect(); splash.style.top = (r.top - sr.top + r.height/2) + "px"; }
     void splash.offsetWidth; splash.classList.add("go");
   }
   function flyPoints(text){
