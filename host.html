@@ -14,8 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="REVEAL">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
-<link rel="stylesheet" href="party.css?v=20261116j">
-<link rel="stylesheet" href="stage.css?v=20261116j">
+<link rel="stylesheet" href="party.css?v=20261116k">
+<link rel="stylesheet" href="stage.css?v=20261116k">
 <style>
 /* Layout: TV-first. Main stage on the left, players rail on the right; stacks on narrow screens. */
 body{font-size:clamp(16px,1.25vw,22px)}
@@ -81,8 +81,8 @@ body{font-size:clamp(16px,1.25vw,22px)}
 .pod.p3 .block{height:clamp(70px,10vh,110px)}
 #play.stage{--ring:clamp(96px,9vw,150px)}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261116j">
-<link rel="stylesheet" href="drama.css?v=20261116j">
+<link rel="stylesheet" href="theme.css?v=20261116k">
+<link rel="stylesheet" href="drama.css?v=20261116k">
 </head>
 <body>
 <div class="screen">
@@ -175,8 +175,8 @@ body{font-size:clamp(16px,1.25vw,22px)}
 
 <script src="vendor/peerjs-1.5.4.min.js"></script>
 <script src="vendor/qrcode-generator-1.4.4.js"></script>
-<script src="words.js?v=20261116j"></script>
-<script src="net.js?v=20261116j"></script>
+<script src="words.js?v=20261116k"></script>
+<script src="net.js?v=20261116k"></script>
 <script>
 const PARTY_ROUNDS = 10, ROYALE_MAX = 12, WRONG_COST = 50, FIRST_BONUS = 25;
 const $ = id => document.getElementById(id);
@@ -278,7 +278,7 @@ function syncPlayer(p){
   } else if(H.phase==="reveal"){
     Object.assign(base, { word:H.cur.word, got:p.rd.correct, pts:p.rd.pts, rank:rankOf(p), eliminated:!!p.rd.eliminatedNow, last:H.i+1>=H.words.length });
   } else if(H.phase==="over"){
-    Object.assign(base, { winner:H.winnerText, rank:rankOf(p) });
+    Object.assign(base, { winner:H.winnerText, rank:rankOf(p), podium:H.podium||[] });
   }
   send(p, base);
 }
@@ -486,6 +486,7 @@ function gameOver(){
   $("podium").innerHTML = slots.map(i=>{ const p=top3[i];
     const sub = H.mode==="royale" ? (i===0 ? "Last one standing" : `Out in round ${p.outRound+1}`) : `${p.score} pts`;
     return `<div class="pod p${i+1}"><span class="pn">${esc(p.name)}</span><span class="ps">${sub}</span><div class="block"><b>${i+1}</b></div></div>`; }).join("");
+  H.podium = top3.map((p,i)=>({ name:p.name, sub: H.mode==="royale" ? (i===0 ? "Last one standing" : `Out in round ${p.outRound+1}`) : `${p.score} pts`, color:avColor(p.name) }));
   show("over"); renderPlayers(); syncAll();
   setTimeout(()=>{ REVEAL_SFX && REVEAL_SFX.fanfare(); celebrate(); }, 150);
 }
@@ -510,7 +511,7 @@ window.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ") && doc
 
 openRoom(); renderPlayers();
 </script>
-<script src="stage.js?v=20261116j"></script>
-<script src="drama.js?v=20261116j"></script>
+<script src="stage.js?v=20261116k"></script>
+<script src="drama.js?v=20261116k"></script>
 </body>
 </html>
