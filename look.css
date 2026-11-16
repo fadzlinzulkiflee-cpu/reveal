@@ -300,3 +300,5 @@
 :root:not(#_) .ac-me b{display:block;font:800 1.4rem var(--f-display);color:#F6F8F0}
 :root:not(#_) .ac-me small{color:#A9BBAC;font-weight:500}
 :root:not(#_) .sheet .err{margin:0}
+:root:not(#_) .legal{margin:0;text-align:center;font-size:.8rem}
+:root:not(#_) .legal a,:root:not(#_) .ac-note a{color:#A9BBAC}
