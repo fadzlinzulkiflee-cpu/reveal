@@ -87,3 +87,15 @@ input[type=text]::placeholder{color:rgba(243,241,232,.28)}
 .stage .t .f::after{content:"_";font-family:var(--f-display);font-size:calc(var(--s)*.5);line-height:1;transform:translateY(-.12em);color:rgba(243,241,232,.75)}
 .stage input[type=text]{font-family:var(--f-body);font-weight:800;letter-spacing:.06em}
 .stage input[type=text]:placeholder-shown{letter-spacing:0;font-weight:600}
+/* answer slots: one "_" per letter, filled as you type */
+.slotwrap{position:relative;flex:1;min-width:0;display:flex}
+.slotwrap input.slotted{flex:1;width:100%;color:transparent!important;caret-color:transparent;text-shadow:none}
+.slotwrap input.slotted::placeholder{color:transparent}
+.slots{position:absolute;inset:2px 10px;display:flex;align-items:center;justify-content:center;gap:clamp(2px,1vw,6px);pointer-events:none;
+  font-family:var(--f-display);container-type:inline-size}
+.slots .s{flex:0 1 auto;width:min(1.4em, calc((100cqw - (var(--n) - 1) * 4px) / var(--n)));text-align:center;color:rgba(243,241,232,.38);
+  font-size:min(1.45rem, calc((100cqw - (var(--n) - 1) * 4px) / var(--n) * .85));line-height:1}
+.slots .s.on{color:var(--ink)}
+.slots .s.cur{color:var(--lime);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.slots .s.cur{animation:none}}
