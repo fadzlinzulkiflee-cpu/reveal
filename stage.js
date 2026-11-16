@@ -62,3 +62,36 @@
   }).observe(msg, {attributes:true, attributeFilter:["class"], childList:true, characterData:true, subtree:true});
   window.REVEAL_STAGE = { burst };
 })();
+
+// Answer slots: the answer box shows one "_" per letter and fills them in as you type.
+(function(){
+  const stage = document.querySelector(".stage"); if(!stage) return;
+  const inp = stage.querySelector("#guess"), tiles = stage.querySelector("#tiles");
+  if(!inp || !tiles) return;
+  const wrap = document.createElement("div"); wrap.className = "slotwrap";
+  inp.parentNode.insertBefore(wrap, inp); wrap.appendChild(inp);
+  const slots = document.createElement("div"); slots.className = "slots"; slots.setAttribute("aria-hidden","true");
+  wrap.appendChild(slots);
+  inp.classList.add("slotted");
+  let last = null;
+  function render(){
+    const n = tiles.children.length || 1;
+    const v = inp.value.toUpperCase().replace(/[^A-Z]/g,"");
+    if(inp.value !== v) inp.value = v;
+    if(inp.maxLength !== n) inp.maxLength = n;
+    const key = n + "|" + v + "|" + (document.activeElement===inp) + "|" + inp.disabled;
+    if(key === last) return; last = key;
+    slots.style.setProperty("--n", n);
+    let html = "";
+    for(let i=0;i<n;i++){
+      const ch = v[i];
+      const cls = ch ? "s on" : (i===v.length && document.activeElement===inp && !inp.disabled ? "s cur" : "s");
+      html += `<span class="${cls}">${ch || "_"}</span>`;
+    }
+    slots.innerHTML = html;
+  }
+  ["input","keyup","focus","blur"].forEach(e=>inp.addEventListener(e, render));
+  new MutationObserver(render).observe(tiles, {childList:true});
+  setInterval(render, 150);   // catches value resets done by the game code
+  render();
+})();
