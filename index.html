@@ -130,13 +130,13 @@ header{min-height:36px}
 body:has(#start:not([hidden])) header{display:none}
 .seg4 label{min-width:70px}
 </style>
-<link rel="stylesheet" href="stage.css?v=20261116zg">
+<link rel="stylesheet" href="stage.css?v=20261116zh">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
-<link rel="stylesheet" href="theme.css?v=20261116zg">
-<link rel="stylesheet" href="drama.css?v=20261116zg">
-<link rel="stylesheet" href="look.css?v=20261116zg">
+<link rel="stylesheet" href="theme.css?v=20261116zh">
+<link rel="stylesheet" href="drama.css?v=20261116zh">
+<link rel="stylesheet" href="look.css?v=20261116zh">
 <style>#play.stage{--ring:80px}</style>
-<script src="exit.js?v=20261116zg"></script>
+<script src="exit.js?v=20261116zh"></script>
 </head>
 <body>
 
@@ -292,7 +292,7 @@ body:has(#start:not([hidden])) header{display:none}
   </section>
 </div>
 
-<script src="words.js?v=20261116zg"></script>
+<script src="words.js?v=20261116zh"></script>
 <script>
 
 const UI = {
@@ -599,9 +599,11 @@ function countUp(el, to){
   const t0=performance.now(), dur=Math.min(1600, 500+to/2);
   (function f(now){ const k=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-k,3); el.textContent=Math.round(to*e); if(k<1) requestAnimationFrame(f); })(t0);
 }
-$("share").addEventListener("click",e=>REVEAL_END.share(S.daily
+const shareText = ()=>S.daily
   ? `REVEAL Daily ${REVEAL_DAILY.niceDate(REVEAL_DAILY.today())}: ${S.score} points\n${S.grid}\nSame ${REVEAL_DAILY.N} words for everyone today. Can you beat me?`
-  : `REVEAL. I scored ${S.score} · ${S.title}\n${S.grid}\nThink fast. Guess faster. Can you beat me?`, e.currentTarget));
+  : `REVEAL. I scored ${S.score} · ${S.title}\n${S.grid}\nThink fast. Guess faster. Can you beat me?`;
+$("share").addEventListener("click",e=>REVEAL_END.share(shareText(), e.currentTarget));
+addEventListener("DOMContentLoaded", ()=>$("share").parentElement.after(REVEAL_END.bar(shareText)));
 $("again").addEventListener("click",()=>{ $("again").textContent=t("again"); newGame(); });
 // Exit (Lin): every mode can go back to the menu. Daily is one try a day, so leaving ends it and keeps the score so far.
 async function exitGame(){
@@ -628,13 +630,13 @@ const savedTime=store.get("reveal-time-v2");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
 applyUI(); demo();
 </script>
-<script src="stage.js?v=20261116zg"></script>
-<script src="drama.js?v=20261116zg"></script>
-<script src="daily.js?v=20261116zg"></script>
+<script src="stage.js?v=20261116zh"></script>
+<script src="drama.js?v=20261116zh"></script>
+<script src="daily.js?v=20261116zh"></script>
 <script src="vendor/supabase-js-2.118.0.min.js"></script>
-<script src="avatars.js?v=20261116zg"></script>
-<script src="auth.js?v=20261116zg"></script>
-<script src="account.js?v=20261116zg"></script>
+<script src="avatars.js?v=20261116zh"></script>
+<script src="auth.js?v=20261116zh"></script>
+<script src="account.js?v=20261116zh"></script>
 <!-- Cloudflare Web Analytics: cookie-free visit counts --><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "ceaa5e1436764861bf9d4f2a0235b555"}'></script>
 </body>
 </html>

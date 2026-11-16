@@ -147,3 +147,10 @@ button.again-hot{animation:none}
 .pp.p1 .blk{height:96px;background:var(--lime)}.pp.p1 .blk b{color:#11200f}
 .pp.p2 .blk{height:68px}.pp.p3 .blk{height:48px}
 .pp.me .pn{color:var(--lime)}
+
+/* One-tap share row under the Share button */
+.sharebar{display:flex;justify-content:center;gap:6px;margin:10px auto 0;max-width:420px;width:100%}
+.sharebar .sb{display:inline-flex;align-items:center;justify-content:center;flex:1 1 auto;min-width:0;white-space:nowrap;min-height:40px;padding:8px 6px;border-radius:999px;font-weight:700;font-size:.74rem;text-decoration:none;color:var(--ink,#F6F8F0);background:var(--raised,rgba(246,248,240,.08));border:1px solid var(--edge,rgba(246,248,240,.16))}
+.sharebar .sb:focus-visible{outline:2px solid var(--lime,#C7F58B);outline-offset:2px}
+.sharebar .sb-wa{background:#1F7A4D;border-color:#1F7A4D;color:#fff}
+.sharebar .sb-cp{background:var(--lime,#C7F58B);border-color:var(--lime,#C7F58B);color:#17231D}

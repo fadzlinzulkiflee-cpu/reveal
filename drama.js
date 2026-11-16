@@ -134,8 +134,9 @@ window.REVEAL_END = (function(){
     const next = TITLES[i+1];
     return { name:TITLES[i][1], level:i+1, of:TITLES.length, next: next ? { name:next[1], need:next[0]-score } : null };
   }
+  function link(){ return location.href.replace(/[?#].*$/,"").replace(/(host|play|online)\.html$/,""); }
   async function share(text, btn){
-    const url = location.href.replace(/[?#].*$/,"").replace(/(host|play)\.html$/,"");
+    const url = link();
     const full = text + "\n" + url;
     try{
       if(navigator.share){ await navigator.share({ text: full }); return; }
@@ -143,5 +144,32 @@ window.REVEAL_END = (function(){
     try{ await navigator.clipboard.writeText(full); if(btn){ const o=btn.textContent; btn.textContent="Copied! Paste it anywhere"; setTimeout(()=>btn.textContent=o, 2200); } }
     catch(e){ prompt("Copy your score:", full); }
   }
-  return { title, share };
+  // One-tap share row (Lin, launch): WhatsApp, Threads, Facebook, X and Copy.
+  // getText() is read on tap, so the row can be built before the score is known.
+  // Instagram has no web share link, so phones use the main Share button for it.
+  function bar(getText){
+    const el = document.createElement("div");
+    el.className = "sharebar"; el.setAttribute("aria-label","Share to");
+    const go = {
+      wa: t=>"https://wa.me/?text="+encodeURIComponent(t),
+      th: t=>"https://www.threads.net/intent/post?text="+encodeURIComponent(t),
+      fb: ()=>"https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(link()),
+      x:  t=>"https://twitter.com/intent/tweet?text="+encodeURIComponent(t)
+    };
+    const items = [["wa","WhatsApp"],["th","Threads"],["fb","Facebook"],["x","X"],["cp","Copy"]];
+    el.innerHTML = items.map(([k,n])=>`<a class="sb sb-${k}" href="#" data-k="${k}" role="button">${n}</a>`).join("");
+    el.addEventListener("click", async e=>{
+      const a = e.target.closest("a[data-k]"); if(!a) return;
+      e.preventDefault();
+      const full = getText() + "\n" + link();
+      if(a.dataset.k === "cp"){
+        try{ await navigator.clipboard.writeText(full); a.textContent = "Copied!"; }
+        catch(_){ prompt("Copy your score:", full); }
+        setTimeout(()=>a.textContent="Copy", 2000); return;
+      }
+      window.open(go[a.dataset.k](full), "_blank", "noopener");
+    });
+    return el;
+  }
+  return { title, share, bar };
 })();
