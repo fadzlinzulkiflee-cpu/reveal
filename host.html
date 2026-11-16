@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>REVEAL Big Screen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="party.css">
 <link rel="stylesheet" href="stage.css">
 <style>
@@ -47,12 +47,13 @@ body{font-size:clamp(16px,1.25vw,22px)}
 .err{color:var(--bad);font-weight:600}
 #play.stage{--ring:clamp(110px,11vw,190px)}
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 <div class="screen">
   <main class="maincol">
     <div class="top">
-      <div class="logo" aria-label="REVEAL"><span class="on">R</span><span>E</span><span class="on">V</span><span>E</span><span class="on">A</span><span>L</span></div>
+      <div class="logo" aria-label="REVEAL">REVEAL<i aria-hidden="true"></i></div>
       <span class="roomtag" id="roomtag" hidden>Room <b id="roomSmall"></b></span>
     </div>
 

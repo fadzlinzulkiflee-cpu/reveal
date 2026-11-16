@@ -38,6 +38,7 @@ To use your own PeerJS server, add `?peerhost=HOST&peerport=PORT&peerpath=/PATH`
 - `play.html`: phone controller for big-screen games
 - `words.js`: the shared word list
 - `party.css`, `net.js`: shared styles and connection settings for big-screen mode
+- `theme.css`: the REVEAL brand (forest green, lime, Archivo Black wordmark), loaded last on every page
 - `stage.css`, `stage.js`: the game-show look of the guessing screen (countdown ring, gold tiles, confetti), used by every mode
 - `vendor/`: PeerJS 1.5.4 and qrcode-generator 1.4.4 (MIT), kept in the repo so the game does not depend on a CDN
 
