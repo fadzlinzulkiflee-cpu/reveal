@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>REVEAL Controller</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="party.css">
+<style>
+/* Layout: one phone column; header with room + score, one card that changes with the game phase. */
+.wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px;
+  padding-block:18px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.me{font-family:var(--f-mono);font-size:.85rem;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.me b{color:var(--ink)}
+form.join{display:grid;gap:10px}
+form.join input{width:100%}
+#codeIn{text-transform:uppercase;letter-spacing:.3em;text-align:center}
+#tiles .t{--s:max(26px,var(--fit,46px))}
+.guess{display:flex;gap:8px}
+.guess input{flex:1;text-transform:uppercase}
+.toprow{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.big-msg{font-family:var(--f-display);font-weight:800;font-size:1.8rem;line-height:1.15;text-align:center}
+.big-msg.good{color:var(--good)} .big-msg.bad{color:var(--bad)}
+.answer{font-family:var(--f-display);font-weight:800;font-size:2.2rem;letter-spacing:.08em;text-align:center}
+.center{text-align:center}
+.vip{display:grid;gap:6px}
+.pill{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-radius:6px;padding:2px 8px;background:var(--accent);color:var(--accent-ink)}
+.err{color:var(--bad);font-weight:600;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-label="REVEAL"><span class="on">R</span><span>E</span><span class="on">V</span><span>E</span><span class="on">A</span><span>L</span></div>
+    <div class="me" id="me" hidden><b id="meName"></b><br><span id="meScore"></span></div>
+  </header>
+
+  <!-- JOIN -->
+  <section class="card" id="join">
+    <div style="display:grid;gap:6px">
+      <p class="eyebrow">Join a big-screen game</p>
+      <h1 style="font-size:1.7rem">Your phone is the controller.</h1>
+      <p class="muted">Type your name, then guess the word on the screen before the letters give it away.</p>
+    </div>
+    <form class="join" id="joinForm" autocomplete="off">
+      <input type="text" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Room code" autocapitalize="characters" autocorrect="off" spellcheck="false">
+      <input type="text" id="nameIn" maxlength="14" placeholder="Your name" aria-label="Your name" autocorrect="off">
+      <button class="primary" type="submit" id="joinBtn">Join</button>
+    </form>
+    <p class="err" id="joinErr" hidden></p>
+  </section>
+
+  <!-- LOBBY -->
+  <section class="card center" id="lobby" hidden>
+    <p class="big-msg">You're in!</p>
+    <p class="muted" id="lobbyNote">Watch the big screen. The game starts soon.</p>
+    <div class="vip" id="vipStart" hidden>
+      <span><span class="pill">★ Host controls</span></span>
+      <button class="primary" id="startBtn">Start the game for everyone</button>
+    </div>
+  </section>
+
+  <!-- PLAY -->
+  <section class="card" id="play" hidden>
+    <div class="toprow">
+      <span class="clock" id="clock">60</span>
+      <span class="eyebrow" id="roundLbl"></span>
+    </div>
+    <div class="timebar" id="bar"><i id="fill"></i></div>
+    <div class="tiles" id="tiles"></div>
+    <div class="hint"><span class="tag">Hint</span><p id="hint"></p></div>
+    <form class="guess" id="guessForm" autocomplete="off">
+      <input type="text" id="guess" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="go" aria-label="Your guess">
+      <button class="primary" type="submit" id="guessBtn">Guess</button>
+    </form>
+    <p class="msg" id="msg" aria-live="polite"></p>
+  </section>
+
+  <!-- REVEAL -->
+  <section class="card center" id="reveal" hidden>
+    <p class="eyebrow">The word was</p>
+    <div class="answer" id="answer"></div>
+    <p class="big-msg" id="revealMsg"></p>
+    <p class="muted" id="revealNote"></p>
+    <button class="primary" id="nextBtn" hidden>Next word for everyone</button>
+  </section>
+
+  <!-- OVER -->
+  <section class="card center" id="over" hidden>
+    <p class="eyebrow">Game over</p>
+    <p class="big-msg" id="winner"></p>
+    <p class="muted" id="overNote"></p>
+  </section>
+
+  <p class="err" id="lost" hidden>Connection to the big screen dropped. <button class="ghost" id="rejoin" type="button">Reconnect</button></p>
+</div>
+
+<script src="vendor/peerjs-1.5.4.min.js"></script>
+<script src="net.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const NET = window.REVEAL_NET;
+const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}} };
+const q = new URLSearchParams(location.search);
+
+let peer=null, conn=null, st=null, timer=0, cooldownUntil=0, lastPattern="", joined=false;
+let token = store.get("reveal-token"); if(!token){ token = Math.random().toString(36).slice(2)+Date.now().toString(36); store.set("reveal-token",token); }
+
+$("codeIn").value = (q.get("room")||"").toUpperCase();
+$("nameIn").value = store.get("reveal-name") || "";
+if($("codeIn").value) $("nameIn").focus(); else $("codeIn").focus();
+
+function show(id){ ["join","lobby","play","reveal","over"].forEach(s=>$(s).hidden = s!==id); }
+function joinErr(t){ $("joinErr").hidden=!t; $("joinErr").textContent=t||""; $("joinBtn").disabled=false; $("joinBtn").textContent="Join"; }
+
+$("joinForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  const code = $("codeIn").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
+  const name = $("nameIn").value.trim();
+  if(code.length!==4) return joinErr("Enter the 4-character code shown on the big screen.");
+  if(!name) return joinErr("Enter your name so others know who's winning.");
+  store.set("reveal-name", name);
+  $("joinBtn").disabled=true; $("joinBtn").textContent="Joining…"; joinErr("");
+  $("joinBtn").disabled=true; $("joinBtn").textContent="Joining…";
+  connect(code, name);
+});
+
+function connect(code, name){
+  if(peer){ try{peer.destroy()}catch(e){} }
+  peer = new Peer(undefined, NET.opts);
+  const giveUp = setTimeout(()=>{ if(!joined) joinErr("Couldn't reach that room. Check the code and that the big screen is still open."); }, 12000);
+  peer.on("open", ()=>{
+    conn = peer.connect(NET.prefix+code, {reliable:true});
+    conn.on("open", ()=>{ conn.send({t:"hello", name, token}); });
+    conn.on("data", msg=>{ clearTimeout(giveUp); joined=true; $("lost").hidden=true; onMsg(msg); });
+    conn.on("close", ()=>{ if(joined) $("lost").hidden=false; });
+  });
+  peer.on("error", err=>{
+    if(err.type==="peer-unavailable"){ clearTimeout(giveUp); joinErr("No room with that code. Check the big screen and try again."); }
+    else if(!joined){ clearTimeout(giveUp); joinErr("Couldn't connect ("+err.type+"). Check your internet and try again."); }
+    else $("lost").hidden=false;
+  });
+  $("rejoin").onclick = ()=>connect(code, name);
+}
+
+function onMsg(m){
+  if(m.t==="welcome"){ $("me").hidden=false; $("meName").textContent=m.name; return; }
+  if(m.t==="result") return onResult(m);
+  if(m.t==="full"){ joined=false; return joinErr(`This Royale is full (${m.max} players). Wait for the next game.`); }
+  if(m.t!=="state") return;
+  const prevPhase = st && st.phase;
+  st = m;
+  $("meScore").textContent = st.mode==="royale" ? (st.out ? "Out" : "Still in") : `${st.score} pts`;
+  if(st.phase==="lobby"){
+    show("lobby");
+    $("vipStart").hidden = !st.vip;
+    $("lobbyNote").textContent = st.vip ? "You joined first, so you can start the game from here or from the big screen." : "Watch the big screen. The game starts soon.";
+  } else if(st.phase==="play"){
+    if(prevPhase!=="play" || st.round!==playRound) startPlay();
+    updatePlay();
+  } else if(st.phase==="reveal"){
+    clearInterval(timer); show("reveal");
+    $("answer").textContent = st.word;
+    const rm=$("revealMsg");
+    if(st.mode==="royale"){
+      rm.className = "big-msg "+(st.eliminated?"bad":st.out?"":"good");
+      rm.textContent = st.eliminated ? "You're out!" : st.out ? "Spectating" : "You survived!";
+      $("revealNote").textContent = st.eliminated ? (st.got ? "You got it, but you were the slowest." : "You missed this one.") : st.out ? "Watch who's left on the big screen." : "On to the next word.";
+    } else {
+      rm.className = "big-msg "+(st.got?"good":"bad");
+      rm.textContent = st.got ? `+${st.pts} points` : "No points this time";
+      $("revealNote").textContent = `You're #${st.rank} with ${st.score} points.`;
+    }
+    $("nextBtn").hidden = !st.vip;
+    $("nextBtn").textContent = st.last ? "Show the winner" : "Next word for everyone";
+  } else if(st.phase==="over"){
+    clearInterval(timer); show("over");
+    $("winner").textContent = st.winner;
+    $("overNote").textContent = st.mode==="party" ? `You finished #${st.rank} with ${st.score} points.` : (st.out ? "Better luck next Royale." : "You were still standing at the end!");
+  }
+}
+
+let playRound = -1, deadline = 0;
+function startPlay(){
+  show("play"); playRound = st.round; lastPattern="";
+  const n = st.pattern.length;
+  $("tiles").style.setProperty("--fit", `min(46px, calc((min(100vw, 520px) - 80px) / ${n} - 6px))`);
+  $("tiles").innerHTML = [...st.pattern].map(()=>`<div class="t"><div class="in"><div class="f"></div><div class="b"></div></div></div>`).join("");
+  $("hint").textContent = st.hint;
+  $("guess").value=""; $("msg").textContent=""; $("msg").className="msg";
+  $("guess").placeholder = "_ ".repeat(st.pattern.length).trim();
+  clearInterval(timer); timer = setInterval(drawClock, 200);
+}
+function updatePlay(){
+  deadline = performance.now() + st.left*1000;
+  $("roundLbl").textContent = st.mode==="party" ? `Word ${st.round} of ${st.rounds}` : `Round ${st.round} · ${st.players} playing`;
+  const tiles=$("tiles").children;
+  [...st.pattern].forEach((ch,i)=>{ if(ch!=="_" && tiles[i] && !tiles[i].classList.contains("open")){ tiles[i].querySelector(".b").textContent=ch; tiles[i].classList.add("open"); }});
+  if(st.cooldown>0) cooldownUntil = performance.now()+st.cooldown*1000;
+  const locked = st.out || st.correct || st.failed;
+  $("guess").disabled = locked; $("guessBtn").disabled = locked;
+  if(st.out){ $("msg").className="msg"; $("msg").textContent="You're out. Watch the big screen."; }
+  else if(st.correct){ $("msg").className="msg good"; if(!$("msg").textContent) $("msg").textContent="You got it! Waiting for the others."; }
+  else if(!$("guess").disabled && document.activeElement!==$("guess")) $("guess").focus({preventScroll:true});
+}
+function drawClock(){
+  const left=Math.max(0,(deadline-performance.now())/1000);
+  $("clock").textContent=Math.ceil(left);
+  const low=left<=10; $("clock").classList.toggle("low",low); $("bar").classList.toggle("low",low);
+  $("fill").style.width=(st&&st.T? left/st.T*100 : 0)+"%";
+  const cd = cooldownUntil-performance.now();
+  if(st && !st.correct && !st.out && !st.failed){
+    const wait = cd>0;
+    $("guessBtn").disabled = wait; $("guess").disabled = wait;
+    if(wait) $("guessBtn").textContent = Math.ceil(cd/1000)+"s";
+    else if($("guessBtn").textContent!=="Guess"){ $("guessBtn").textContent="Guess"; $("guess").focus({preventScroll:true}); $("guess").select(); }
+  }
+}
+
+function onResult(r){
+  const m=$("msg"), inp=$("guess");
+  if(r.ok){
+    st.correct=true; m.className="msg good";
+    if(st.mode!=="royale"){ st.score += r.pts; $("meScore").textContent = `${st.score} pts`; }
+    m.textContent = `Correct! +${r.pts} points` + (r.first ? " (first!)" : "");
+    inp.disabled=true; $("guessBtn").disabled=true;
+  } else if(r.out){
+    st.failed=true; m.className="msg bad"; m.textContent="Wrong! You're out after this round.";
+    inp.disabled=true; $("guessBtn").disabled=true; shake();
+  } else {
+    m.className="msg bad"; m.textContent=`Not it. Wait ${r.cooldown} seconds.`;
+    cooldownUntil = performance.now()+r.cooldown*1000; shake();
+  }
+}
+function shake(){ const inp=$("guess"); inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake"); }
+
+$("guessForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  if(!conn || !st || st.phase!=="play" || $("guess").disabled) return;
+  const g=$("guess").value.trim(); if(!g) return;
+  conn.send({t:"guess", g});
+});
+$("startBtn").addEventListener("click", ()=>conn && conn.send({t:"start"}));
+$("nextBtn").addEventListener("click", ()=>conn && conn.send({t:"next"}));
+</script>
+</body>
+</html>

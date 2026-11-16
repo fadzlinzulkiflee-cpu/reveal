@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>REVEAL</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one centred play column; a stage card with a draining time bar, flip tiles, hint, and guess bar. */
+:root{
+  --bg:#e6e9f2; --surface:#ffffff; --ink:#1b2140; --muted:#5d6584;
+  --tile:#232b52; --tile-ink:#ffffff; --hidden:#d3d8e8; --hidden-mark:#9aa3c2;
+  --accent:#f2a516; --accent-ink:#2a1a00; --good:#1f9d6b; --bad:#d6453d; --line:#cfd4e4;
+  --p1:#3156d8; --p2:#d2445f; --p-ink:#ffffff;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Figtree",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11152a; --surface:#1a2040; --ink:#eef0fa; --muted:#a2a9c8;
+  --tile:#f2a516; --tile-ink:#2a1a00; --hidden:#262d55; --hidden-mark:#4b5487;
+  --accent:#f2a516; --accent-ink:#2a1a00; --good:#3ccf93; --bad:#ff6b62; --line:#2f3765; --p1:#6f8cff; --p2:#ff6f8a; --p-ink:#0d1024; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11152a; --surface:#1a2040; --ink:#eef0fa; --muted:#a2a9c8;
+  --tile:#f2a516; --tile-ink:#2a1a00; --hidden:#262d55; --hidden-mark:#4b5487;
+  --accent:#f2a516; --accent-ink:#2a1a00; --good:#3ccf93; --bad:#ff6b62; --line:#2f3765; --p1:#6f8cff; --p2:#ff6f8a; --p-ink:#0d1024; color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+.wrap{max-width:560px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:18px;
+  padding-block:20px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{font-family:var(--f-display);font-weight:800;font-size:1.6rem;letter-spacing:.14em;display:flex;gap:3px}
+.logo span{display:inline-grid;place-items:center;width:1.45em;height:1.6em;border-radius:6px;background:var(--hidden);color:transparent}
+.logo span.on{background:var(--tile);color:var(--tile-ink)}
+.stats{display:flex;gap:14px;font-family:var(--f-mono);font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.stats b{color:var(--ink);font-weight:700}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px 18px;display:flex;flex-direction:column;gap:18px;box-shadow:0 10px 30px -18px rgba(20,25,60,.35)}
+h1,h2{font-family:var(--f-display);font-weight:800;margin:0;text-wrap:balance;line-height:1.1}
+h1{font-size:clamp(1.7rem,6vw,2.3rem)}
+h2{font-size:1.25rem}
+p{margin:0}
+.lead{color:var(--muted)}
+.eyebrow{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+
+/* time bar */
+.timebar{height:10px;border-radius:99px;background:var(--hidden);overflow:hidden;position:relative}
+.timebar i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:99px;width:100%}
+.timebar.low i{background:var(--bad)}
+.toprow{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.clock{font-family:var(--f-mono);font-weight:700;font-size:1.9rem;font-variant-numeric:tabular-nums;line-height:1}
+.clock.low{color:var(--bad)}
+.next{font-size:.85rem;color:var(--muted)}
+
+/* tiles */
+.tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.t{--s:clamp(30px,9.5vw,46px);width:var(--s);height:calc(var(--s)*1.18);perspective:400px}
+.t .in{position:relative;width:100%;height:100%;transition:transform .45s cubic-bezier(.3,1.4,.5,1);transform-style:preserve-3d}
+.t.open .in{transform:rotateX(180deg)}
+.t .f,.t .b{position:absolute;inset:0;border-radius:8px;display:grid;place-items:center;backface-visibility:hidden;
+  font-family:var(--f-display);font-weight:800;font-size:calc(var(--s)*.58)}
+.t .f{background:var(--hidden);color:var(--hidden-mark)}
+.t .f::after{content:"";width:28%;height:4px;border-radius:2px;background:var(--hidden-mark)}
+.t .b{background:var(--tile);color:var(--tile-ink);transform:rotateX(180deg)}
+.t.beat .b{background:var(--good);color:#fff}
+.t.missed .b{background:var(--bad);color:#fff}
+
+.hint{display:flex;gap:12px;align-items:flex-start;background:var(--bg);border-radius:12px;padding:12px 14px}
+.hint .tag{flex:none;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:3px 7px;margin-top:2px}
+.hint p{font-weight:600;font-size:1.05rem}
+.lang{font-family:var(--f-mono);font-size:.7rem;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:1px 5px;margin-left:6px;vertical-align:2px}
+
+form.guess{display:flex;gap:8px}
+input[type=text]{flex:1;min-width:0;font:700 1.15rem var(--f-mono);letter-spacing:.12em;text-transform:uppercase;padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:var(--surface);color:var(--ink)}
+input[type=text]:focus{outline:none;border-color:var(--accent)}
+.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+button{font:700 1rem var(--f-body);border:0;border-radius:12px;padding:12px 18px;cursor:pointer;background:var(--ink);color:var(--surface)}
+button.primary{background:var(--accent);color:var(--accent-ink)}
+button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+button:focus-visible,.seg label:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.msg{min-height:1.5em;font-weight:600;text-align:center}
+.msg.good{color:var(--good)} .msg.bad{color:var(--bad)}
+
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{flex:1;min-width:90px;cursor:pointer;border:2px solid var(--line);border-radius:12px;padding:10px 12px;text-align:center;font-weight:700}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.seg small{display:block;font-weight:400;color:var(--muted);font-size:.78rem}
+
+ol.rules{margin:0;padding-left:1.2em;display:grid;gap:6px;color:var(--muted)}
+ol.rules b{color:var(--ink)}
+.score-big{font-family:var(--f-mono);font-size:3rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.pop{font-family:var(--f-mono);font-weight:700;color:var(--good)}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+td{padding:7px 4px;border-top:1px solid var(--line)}
+td:last-child{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+td .w{font-family:var(--f-display);font-weight:800;letter-spacing:.06em}
+.foot{font-size:.8rem;color:var(--muted);text-align:center}
+
+/* big screen link */
+.bigscreen{display:grid;gap:2px;padding:14px 16px;border-radius:12px;border:2px dashed var(--line);color:var(--ink);text-decoration:none;font-weight:700}
+.bigscreen span{font-weight:400;color:var(--muted);font-size:.88rem}
+.bigscreen:hover,.bigscreen:focus-visible{border-color:var(--accent)}
+/* duo */
+.names{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.names input{width:100%;min-width:0;font:600 1rem var(--f-body);padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:var(--surface);color:var(--ink)}
+.names input#n1{border-color:var(--p1)} .names input#n2{border-color:var(--p2)}
+.buzzers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.buzz{display:grid;gap:2px;padding:16px 10px;border-radius:16px;color:var(--p-ink);text-align:center;touch-action:manipulation}
+.buzz .nm{font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.buzz .ps{font-family:var(--f-mono);font-size:1.5rem;font-variant-numeric:tabular-nums}
+.buzz .st{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;opacity:.85}
+.buzz.p1{background:var(--p1)} .buzz.p2{background:var(--p2)}
+.buzz:disabled{opacity:.35;cursor:not-allowed}
+.buzz.active{outline:4px solid var(--accent);outline-offset:3px}
+.turn{font-weight:700;text-align:center}
+.turn.p1{color:var(--p1)} .turn.p2{color:var(--p2)}
+.who{font-size:.75rem;font-weight:700;border-radius:5px;padding:1px 6px;color:var(--p-ink);margin-left:6px}
+.who.p1{background:var(--p1)} .who.p2{background:var(--p2)}
+.winner{font-family:var(--f-display);font-weight:800;font-size:2rem;line-height:1.1}
+@media (prefers-reduced-motion:reduce){.t .in{transition:none}.shake{animation:none}}
+</style>
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="logo" aria-label="REVEAL"><span class="on">R</span><span>E</span><span class="on">V</span><span>E</span><span class="on">A</span><span>L</span></div>
+    <div class="stats" id="stats" hidden><span><span data-i="round"></span> <b id="rn">1</b>/<b id="rt">10</b></span><span><span data-i="pts"></span> <b id="sc">0</b></span></div>
+  </header>
+
+  <!-- START -->
+  <section class="card" id="start">
+    <div style="display:grid;gap:8px">
+      <p class="eyebrow" data-i="tag"></p>
+      <h1 data-i="title"></h1>
+      <p class="lead" data-i="lead"></p>
+    </div>
+    <div class="tiles" id="demo" aria-hidden="true"></div>
+    <div style="display:grid;gap:8px">
+      <p class="eyebrow">Mode</p>
+      <div class="seg" role="radiogroup">
+        <label><input type="radio" name="mode" id="mode-solo" value="solo" checked>Solo<small>Chase your best score</small></label>
+        <label><input type="radio" name="mode" id="mode-duo" value="duo">Duo<small>Two players, one phone</small></label>
+      </div>
+      <div class="names" id="names" hidden>
+        <input type="text" id="n1" maxlength="14" value="Player 1" aria-label="Player 1 name">
+        <input type="text" id="n2" maxlength="14" value="Player 2" aria-label="Player 2 name">
+      </div>
+    </div>
+    <div style="display:grid;gap:8px">
+      <p class="eyebrow" data-i="timePick"></p>
+      <div class="seg" role="radiogroup">
+        <label><input type="radio" name="time" id="time-45" value="45"><span data-i="fast"></span><small>45 s</small></label>
+        <label><input type="radio" name="time" id="time-60" value="60" checked><span data-i="normal"></span><small>60 s</small></label>
+        <label><input type="radio" name="time" id="time-90" value="90"><span data-i="relaxed"></span><small>90 s</small></label>
+      </div>
+    </div>
+    <ol class="rules" id="rules"></ol>
+    <button class="primary" id="go" data-i="start"></button>
+    <a class="bigscreen" href="host.html">Play on a big screen <span>TV or laptop shows the word, everyone guesses on their phone. Party and Royale modes.</span></a>
+    <p class="foot"><span data-i="best"></span> <b id="best">0</b></p>
+  </section>
+
+  <!-- PLAY -->
+  <section class="card" id="play" hidden>
+    <div class="toprow">
+      <span class="clock" id="clock">60</span>
+      <span class="next" id="next"></span>
+    </div>
+    <div class="timebar" id="bar"><i id="fill"></i></div>
+    <div class="tiles" id="tiles"></div>
+    <div class="hint"><span class="tag">Hint</span><p id="hint"></p></div>
+    <p class="turn" id="turn" hidden></p>
+    <form class="guess" id="form" autocomplete="off">
+      <input type="text" id="guess" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="go" aria-label="Your guess">
+      <button class="primary" type="submit" id="submit" data-i="guessBtn"></button>
+    </form>
+    <p class="msg" id="msg" aria-live="polite"></p>
+    <div class="buzzers" id="buzzers" hidden>
+      <button type="button" class="buzz p1" id="b1"><span class="nm" id="b1n">Player 1</span><span class="ps" id="b1s">0</span><span class="st" id="b1t">Tap to answer</span></button>
+      <button type="button" class="buzz p2" id="b2"><span class="nm" id="b2n">Player 2</span><span class="ps" id="b2s">0</span><span class="st" id="b2t">Tap to answer</span></button>
+    </div>
+    <div class="row">
+      <button class="ghost" type="button" id="skip" data-i="skip"></button>
+      <button type="button" id="nextBtn" hidden data-i="nextWord"></button>
+    </div>
+  </section>
+
+  <!-- END -->
+  <section class="card" id="end" hidden>
+    <div style="display:grid;gap:6px">
+      <p class="eyebrow" id="finalLabel" data-i="final"></p>
+      <div class="score-big" id="final">0</div>
+      <div class="winner" id="winner" hidden></div>
+      <p class="lead" id="endNote"></p>
+    </div>
+    <table id="log"></table>
+    <div class="row">
+      <button class="ghost" id="menu" data-i="menu"></button>
+      <button class="primary" id="again" data-i="again"></button>
+    </div>
+  </section>
+</div>
+
+<script src="words.js"></script>
+<script>
+
+const UI = {
+  en:{round:"Round",pts:"Points",tag:"Guess before it's revealed",title:"One word. One hint. The clock is running.",
+    lead:"Every few seconds a letter flips open. Guess early to score more.",
+    timePick:"Time per word",fast:"Fast",normal:"Normal",relaxed:"Relaxed",
+    rules:["<b>Read the hint</b> and count the letters.","<b>Letters flip open one by one</b> as time runs.","<b>Guess any time.</b> The earlier, the more points.","Wrong guess? <b>Lose 3 seconds.</b>"],
+    rulesDuo:["<b>Same word, same hint</b> for both players.","Know it? <b>Tap your button first.</b> The clock stops and you have 10 seconds to type.","<b>Right:</b> you take the points. The earlier, the more.","<b>Wrong:</b> you are locked out of this word and the clock runs on for your rival."],
+    start:"Start game",best:"Best solo score:",guessBtn:"Guess",skip:"Skip",nextWord:"Next word",
+    nextIn:s=>`Next letter in ${s}s`,lastHidden:"The last letter stays hidden",
+    right:(p)=>`Correct! +${p} points`,wrong:"Not it. −3 seconds",timeup:w=>`Time's up. It was ${w}.`,skipped:w=>`Skipped. It was ${w}.`,
+    final:"Final score",menu:"Menu",again:"Play again",seeResults:"See results",
+    endNote:(c,n)=>`You guessed ${c} of ${n} words.`,newBest:" New best score!",short:"Too short"}
+};
+
+const ROUNDS = 10, PENALTY = 3, ANSWER_SECS = 10;
+const $ = id => document.getElementById(id);
+const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}} };
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+let uiLang = "en", S = null, raf = 0;
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function t(k){return UI[uiLang][k]}
+function mode(){return document.querySelector('input[name=mode]:checked').value}
+
+function applyUI(){
+  document.querySelectorAll("[data-i]").forEach(el=>{const v=t(el.dataset.i); if(typeof v==="string") el.textContent=v;});
+  const duo = mode()==="duo";
+  $("rules").innerHTML = t(duo?"rulesDuo":"rules").map(r=>`<li>${r}</li>`).join("");
+  $("names").hidden = !duo;
+  $("best").textContent = store.get("reveal-best") || "0";
+  document.documentElement.lang = uiLang;
+}
+
+function tileHTML(ch, open){return `<div class="t${open?" open":""}"><div class="in"><div class="f"></div><div class="b">${ch}</div></div></div>`}
+
+function demo(){
+  const w = "PENGUIN";
+  $("demo").innerHTML = [...w].map(c=>tileHTML(c,false)).join("");
+  const tiles=[...$("demo").children], order=shuffle(tiles.map((_,i)=>i));
+  [order[0],order[2],order[4]].forEach(i=>tiles[i].classList.add("open"));
+}
+
+document.querySelectorAll('input[name=time]').forEach(r=>r.addEventListener("change",()=>store.set("reveal-time",document.querySelector('input[name=time]:checked').value)));
+document.querySelectorAll('input[name=mode]').forEach(r=>r.addEventListener("change",()=>{store.set("reveal-mode",mode()); applyUI();}));
+
+function newGame(){
+  const T=+document.querySelector('input[name=time]:checked').value;
+  const duo = mode()==="duo";
+  const names = [ $("n1").value.trim()||"Player 1", $("n2").value.trim()||"Player 2" ];
+  S = { T, duo, words: shuffle(WORDS).slice(0,ROUNDS), i:-1, score:0, scores:[0,0], names, log:[] };
+  $("start").hidden=true; $("end").hidden=true; $("play").hidden=false; $("stats").hidden=false;
+  $("rt").textContent=S.words.length; $("sc").textContent=0;
+  $("sc").parentElement.hidden = duo;
+  $("buzzers").hidden = !duo;
+  $("b1n").textContent=names[0]; $("b2n").textContent=names[1];
+  $("b1s").textContent=0; $("b2s").textContent=0;
+  nextWord();
+}
+
+function setForm(on){
+  $("form").hidden = !on; $("guess").disabled=!on; $("submit").disabled=!on;
+  if(on){ $("guess").value=""; $("guess").focus({preventScroll:true}); }
+}
+
+function nextWord(){
+  S.i++;
+  if(S.i>=S.words.length) return endGame();
+  const [word,hint]=S.words[S.i];
+  const n=word.length;
+  S.cur={word,hint,n,order:shuffle([...Array(n).keys()]),shown:0,start:performance.now(),penalty:0,done:false,
+         buzzer:-1,pausedAt:0,answerEnd:0,locked:[false,false]};
+  $("rn").textContent=S.i+1;
+  $("tiles").innerHTML=[...word].map(c=>tileHTML(c,false)).join("");
+  $("hint").textContent = hint;
+  $("msg").textContent=""; $("msg").className="msg";
+  $("guess").maxLength=n+4; $("guess").placeholder="_ ".repeat(n).trim();
+  $("skip").hidden=false; $("nextBtn").hidden=true; $("turn").hidden=true;
+  if(S.duo){ setForm(false); updateBuzzers(); } else setForm(true);
+  cancelAnimationFrame(raf); tick();
+}
+
+function updateBuzzers(){
+  const c=S.cur;
+  [0,1].forEach(p=>{
+    const b=$("b"+(p+1));
+    b.disabled = c.done || c.locked[p] || c.buzzer!==-1;
+    b.classList.toggle("active", c.buzzer===p);
+    $("b"+(p+1)+"t").textContent = c.locked[p] ? "Locked out" : c.buzzer===p ? "Answering" : c.done ? "" : "Tap to answer";
+    $("b"+(p+1)+"s").textContent = S.scores[p];
+  });
+}
+
+function elapsedNow(){
+  const c=S.cur, now = c.buzzer!==-1 ? c.pausedAt : performance.now();
+  return (now-c.start)/1000 + c.penalty;
+}
+
+function tick(){
+  const c=S.cur; if(c.done) return;
+  if(c.buzzer!==-1){
+    const rem=Math.max(0,(c.answerEnd-performance.now())/1000);
+    $("turn").textContent=`${S.names[c.buzzer]}, type your answer · ${Math.ceil(rem)}s`;
+    if(rem<=0) return duoWrong(true);
+    raf=requestAnimationFrame(tick); return;
+  }
+  const elapsed=elapsedNow();
+  const left=Math.max(0,S.T-elapsed);
+  const step=S.T/c.n;                       // one letter per step; final letter stays hidden until time runs out
+  const target=Math.min(c.n-1,Math.floor(elapsed/step));
+  const tiles=$("tiles").children;
+  while(c.shown<target){tiles[c.order[c.shown]].classList.add("open");c.shown++;}
+  $("clock").textContent=Math.ceil(left);
+  const low=left<=10; $("clock").classList.toggle("low",low); $("bar").classList.toggle("low",low);
+  $("fill").style.width=(left/S.T*100)+"%";
+  $("next").textContent = c.shown<c.n-1 ? t("nextIn")(Math.max(1,Math.ceil((c.shown+1)*step-elapsed))) : t("lastHidden");
+  if(left<=0) return finish("timeup");
+  raf=requestAnimationFrame(tick);
+}
+
+function points(){
+  const c=S.cur, left=Math.max(0,S.T-elapsedNow()), hidden=c.n-c.shown;
+  return Math.round(50 + left/S.T*100 + hidden*15);
+}
+
+function buzz(p){
+  const c=S&&S.cur; if(!S||!S.duo||!c||c.done||c.locked[p]||c.buzzer!==-1) return;
+  c.buzzer=p; c.pausedAt=performance.now(); c.answerEnd=c.pausedAt+ANSWER_SECS*1000;
+  $("turn").className="turn p"+(p+1); $("turn").hidden=false;
+  $("msg").textContent=""; $("msg").className="msg";
+  $("next").textContent="Clock stopped";
+  setForm(true); updateBuzzers();
+}
+
+function resumeClock(){
+  const c=S.cur; c.start += performance.now()-c.pausedAt; c.buzzer=-1; c.pausedAt=0;
+  $("turn").hidden=true; setForm(false); updateBuzzers();
+}
+
+function duoWrong(timedOut){
+  const c=S.cur, p=c.buzzer;
+  c.locked[p]=true;
+  $("msg").className="msg bad";
+  $("msg").textContent = `${S.names[p]} ${timedOut?"ran out of time":"guessed wrong"} and is locked out.`;
+  if(c.locked[0]&&c.locked[1]){ c.buzzer=-1; return finish("nobody"); }
+  resumeClock(); cancelAnimationFrame(raf); tick();
+}
+
+function finish(kind){
+  const c=S.cur; if(c.done) return;
+  let pts=0, who=-1;
+  if(kind==="right"){
+    pts=points();
+    if(S.duo){ who=c.buzzer; S.scores[who]+=pts; } else { S.score+=pts; $("sc").textContent=S.score; }
+  }
+  c.done=true; c.buzzer=-1; cancelAnimationFrame(raf);
+  [...$("tiles").children].forEach((el,i)=>{ if(!el.classList.contains("open")){ el.classList.add(kind==="right"?"beat":"missed"); setTimeout(()=>el.classList.add("open"), 60*i);} });
+  const m=$("msg");
+  m.className="msg "+(kind==="right"?"good":"bad");
+  if(kind==="right") m.textContent = S.duo ? `${S.names[who]} got it! +${pts} points` : t("right")(pts);
+  else if(kind==="skip") m.textContent = t("skipped")(c.word);
+  else if(kind==="nobody") m.textContent = `Both locked out. It was ${c.word}.`;
+  else m.textContent = t("timeup")(c.word);
+  S.log.push({word:c.word,pts,kind,who});
+  setForm(!S.duo); $("guess").disabled=true; $("submit").disabled=true;
+  $("turn").hidden=true; $("skip").hidden=true;
+  if(S.duo) updateBuzzers();
+  $("nextBtn").textContent = S.i+1>=S.words.length ? t("seeResults") : t("nextWord");
+  $("nextBtn").hidden=false; $("nextBtn").focus({preventScroll:true});
+  $("next").textContent="";
+}
+
+$("form").addEventListener("submit",e=>{
+  e.preventDefault(); const c=S&&S.cur; if(!c||c.done) return;
+  if(S.duo && c.buzzer===-1) return;
+  const g=$("guess").value.toUpperCase().replace(/[^A-Z]/g,"");
+  if(!g) return;
+  if(g===c.word) return finish("right");
+  if(S.duo) return duoWrong(false);
+  c.penalty+=PENALTY;
+  const inp=$("guess"); inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake");
+  $("msg").className="msg bad"; $("msg").textContent = g.length<c.n ? `${t("short")} · ${t("wrong")}` : t("wrong");
+  inp.select();
+});
+$("b1").addEventListener("click",()=>buzz(0));
+$("b2").addEventListener("click",()=>buzz(1));
+$("skip").addEventListener("click",()=>{ if(S.cur.buzzer!==-1) return; finish("skip"); });
+$("nextBtn").addEventListener("click",nextWord);
+
+function endGame(){
+  $("play").hidden=true; $("end").hidden=false; $("stats").hidden=true;
+  if(S.duo){
+    const [a,b]=S.scores;
+    $("finalLabel").textContent = `${S.names[0]} ${a} · ${S.names[1]} ${b}`;
+    $("final").hidden=true; $("winner").hidden=false;
+    $("winner").textContent = a===b ? "It's a draw!" : `${S.names[a>b?0:1]} wins!`;
+    $("winner").className = "winner" + (a===b ? "" : " turn p"+(a>b?1:2));
+    const g0=S.log.filter(l=>l.who===0).length, g1=S.log.filter(l=>l.who===1).length;
+    $("endNote").textContent = `${S.names[0]} guessed ${g0}, ${S.names[1]} guessed ${g1}, out of ${S.log.length} words.`;
+  } else {
+    $("finalLabel").textContent=t("final"); $("final").hidden=false; $("winner").hidden=true;
+    $("final").textContent=S.score;
+    const got=S.log.filter(l=>l.kind==="right").length;
+    const prev=+(store.get("reveal-best")||0);
+    let note=t("endNote")(got,S.log.length);
+    if(S.score>prev){store.set("reveal-best",S.score); note+=t("newBest");}
+    $("endNote").textContent=note;
+  }
+  $("log").innerHTML=S.log.map(l=>`<tr><td><span class="w">${l.word}</span>${l.who>=0?`<span class="who p${l.who+1}">${esc(S.names[l.who])}</span>`:""}</td><td>${l.kind==="right"?`<span class="pop">+${l.pts}</span>`:"—"}</td></tr>`).join("");
+}
+$("again").addEventListener("click",newGame);
+$("menu").addEventListener("click",()=>{$("end").hidden=true;$("start").hidden=false;applyUI();demo();});
+$("go").addEventListener("click",newGame);
+
+// restore remembered choices
+const savedTime=store.get("reveal-time"), savedMode=store.get("reveal-mode");
+if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
+if(savedMode&&$("mode-"+savedMode)) $("mode-"+savedMode).checked=true;
+applyUI(); demo();
+</script>
+</body>
+</html>
