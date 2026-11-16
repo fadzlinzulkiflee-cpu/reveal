@@ -86,6 +86,8 @@ body{font-size:clamp(16px,1.25vw,22px)}
 .hostme input{width:100%}
 .alt{font-size:.85rem;color:var(--muted);margin:0}
 .alt a{color:var(--lime,#c7f58b)}
+.joinbtn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 16px;border-radius:12px;border:1px solid rgba(199,245,139,.5);color:var(--lime,#c7f58b);font-weight:700;font-size:.9rem;text-decoration:none}
+.joinbtn[hidden]{display:none}
 body.phonehost .rail{display:none}
 body.phonehost .screen{grid-template-columns:1fr}
 body.phonehost .qr{width:min(220px,62vw)}
@@ -121,6 +123,7 @@ body.phonehost .joinurl{display:none}
         <div style="display:grid;gap:14px;min-width:0">
           <p class="eyebrow" id="scanLbl">Scan to join, or open the link and enter the code</p>
           <div class="code" id="code">····</div>
+          <a class="ghost joinbtn" href="play.html" id="joinLink" hidden>Join a friend's game with their code</a>
           <p class="joinurl" id="joinurl">Opening a room…</p>
           <p class="err" id="neterr" hidden></p>
         </div>
@@ -156,7 +159,6 @@ body.phonehost .joinurl{display:none}
       </div>
       <p class="err" id="selfErr" hidden></p>
       <div id="phoneAlt" hidden style="display:grid;gap:6px">
-        <p class="alt">Joining a friend's game instead? <a href="play.html" id="joinLink">Enter their code</a></p>
         <p class="alt">Got a TV or laptop? Open <b>playreveal.app/host.html</b> on it to use it as the big screen.</p>
       </div>
     </section>
@@ -204,7 +206,7 @@ body.phonehost .joinurl{display:none}
 <div class="exitsheet" id="invite" hidden role="dialog" aria-modal="true" aria-label="Invite players">
   <div class="exitbox invbox">
     <h2>Invite players</h2>
-    <p>Friends scan this code. Or they open playreveal.app, tap Play Locally, then “Enter their code”.</p>
+    <p>Friends scan this code. Or they open playreveal.app, tap Play Locally, then “Join a friend’s game with their code”.</p>
     <div class="qr" id="invQr"></div>
     <div class="code" id="invCode"></div>
     <div class="exitrow" style="width:100%"><button type="button" class="primary" id="invClose">Done</button></div>
@@ -228,7 +230,7 @@ const PHONE = Q.get("tv")!=="1" && (Q.get("phone")==="1" || matchMedia("(max-wid
 if(PHONE){
   document.body.classList.add("phonehost");
   $("play").dataset.sound = "none";       // the player screen on top makes the sounds
-  $("hostMe").hidden = false; $("phoneAlt").hidden = false;
+  $("hostMe").hidden = false; $("phoneAlt").hidden = false; $("joinLink").hidden = false;
   $("scanLbl").textContent = "Friends scan this to join";
   $("hostName").value = store.get("reveal-name") || "";
   $("joinLink").href = "play.html" + (NET.passthrough ? "?"+NET.passthrough : "");
