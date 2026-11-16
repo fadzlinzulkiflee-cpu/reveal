@@ -1,5 +1,5 @@
 -- REVEAL ranked Battle Royale: the match runs in the database, so nobody's phone decides the result.
--- Run once in Supabase → SQL Editor (after accounts.sql), then run ranked-words.sql. Safe to re-run.
+-- Run once in Supabase → SQL Editor (after accounts.sql), then load the ranked words from the private word file (not in this repo). Safe to re-run.
 --
 -- How it works: players call rk_join() to get a match, then poll rk_state(match) about twice a second and
 -- send answers with rk_guess(match, text). Every call first runs rk_tick(match), which moves the match on
