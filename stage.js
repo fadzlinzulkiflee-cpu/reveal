@@ -97,13 +97,15 @@
 })();
 
 // Sound, vibration, countdown and banner.
-// data-sound on the stage: "full" (Solo, TV) or "feedback" (phones: only right/wrong sounds, plus vibration).
+// data-sound on the stage: "full" (Solo, TV), "feedback" (phones: only right/wrong sounds, plus vibration)
+// or "none" (a phone that hosts and plays: the player screen on top makes the sounds, so the host page stays silent).
 (function(){
   const stage = document.querySelector(".stage"); if(!stage) return;
-  const full = (stage.dataset.sound || "full") === "full";
+  const silent = stage.dataset.sound === "none";
+  const full = !silent && (stage.dataset.sound || "full") === "full";
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let ctx = null, muted = false;
-  try { muted = localStorage.getItem("reveal-muted") === "1"; } catch(e) {}
+  try { muted = silent || localStorage.getItem("reveal-muted") === "1"; } catch(e) {}
   const unlock = () => { if(!ctx){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(ctx && ctx.state==="suspended") ctx.resume(); };
   ["pointerdown","keydown","touchstart"].forEach(e=>addEventListener(e, unlock, {passive:true}));
 
@@ -132,7 +134,7 @@
   }
   const canVibrate = typeof navigator.vibrate === "function";
   let vibeOn = true;
-  const readVibe = () => { try{ vibeOn = localStorage.getItem("reveal-vibe") !== "0"; }catch(e){} };
+  const readVibe = () => { try{ vibeOn = !silent && localStorage.getItem("reveal-vibe") !== "0"; }catch(e){} };
   readVibe();
   const buzz = p => {
     if(!vibeOn) return;
@@ -172,8 +174,8 @@
   mb.type="button"; mb.className="mute"; mb.setAttribute("aria-label","Sound on or off");
   const paint = () => { mb.textContent = muted ? "Sound off" : "Sound on"; mb.setAttribute("aria-pressed", String(!muted)); };
   mb.addEventListener("click", ()=>{ muted=!muted; try{ localStorage.setItem("reveal-muted", muted?"1":"0"); }catch(e){} unlock(); paint(); });
-  paint(); stage.appendChild(mb);
-  addEventListener("reveal-settings", ()=>{ try{ muted = localStorage.getItem("reveal-muted") === "1"; }catch(e){} readVibe(); paint(); });
+  paint(); if(!silent) stage.appendChild(mb);
+  addEventListener("reveal-settings", ()=>{ try{ muted = silent || localStorage.getItem("reveal-muted") === "1"; }catch(e){} readVibe(); paint(); });
   addEventListener("storage", e=>{ if(e.key==="reveal-muted"||e.key==="reveal-vibe") dispatchEvent(new Event("reveal-settings")); });
 
   // delete / backspace in the answer box: soft click and tiny buzz
@@ -195,7 +197,7 @@
     new MutationObserver(ms=>{ if(ms.some(m=>m.type==="attributes" && m.target.classList.contains("open") && !(m.oldValue||"").includes("open") && !m.target.classList.contains("beat") && !m.target.classList.contains("missed"))) SFX.pop(); })
       .observe(tiles,{subtree:true,attributes:true,attributeFilter:["class"],attributeOldValue:true});
   }
-  if(!full && clock){   // phones: no sound, but feel the heartbeat in the last seconds
+  if(!full && !silent && clock){   // phones: no sound, but feel the heartbeat in the last seconds
     let lastT = "";
     new MutationObserver(()=>{ const v=clock.textContent; if(v!==lastT){ lastT=v; if(clock.classList.contains("low") && +v>0 && !stage.classList.contains("frozen")) buzz([35,140,30]); } })
       .observe(clock,{childList:true,characterData:true,subtree:true});

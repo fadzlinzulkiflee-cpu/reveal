@@ -14,8 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="REVEAL">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="party.css?v=20261116zc">
-<link rel="stylesheet" href="stage.css?v=20261116zc">
+<link rel="stylesheet" href="party.css?v=20261116zd">
+<link rel="stylesheet" href="stage.css?v=20261116zd">
 <style>
 /* Layout: one phone column; header with room + score, one card that changes with the game phase. */
 .wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px;
@@ -38,16 +38,30 @@ form.join input{width:100%}
 .pill{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-radius:6px;padding:2px 8px;background:var(--accent);color:var(--accent-ink)}
 .err{color:var(--bad);font-weight:600;text-align:center}
 #play.stage{--ring:78px}
+.hbtns{display:flex;align-items:center;gap:8px}
+.invbtn{min-height:36px;padding:6px 14px;border-radius:999px;font-size:.85rem;width:auto}
+/* ranking after each word */
+.standings{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:6px;text-align:left}
+.standings li{display:flex;align-items:center;gap:10px;background:rgba(246,248,240,.06);border-radius:12px;padding:8px 12px;min-width:0}
+.standings li.mine{background:rgba(199,245,139,.16);outline:1px solid rgba(199,245,139,.45)}
+.standings li.out{opacity:.5}
+.standings li.out .nm{text-decoration:line-through}
+.standings .rk{font-family:var(--f-display);font-weight:800;min-width:1.4em;color:#C7F58B;text-align:center}
+.standings .av{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--av);color:#11200f;font-family:var(--f-display);font-size:.85rem}
+.standings .nm{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.standings .sc{font-family:var(--f-display);font-weight:800;font-variant-numeric:tabular-nums}
+.standings .st{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#A9BBAC}
+.stlbl{margin:10px 0 0;text-align:left}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261116zc">
-<link rel="stylesheet" href="drama.css?v=20261116zc">
-<link rel="stylesheet" href="look.css?v=20261116zc">
+<link rel="stylesheet" href="theme.css?v=20261116zd">
+<link rel="stylesheet" href="drama.css?v=20261116zd">
+<link rel="stylesheet" href="look.css?v=20261116zd">
 </head>
 <body>
 <div class="wrap">
   <header>
     <div class="logo" aria-label="REVEAL">REVEAL<i aria-hidden="true"></i></div>
-    <div class="me" id="me" hidden><b id="meName"></b><br><span id="meScore"></span></div>
+    <div class="hbtns"><div class="me" id="me" hidden><b id="meName"></b><br><span id="meScore"></span></div><button class="ghost invbtn" id="inviteBtn" type="button" hidden>Invite</button><span id="exitSlot"></span></div>
   </header>
 
   <!-- JOIN -->
@@ -98,6 +112,9 @@ form.join input{width:100%}
     <p class="big-msg" id="revealMsg"></p>
     <p class="muted" id="revealNote"></p>
     <button class="primary" id="nextBtn" hidden>Next word for everyone</button>
+    <p class="muted" id="waitNext" hidden></p>
+    <p class="eyebrow stlbl" id="stLbl">Ranking</p>
+    <ol class="standings" id="standings"></ol>
   </section>
 
   <!-- OVER -->
@@ -107,15 +124,18 @@ form.join input{width:100%}
     <p class="muted" id="overNote"></p>
     <p class="big-msg" id="winner"></p>
     <div class="ppod" id="ppod" aria-label="Podium"></div>
+    <ol class="standings" id="finalStandings"></ol>
+    <button class="primary" id="againBtn" type="button" hidden>Play again</button>
     <button class="ghost" id="shareBtn" type="button">Share my result</button>
-    <p class="muted">Want a rematch? Tap “Play again” on the big screen.</p>
+    <p class="muted" id="rematchNote">Want a rematch? Tap “Play again” on the big screen.</p>
   </section>
 
-  <p class="err" id="lost" hidden>Connection to the big screen dropped. <button class="ghost" id="rejoin" type="button">Reconnect</button></p>
+  <p class="err" id="lost" hidden>Connection to the game dropped. <button class="ghost" id="rejoin" type="button">Reconnect</button></p>
 </div>
 
 <script src="vendor/peerjs-1.5.4.min.js"></script>
-<script src="net.js?v=20261116zc"></script>
+<script src="net.js?v=20261116zd"></script>
+<script src="exit.js?v=20261116zd"></script>
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -128,6 +148,20 @@ let token = store.get("reveal-token"); if(!token){ token = Math.random().toStrin
 
 $("codeIn").value = (q.get("room")||"").toUpperCase();
 $("nameIn").value = store.get("reveal-name") || "";
+// embed=1: this is the host's own player screen, shown on top of host.html on the same phone.
+const EMBED = q.get("embed")==="1" && window.parent!==window && !!(window.parent.REVEAL_HOST);
+const HOSTWIN = EMBED ? window.parent : null;
+let bigScreen = true;   // false when a phone hosts (no TV to watch)
+if(EMBED){ $("inviteBtn").hidden = false; $("inviteBtn").addEventListener("click", ()=>HOSTWIN.REVEAL_HOST.invite()); }
+$("exitSlot").appendChild(REVEAL_EXIT.button(async ()=>{
+  if(EMBED) return HOSTWIN.REVEAL_HOST.exit();
+  if(joined){
+    const ok = await REVEAL_EXIT.ask({ title:"Leave this game?", body:"You'll drop out of the room. You can rejoin with the same code.", ok:"Leave" });
+    if(!ok) return;
+  }
+  try{ peer && peer.destroy(); }catch(e){}
+  REVEAL_EXIT.home();
+}));
 if($("codeIn").value) $("nameIn").focus(); else $("codeIn").focus();
 
 function show(id){ ["join","lobby","play","reveal","over"].forEach(s=>$(s).hidden = s!==id); }
@@ -144,6 +178,10 @@ $("joinForm").addEventListener("submit", e=>{
   $("joinBtn").disabled=true; $("joinBtn").textContent="Joining…";
   connect(code, name);
 });
+if(EMBED && q.get("name") && $("codeIn").value){
+  $("nameIn").value = q.get("name"); show("lobby"); $("lobbyNote").textContent = "Opening your player screen…";
+  connect($("codeIn").value, q.get("name"));
+}
 
 function connect(code, name){
   if(peer){ try{peer.destroy()}catch(e){} }
@@ -170,11 +208,12 @@ function onMsg(m){
   if(m.t!=="state") return;
   const prevPhase = st && st.phase;
   st = m;
+  bigScreen = st.screen!=="phone";
   $("meScore").textContent = st.mode==="royale" ? (st.out ? "Out" : "Still in") : `${st.score} pts`;
   if(st.phase==="lobby"){
     show("lobby");
     $("vipStart").hidden = !st.vip;
-    $("lobbyNote").textContent = st.vip ? "You joined first, so you can start the game from here or from the big screen." : "Watch the big screen. The game starts soon.";
+    $("lobbyNote").textContent = !bigScreen ? "The host will start the game soon." : st.vip ? "You joined first, so you can start the game from here or from the big screen." : "Watch the big screen. The game starts soon.";
   } else if(st.phase==="countdown"){
     st.pattern = "_".repeat(st.len);
     startPlay(); clearInterval(timer);
@@ -196,7 +235,7 @@ function onMsg(m){
     if(st.mode==="royale"){
       rm.className = "big-msg "+(st.eliminated?"bad":st.out?"":"good");
       rm.textContent = st.eliminated ? "You're out!" : st.out ? "Spectating" : "You survived!";
-      $("revealNote").textContent = st.eliminated ? (st.got ? "You got it, but you were the slowest." : "You missed this one.") : st.out ? "Watch who's left on the big screen." : "On to the next word.";
+      $("revealNote").textContent = st.eliminated ? (st.got ? "You got it, but you were the slowest." : "You missed this one.") : st.out ? (bigScreen ? "Watch who's left on the big screen." : "Watch who's left below.") : "On to the next word.";
     } else {
       rm.className = "big-msg "+(st.got?"good":"bad");
       rm.textContent = st.got ? `+${st.pts} points` : "No points this time";
@@ -204,6 +243,9 @@ function onMsg(m){
     }
     $("nextBtn").hidden = !st.vip;
     $("nextBtn").textContent = st.last ? "Show the winner" : "Next word for everyone";
+    $("waitNext").hidden = st.vip || bigScreen; $("waitNext").textContent = st.last ? "The host will show the winner." : "The host will start the next word.";
+    $("stLbl").textContent = st.mode==="royale" ? `Still in: ${(st.standings||[]).filter(x=>!x.out).length}` : "Ranking";
+    renderStandings($("standings"), st);
   } else if(st.phase==="over"){
     clearInterval(timer); show("over");
     $("winner").textContent = st.winner || "";
@@ -216,6 +258,11 @@ function onMsg(m){
     shareText = st.mode==="party" ? `REVEAL. I finished #${st.rank} with ${st.score} points · ${ttl}` : `REVEAL Royale: ${won ? "I was the last one standing!" : `I got knocked out. ${st.winner}`}`;
     if(won && prevPhase!=="over" && window.REVEAL_SFX) REVEAL_SFX.fanfare();
     $("overNote").textContent = st.mode==="party" ? `You finished #${st.rank} with ${st.score} points.` : (st.out ? "Better luck next Royale." : "You were still standing at the end!");
+    renderStandings($("finalStandings"), st);
+    if((st.standings||[]).length<=3) $("finalStandings").hidden = true;
+    $("againBtn").hidden = !st.vip;
+    $("rematchNote").hidden = st.vip;
+    $("rematchNote").textContent = bigScreen ? "Want a rematch? Tap “Play again” on the big screen." : "Want a rematch? The host can start a new game.";
   }
 }
 
@@ -238,7 +285,7 @@ function updatePlay(){
   if(st.cooldown>0) cooldownUntil = performance.now()+st.cooldown*1000;
   const locked = st.out || st.correct || st.failed;
   $("guess").disabled = locked; $("guessBtn").disabled = locked;
-  if(st.out){ $("msg").className="msg"; $("msg").textContent="You're out. Watch the big screen."; }
+  if(st.out){ $("msg").className="msg"; $("msg").textContent = bigScreen ? "You're out. Watch the big screen." : "You're out. The ranking shows after each word."; }
   else if(st.correct){ $("msg").className="msg good"; if(!$("msg").textContent) $("msg").textContent="You got it! Waiting for the others."; }
   else if(!$("guess").disabled && document.activeElement!==$("guess")) $("guess").focus({preventScroll:true});
   drawClock();
@@ -283,12 +330,25 @@ $("guessForm").addEventListener("submit", e=>{
   const g=$("guess").value.trim(); if(!g) return;
   conn.send({t:"guess", g});
 });
+// Ranking after each word: Party shows points, Royale shows who is still in. Long lists keep the top 8 plus you.
+function renderStandings(el, s){
+  const list = s.standings || [];
+  let rows = list.map((p,i)=>({p,i}));
+  if(rows.length>9){ const mi = rows.findIndex(r=>r.p.me); rows = rows.slice(0,8).concat(mi>=8 ? [rows[mi]] : []); }
+  el.innerHTML = rows.map(({p,i})=>{
+    const right = s.mode==="royale" ? `<span class="st">${p.out?"Out":"In"}</span>` : `<span class="sc">${p.score}</span>`;
+    return `<li class="${p.me?"mine":""} ${p.out&&s.mode==="royale"?"out":""}"><span class="rk">${s.mode==="royale" && p.out ? "" : i+1}</span><span class="av" style="--av:${esc(p.color||"#c7f58b")}">${esc((p.name.trim()[0]||"?").toUpperCase())}</span><span class="nm">${esc(p.name)}${p.me?" (you)":""}</span>${right}</li>`;
+  }).join("");
+  el.hidden = !list.length;
+}
+// the podium already shows the top 3, so the full list only adds something with 4 or more players
+$("againBtn").addEventListener("click", ()=>conn && conn.send({t:"again"}));
 let shareText = "";
 $("shareBtn").addEventListener("click", e=>REVEAL_END.share(shareText + "\nThink fast. Guess faster.", e.currentTarget));
 $("startBtn").addEventListener("click", ()=>conn && conn.send({t:"start"}));
 $("nextBtn").addEventListener("click", ()=>conn && conn.send({t:"next"}));
 </script>
-<script src="stage.js?v=20261116zc"></script>
-<script src="drama.js?v=20261116zc"></script>
+<script src="stage.js?v=20261116zd"></script>
+<script src="drama.js?v=20261116zd"></script>
 </body>
 </html>
