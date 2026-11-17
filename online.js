@@ -333,7 +333,7 @@
     const i = RH.info(); el.hidden = false; el.classList.toggle("live", i.live);
     setHTML(el, i.live
       ? `<b>Ranked Hour is live.</b> It's the evening rush where you are, for another ${RH.span(i.endsIn)}.`
-      : `<b>Ranked Hour:</b> every evening at ${RH.clock(i.at)} your time. Most players near you join then${i.startsIn <= 3*3600000 ? `. Starts in ${RH.span(i.startsIn)}.` : "."}`);
+      : `<b>Ranked Hour:</b> every evening ${RH.range(i)} your time. Most players near you join then${i.startsIn <= 3*3600000 ? `. Starts in ${RH.span(i.startsIn)}.` : "."}`);
   }
   paintRH(); setInterval(paintRH, 30000);
   if(AU) AU.on(()=>drawPulse());

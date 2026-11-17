@@ -3,9 +3,9 @@
 window.REVEAL_CONFIG = Object.assign({
   supabaseUrl: "https://nnvgopfuenajnioiqmdk.supabase.co",
   supabaseKey: "sb_publishable_87f_38eIrLHXX6a3Jb71rA_kjm3WLEN",
-  // Ranked Hour (Lin, 17 Nov): every evening 9–10 pm in each player's OWN time zone, so players in the same
+  // Ranked Hour (Lin, 17 Nov): every evening 8–11 pm in each player's OWN time zone, so players in the same
   // part of the world meet at the same time (the game is international, not tied to one country's clock).
-  rankedHour: { localHour: 21, minutes: 60 }
+  rankedHour: { localHour: 20, minutes: 180 }
 }, window.REVEAL_CONFIG || {});
 
 // Ranked Hour helper: is it on now, and when is the next one (shown in the player's own time zone)?
@@ -16,17 +16,18 @@ window.REVEAL_RANKED_HOUR = (function(){
     const len = RH.minutes * 60000, today = startOf(new Date(now));
     if(now >= today && now < today + len) return { live:true, endsIn: today + len - now };
     const next = now < today ? today : startOf(new Date(today + 12*3600000));   // tomorrow evening (safe across clock changes)
-    return { live:false, startsIn: next - now, at: new Date(next) };
+    return { live:false, startsIn: next - now, at: new Date(next), until: new Date(next + len) };
   }
   const clock = d => d.toLocaleTimeString([], { hour:"numeric", minute:"2-digit" });
   const span = ms => { const m = Math.max(1, Math.ceil(ms/60000)); return m >= 60 ? `${Math.floor(m/60)}h ${String(m%60).padStart(2,"0")}m` : `${m} min`; };
-  // Short line for buttons: "Ranked Hour live now" / "Ranked Hour in 2h 05m" / "Ranked Hour daily at 9:00 PM"
+  const range = i => `${clock(i.at).replace(/:00/,"")}–${clock(i.until).replace(/:00/,"")}`;   // "8 PM–11 PM"
+  // Short line for buttons: "Ranked Hour live now" / "Ranked Hour in 2h 05m" / "Ranked Hour daily 8 PM–11 PM"
   function label(now){
     const i = info(now);
     if(i.live) return "Ranked Hour is live now";
-    return i.startsIn <= 3*3600000 ? `Ranked Hour in ${span(i.startsIn)}` : `Ranked Hour daily at ${clock(i.at)}`;
+    return i.startsIn <= 3*3600000 ? `Ranked Hour in ${span(i.startsIn)}` : `Ranked Hour daily ${range(i)}`;
   }
-  return { info, label, clock, span };
+  return { info, label, clock, span, range };
 })();
 
 window.REVEAL_DAILY = (function(){
