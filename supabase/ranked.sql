@@ -277,6 +277,27 @@ begin
 end $$;
 
 -- ---------- what players can call ----------
+-- Leave a match (the Exit or Cancel button). In a lobby you're simply removed (and an empty lobby is closed).
+-- Once the match has started, leaving counts as out, placed below everyone still in.
+create or replace function public.rk_leave(m uuid) returns void
+language plpgsql security definer set search_path = public as $$
+declare uid uuid := auth.uid(); mt rk_matches; me int;
+begin
+  if uid is null then return; end if;
+  select * into mt from rk_matches where id = m for update;
+  if not found or mt.phase = 'over' then return; end if;
+  select pid into me from rk_players where match_id = m and user_id = uid and not out;
+  if me is null then return; end if;
+  if mt.phase = 'lobby' then
+    delete from rk_players where match_id = m and pid = me;
+    if not exists (select 1 from rk_players where match_id = m and not bot) then delete from rk_matches where id = m; end if;
+  else
+    update rk_players set out = true, out_round = mt.round, elim_round = mt.round, r_correct = false, r_failed = false,
+      place = (select count(*) from rk_players where match_id = m and not out), last_seen = now() - interval '1 hour'
+    where match_id = m and pid = me;
+  end if;
+end $$;
+
 create or replace function public.rk_join() returns uuid
 language plpgsql security definer set search_path = public as $$
 declare uid uuid := auth.uid(); prof profiles; mid uuid;
@@ -284,15 +305,23 @@ begin
   if uid is null then raise exception 'Sign in to play ranked.'; end if;
   select * into prof from profiles where id = uid;
   if prof.id is null then raise exception 'Pick a player name first.'; end if;
-  -- back into a match you're still alive in (e.g. after a refresh)
+  -- back into a match you're still alive in, but only one you were in a moment ago (e.g. after a refresh).
+  -- A match you walked away from (closed the app, lost signal) is not resumed: you get a fresh lobby instead.
   select p.match_id into mid from rk_players p join rk_matches x on x.id = p.match_id
     where p.user_id = uid and not p.out and x.phase <> 'over' and x.created_at > now() - interval '1 hour'
+      and p.last_seen > now() - interval '15 seconds'
+      and (x.phase <> 'lobby' or x.start_at > now() + interval '2 seconds')
     order by x.created_at desc limit 1;
   if mid is not null then return mid; end if;
+  -- leave any older match you abandoned, so it can't pull you back later
+  perform rk_leave(p.match_id) from rk_players p join rk_matches x on x.id = p.match_id
+    where p.user_id = uid and not p.out and x.phase <> 'over';
   delete from rk_matches where created_at < now() - interval '2 days';
+  -- join a lobby that still has someone in it and enough time left to feel like a lobby
   select x.id into mid from rk_matches x
-    where x.phase = 'lobby' and x.start_at > now() + interval '2 seconds'
+    where x.phase = 'lobby' and x.start_at > now() + interval '5 seconds'
       and (select count(*) from rk_players p where p.match_id = x.id) < rk_conf('max')
+      and exists (select 1 from rk_players p where p.match_id = x.id and not p.bot and p.last_seen > now() - interval '10 seconds')
     order by x.created_at limit 1 for update skip locked;
   if mid is null then
     insert into rk_matches (start_at) values (now() + make_interval(secs => rk_conf('lobby'))) returning id into mid;
@@ -340,5 +369,5 @@ end $$;
 -- Only the three player functions are callable from the game; the steps above are internal.
 revoke all on function public.rk_conf(text), public.rk_next_round(uuid), public.rk_end_round(uuid), public.rk_game_over(uuid),
   public.rk_tick(uuid), public.rk_view(uuid, int) from public, anon, authenticated;
-revoke all on function public.rk_join(), public.rk_state(uuid), public.rk_guess(uuid, text) from public, anon;
-grant execute on function public.rk_join(), public.rk_state(uuid), public.rk_guess(uuid, text) to authenticated;
+revoke all on function public.rk_join(), public.rk_state(uuid), public.rk_guess(uuid, text), public.rk_leave(uuid) from public, anon;
+grant execute on function public.rk_join(), public.rk_state(uuid), public.rk_guess(uuid, text), public.rk_leave(uuid) to authenticated;

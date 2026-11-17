@@ -207,7 +207,7 @@
     store.set("reveal-name", name); myName = name;
     find();
   });
-  $("cancelBtn").addEventListener("click", ()=>{ teardown(); findErr(""); });
+  $("cancelBtn").addEventListener("click", ()=>{ leaveRanked(); findErr(""); });
   $("againBtn").addEventListener("click", ()=>{ teardown(); find(); });
   $("lostBtn").addEventListener("click", ()=>{ teardown(); find(); });
 
@@ -330,11 +330,21 @@
     teardown(); show("searching"); $("findErr").hidden = true;
     $("searchNote").textContent = "Finding a ranked match…";
     myName = AU.state().profile.username;
+    const seq = ++joinSeq;
     const { data, error } = await AU.rpc("rk_join");
+    if(seq !== joinSeq){ if(data) AU.rpc("rk_leave", { m:data }); return; }   // cancelled while joining
     if(error || !data) return findErr(error ? error.message : "Couldn't reach the ranked server. Try again.");
     ranked = { mid:data, fails:0, timer:0 };
     send = m => { if(m && m.t==="guess") rankedGuess(m.g); };
     poll();
+  }
+  // Exit / Cancel: tell the server, so the next search finds a fresh lobby instead of putting you back in this one.
+  let joinSeq = 0;
+  function leaveRanked(){
+    joinSeq++;
+    const mid = ranked && !(st && st.phase === "over") ? ranked.mid : null;
+    teardown();
+    return mid ? Promise.race([AU.rpc("rk_leave", { m:mid }), new Promise(r=>setTimeout(r, 1500))]) : Promise.resolve();
   }
   async function poll(){
     const r = ranked; if(!r) return;
@@ -570,5 +580,5 @@
   }
 
   // test hook
-  window.REVEAL_ONLINE = { get host(){ return H; }, get state(){ return st; } };
+  window.REVEAL_ONLINE = { get host(){ return H; }, get state(){ return st; }, leave: ()=>leaveRanked() };
 })();
