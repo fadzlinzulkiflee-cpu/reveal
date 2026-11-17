@@ -3,18 +3,19 @@
 window.REVEAL_CONFIG = Object.assign({
   supabaseUrl: "https://nnvgopfuenajnioiqmdk.supabase.co",
   supabaseKey: "sb_publishable_87f_38eIrLHXX6a3Jb71rA_kjm3WLEN",
-  // Ranked Hour (Lin, 17 Nov): every day 9–10 pm Malaysia time (13:00–14:00 UTC), so ranked players meet at the same time.
-  rankedHour: { utcHour: 13, minutes: 60 }
+  // Ranked Hour (Lin, 17 Nov): every evening 9–10 pm in each player's OWN time zone, so players in the same
+  // part of the world meet at the same time (the game is international, not tied to one country's clock).
+  rankedHour: { localHour: 21, minutes: 60 }
 }, window.REVEAL_CONFIG || {});
 
 // Ranked Hour helper: is it on now, and when is the next one (shown in the player's own time zone)?
 window.REVEAL_RANKED_HOUR = (function(){
   const RH = window.REVEAL_CONFIG.rankedHour;
-  function startOf(d){ return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), RH.utcHour); }
+  function startOf(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate(), RH.localHour).getTime(); }
   function info(now = Date.now()){
     const len = RH.minutes * 60000, today = startOf(new Date(now));
     if(now >= today && now < today + len) return { live:true, endsIn: today + len - now };
-    const next = now < today ? today : today + 86400000;
+    const next = now < today ? today : startOf(new Date(today + 12*3600000));   // tomorrow evening (safe across clock changes)
     return { live:false, startsIn: next - now, at: new Date(next) };
   }
   const clock = d => d.toLocaleTimeString([], { hour:"numeric", minute:"2-digit" });

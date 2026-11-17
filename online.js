@@ -332,8 +332,8 @@
     const RH = window.REVEAL_RANKED_HOUR, el = $("rhLine"); if(!RH){ el.hidden = true; return; }
     const i = RH.info(); el.hidden = false; el.classList.toggle("live", i.live);
     setHTML(el, i.live
-      ? `<b>Ranked Hour is live.</b> Most ranked players are on now, for another ${RH.span(i.endsIn)}.`
-      : `<b>Ranked Hour:</b> every day at ${RH.clock(i.at)} (your time) for an hour. Most players join then${i.startsIn <= 3*3600000 ? `. Starts in ${RH.span(i.startsIn)}.` : "."}`);
+      ? `<b>Ranked Hour is live.</b> It's the evening rush where you are, for another ${RH.span(i.endsIn)}.`
+      : `<b>Ranked Hour:</b> every evening at ${RH.clock(i.at)} your time. Most players near you join then${i.startsIn <= 3*3600000 ? `. Starts in ${RH.span(i.startsIn)}.` : "."}`);
   }
   paintRH(); setInterval(paintRH, 30000);
   if(AU) AU.on(()=>drawPulse());
