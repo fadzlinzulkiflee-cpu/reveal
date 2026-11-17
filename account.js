@@ -19,8 +19,11 @@
   function showPane(id){ ["acOut","acEdit","acIn"].forEach(p=>$(p).hidden = p!==id); }
 
   function paint(st){
-    const btn = $("acctBtn");
-    btn.hidden = !st.available || !st.loaded;
+    const btn = $("acctBtn"), card = $("signCard");
+    // Signed out: invite them with the card in the middle. Signed in (or naming their profile): the chip, top left.
+    const out = st.available && st.loaded && !st.user;
+    btn.hidden = !st.available || !st.loaded || out;
+    if(card) card.hidden = !out;
     const p = st.profile;
     if(p){
       $("acctAv").innerHTML = AV.svg(p.avatar); $("acctAv").hidden = false; $("acctLbl").textContent = "@" + p.username;
@@ -89,6 +92,11 @@
     $("acGoogle").disabled = true; $("acErr").hidden = true;
     const res = await A.signIn();
     if(!res.ok){ $("acGoogle").disabled = false; $("acErr").textContent = res.msg; $("acErr").hidden = false; }
+  });
+  if($("signCardBtn")) $("signCardBtn").addEventListener("click", async ()=>{
+    const b = $("signCardBtn"); b.disabled = true; $("signCardErr").hidden = true;
+    const res = await A.signIn();
+    if(!res.ok){ b.disabled = false; $("signCardErr").textContent = res.msg; $("signCardErr").hidden = false; }
   });
   $("acEditBtn").addEventListener("click", startEdit);
   $("acOutBtn").addEventListener("click", async ()=>{ await A.signOut(); close(); });
