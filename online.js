@@ -21,6 +21,12 @@
   const T = +(q.get("t") || 20);              // seconds per word
   const REVEAL_SECS = +(q.get("rv") || 4);    // pause on the answer between rounds
   const NOBOTS = q.get("bots") === "0";
+  // Challenge a friend: a private room has its own beacon, waits for the host to press Start, and is always unranked.
+  const ROOM_BEACON = "reveal-br-v1-room-";
+  const roomCode = s => String(s||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);
+  let ROOM = roomCode(q.get("room")); if(ROOM.length < 4) ROOM = "";
+  const roomLink = () => location.origin + location.pathname + "?room=" + ROOM + "&src=friend";
+  const tmode = () => ranked ? "ranked" : ROOM ? "room" : "br";
 
   const AV = ["#c7f58b","#8fd3ff","#ffc98b","#d9a7ff","#ff9fb0","#7fe0c4","#f6e27a","#b3c7ff","#ffb38a","#a8f0a0","#f0a8e0","#9be7ff"];
   const avColor = name => { let h=0; for(const c of name) h=(h*31+c.charCodeAt(0))>>>0; return AV[h%AV.length]; };
@@ -56,6 +62,7 @@
     $("me").hidden = false; $("meName").textContent = myName;
     $("meState").textContent = st.phase==="lobby" ? "In lobby" : st.phase==="over" ? ordinal(st.place||1)+" place" : st.out ? "Out" : "Still in";
     if(st.phase==="lobby"){ overCounted = false; return drawLobby(); }
+    if(prev==="lobby" && window.REVEAL_TRACK) REVEAL_TRACK.start(tmode());
     clearInterval(lobbyTimer);
     // Ranked updates arrive about twice a second with the same phase, so only (re)draw what changed.
     // Restarting the 3-2-1 or rebuilding the tiles on every update made the screen jump.
@@ -94,6 +101,7 @@
       const won = st.place===1;
       if(!overCounted){   // count the match in your records (synced to your account next time the menu opens)
         overCounted = true;
+        if(window.REVEAL_TRACK) REVEAL_TRACK.finish(tmode());
         const bump = k => store.set(k, String(+(store.get(k)||0)+1));
         bump("reveal-games"); bump("reveal-br-matches"); if(won) bump("reveal-br-wins");
       }
@@ -120,6 +128,18 @@
     show("lobby");
     $("hostNote1").hidden = !isHost;
     const humans = st.players.filter(p=>!p.bot).length;
+    const room = st.room || "";
+    $("roomBox").hidden = !room; $("lobbyClock").hidden = !!room; $("roomStart").hidden = !(room && isHost);
+    $("lobbyEyebrow").textContent = room ? "Friend room · unranked" : "Match starts in";
+    if(room){
+      $("roomCode").textContent = room;
+      $("lobbyNote").textContent = (humans>1 ? `${humans} players in the room. ` : "Waiting for friends to join. ")
+        + (isHost ? "Press Start when everyone's in. Bots fill the empty seats." : "The host starts the match.");
+      const nowSet = new Set(st.players.map(p=>p.n));
+      setHTML($("bubbles"), st.players.map(p=>`<span class="bub${p.n===myName?" mine":""}${lastBubbles.has(p.n)?"":" fresh"}">${avHTML(p)}${esc(p.n)}${p.bot?' <small>BOT</small>':""}</span>`).join(""));
+      lastBubbles = nowSet; clearInterval(lobbyTimer);
+      return;
+    }
     let note = humans>1 ? `${humans} players found. Bots fill the empty seats when the match starts.` : "Waiting for more players. Bots fill the empty seats when the match starts.";
     if(ranked) note += humans>=3 ? " This match counts for rating." : ` ${3-humans} more signed-in player${3-humans>1?"s":""} and it counts for rating.`;
     $("lobbyNote").textContent = note;
@@ -212,6 +232,7 @@
   $("lostBtn").addEventListener("click", ()=>{ teardown(); find(); });
 
   function find(){
+    if(ROOM) return findRoom();
     if(rankedOn()) return findRanked();
     teardown(); searching = true; show("searching"); $("findErr").hidden = true;
     $("searchNote").textContent = "Looking for players online.";
@@ -234,37 +255,93 @@
   }
 
   // Someone holds the beacon: ask it for the host's game id.
-  function joinBeacon(slot){
+  function joinBeacon(slot, beaconId, onFail){
     const me = newPeer();
     let done = false;
-    const next = () => { if(done) return; done = true; drop(me); trySlot(slot+1); };
+    const fail = onFail || (()=>trySlot(slot+1));
+    const next = () => { if(done) return; done = true; drop(me); fail(); };
     const giveUp = setTimeout(next, 6000);
     me.on("open", ()=>{
-      const c = me.connect(BEACON + slot, {reliable:true});
+      const c = me.connect(beaconId || BEACON + slot, {reliable:true});
       c.on("open", ()=>c.send({t:"seek"}));
       c.on("data", m=>{
         if(done) return;
-        if(m.t==="host"){ done = true; clearTimeout(giveUp); try{ c.close(); }catch(e){} joinGame(me, m.id, slot); }
+        if(m.t==="host"){ done = true; clearTimeout(giveUp); try{ c.close(); }catch(e){} joinGame(me, m.id, slot, onFail); }
         else if(m.t==="full") { clearTimeout(giveUp); next(); }
       });
     });
-    me.on("error", err=>{ if(!done && (err.type==="peer-unavailable")){ clearTimeout(giveUp); done = true; drop(me); trySlot(slot); } else if(!done && !conn){ clearTimeout(giveUp); next(); } });
+    me.on("error", err=>{ if(!done && (err.type==="peer-unavailable")){ clearTimeout(giveUp); done = true; drop(me); onFail ? findRoom() : trySlot(slot); } else if(!done && !conn){ clearTimeout(giveUp); next(); } });
   }
 
-  function joinGame(me, hostId, slot){
+  function joinGame(me, hostId, slot, onFail){
     $("searchNote").textContent = "Lobby found. Joining…";
     const c = me.connect(hostId, {reliable:true});
     let joined = false;
-    const giveUp = setTimeout(()=>{ if(!joined){ drop(me); trySlot(slot+1); } }, 8000);
+    const fail = onFail || (()=>trySlot(slot+1));
+    const giveUp = setTimeout(()=>{ if(!joined){ drop(me); fail(); } }, 8000);
     c.on("open", ()=>c.send({t:"hello", name:myName, token, av:myAv}));
     c.on("data", m=>{
-      if(m.t==="full"){ clearTimeout(giveUp); drop(me); return trySlot(slot+1); }
+      if(m.t==="full"){ clearTimeout(giveUp); drop(me); return fail(); }
       if(m.t==="welcome"){ joined = true; clearTimeout(giveUp); searching = false; conn = c; myName = m.name; send = x=>{ try{ c.send(x); }catch(e){} }; return; }
       if(joined) onMsg(m);
     });
     c.on("close", ()=>{ if(joined && conn===c && !(st && st.phase==="over")) hostLost(); });
     me.on("disconnected", ()=>{ try{ me.reconnect(); }catch(e){} });
   }
+  // ============ CHALLENGE A FRIEND (private room, unranked) ============
+  let roomTries = 0;
+  function roomName(){
+    if(rankedOn()) return AU.state().profile.username;
+    return $("nameIn").value.trim().replace(/\s+/g," ");
+  }
+  function findRoom(){
+    const name = roomName();
+    if(!name){ show("find"); $("nameIn").focus(); return findErr("Enter your name so your friends know it's you."); }
+    store.set("reveal-name", name); myName = name;
+    teardown(); searching = true; show("searching"); $("findErr").hidden = true;
+    $("searchNote").textContent = "Opening room " + ROOM + "…";
+    if(++roomTries > 3){ roomTries = 0; return findErr("Couldn't open that room. Check your internet and try again."); }
+    const claim = newPeer(ROOM_BEACON + ROOM);
+    claim.on("open", ()=>{ if(searching){ roomTries = 0; becomeHost(claim, -1); } else drop(claim); });
+    claim.on("error", err=>{
+      drop(claim);
+      if(!searching) return;
+      if(err.type==="unavailable-id") joinBeacon(-1, ROOM_BEACON + ROOM, ()=>{ roomTries = 0; findErr("That room has already started or is full. Ask your friend for a new link, or start your own."); });
+      else findErr("Couldn't reach the match server (" + err.type + "). Check your internet and try again.");
+    });
+  }
+  function newRoom(){
+    const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    ROOM = Array.from({length:5}, ()=>A[Math.random()*A.length|0]).join("");
+    try{ history.replaceState(null, "", "?room=" + ROOM); }catch(e){}
+    paintRoom();
+    findRoom();
+  }
+  function paintRoom(){
+    paintRH();
+    $("friendRow").hidden = !!ROOM;
+    $("invited").hidden = !ROOM;
+    if(ROOM){
+      $("rankedBox").hidden = true; $("guestNote").hidden = true; $("findForm").hidden = false;
+      $("modeTag").textContent = "Friend room";
+      $("findBtn").textContent = "Join the room";
+      const p = rankedOn() && AU.state().profile;
+      $("nameIn").readOnly = !!p; if(p) $("nameIn").value = p.username;
+    }
+  }
+  $("roomBtn").addEventListener("click", ()=>{
+    if(!roomName()){ $("nameIn").focus(); return findErr("Enter your name first, then challenge a friend."); }
+    newRoom();
+  });
+  $("roomShare").addEventListener("click", e=>REVEAL_END.share ? shareRoom(e.currentTarget) : null);
+  async function shareRoom(btn){
+    const text = `Join my REVEAL room ${ROOM}. Last one standing wins!`, url = roomLink();
+    try{ if(navigator.share){ await navigator.share({ text, url }); return; } }catch(e){ if(e && e.name==="AbortError") return; }
+    try{ await navigator.clipboard.writeText(text + "\n" + url); const o = btn.textContent; btn.textContent = "Link copied! Paste it to your friends"; setTimeout(()=>btn.textContent = o, 2400); }
+    catch(e){ prompt("Copy this link for your friends:", url); }
+  }
+  $("roomStart").addEventListener("click", ()=>{ if(H && H.phase==="lobby"){ H.startAt = performance.now(); $("roomStart").disabled = true; } });
+
   // ============ RANKED (server-run) ============
   let ranked = null;
   const AU = window.REVEAL_AUTH;
@@ -279,7 +356,7 @@
       $("rkAv").innerHTML = okAv(p.avatar) ? AVS.svg(p.avatar) : "";
     }
   }
-  if(AU) AU.on(paintFind);
+  if(AU) AU.on(s=>{ paintFind(s); paintRoom(); }); else paintRoom();
   $("rankedBtn").addEventListener("click", ()=>find());
 
   // ---- players online (supabase/online.sql) ----
@@ -305,7 +382,7 @@
     const n = Math.max(1, live.online);   // you're online too
     setHTML($("plOnline"), n===1 ? "<b>1</b> player online now" : `<b>${n}</b> players online now`);
     const sub = $("plRanked");
-    sub.hidden = !rankedOn();
+    sub.hidden = !rankedOn() || !!ROOM;
     if(sub.hidden) return;
     const paint = ()=>{
       const left = liveStarts ? Math.ceil((liveStarts - performance.now())/1000) : 0;
@@ -323,6 +400,16 @@
     if(liveStarts) pulseTick = setInterval(paint, 1000);
   }
   document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) pulse(); });
+
+  // Ranked Hour (daily.js): every day at the same time, so ranked players meet each other instead of bots.
+  function paintRH(){
+    const RH = window.REVEAL_RANKED_HOUR, el = $("rhLine"); if(!RH || ROOM){ el.hidden = true; return; }
+    const i = RH.info(); el.hidden = false; el.classList.toggle("live", i.live);
+    setHTML(el, i.live
+      ? `<b>Ranked Hour is live.</b> Most ranked players are on now, for another ${RH.span(i.endsIn)}.`
+      : `<b>Ranked Hour:</b> every day at ${RH.clock(i.at)} (your time) for an hour. Most players join then${i.startsIn <= 3*3600000 ? `. Starts in ${RH.span(i.startsIn)}.` : "."}`);
+  }
+  paintRH(); setInterval(paintRH, 30000);
   if(AU) AU.on(()=>drawPulse());
   pulse();
 
@@ -388,7 +475,8 @@
     searching = false; isHost = true;
     $("searchNote").textContent = "Opening a new lobby…";
     const game = newPeer();
-    H = { beacon, game, phase:"lobby", players:[], nextId:1, startAt:performance.now()+LOBBY_SECS*1000, round:0, words:[], cur:null, total:0 };
+    H = { beacon, game, phase:"lobby", players:[], nextId:1, startAt: slot < 0 ? Infinity : performance.now()+LOBBY_SECS*1000, round:0, words:[], cur:null, total:0, room: slot < 0 ? ROOM : "" };
+    $("roomStart").disabled = false;
     const meP = { id:0, name:myName, bot:false, local:true, out:false, av:myAv };
     H.players.push(meP);
     send = m => hostHandle(meP, m);
@@ -559,7 +647,7 @@
       // "l" = locked in (answered, right or wrong). Correctness stays hidden until the round ends.
       players: H.players.map(x=>({ n:x.name, a:x.av||null, bot:!!x.bot, out:!!x.out, l:!!(x.rd && (x.rd.correct || x.rd.failed) && H.phase==="play") })),
       locked: H.phase==="play" ? alivePlayers().filter(x=>x.rd && (x.rd.correct || x.rd.failed)).length : 0 };
-    if(H.phase==="lobby") return Object.assign(base, { startsIn: Math.max(0,(H.startAt-performance.now())/1000) });
+    if(H.phase==="lobby") return Object.assign(base, H.room ? { room:H.room, startsIn:0 } : { startsIn: Math.max(0,(H.startAt-performance.now())/1000) });
     if(H.phase==="over") return Object.assign(base, { place:p.place||1, outRound:p.outRound||0, winner:H.winner, coWin: alivePlayers().length>1 });
     return Object.assign(base, {
       round:H.round, len:c.n, hint:c.hint, pattern:pattern(), left:timeLeft(), showdown:c.showdown,

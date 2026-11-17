@@ -130,13 +130,14 @@ header{min-height:36px}
 body:has(#start:not([hidden])) header{display:none}
 .seg4 label{min-width:70px}
 </style>
-<link rel="stylesheet" href="stage.css?v=20261117d">
+<link rel="stylesheet" href="stage.css?v=20261117e">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
-<link rel="stylesheet" href="theme.css?v=20261117d">
-<link rel="stylesheet" href="drama.css?v=20261117d">
-<link rel="stylesheet" href="look.css?v=20261117d">
+<link rel="stylesheet" href="theme.css?v=20261117e">
+<link rel="stylesheet" href="drama.css?v=20261117e">
+<link rel="stylesheet" href="look.css?v=20261117e">
 <style>#play.stage{--ring:80px}</style>
-<script src="exit.js?v=20261117d"></script>
+<script src="track.js?v=20261117e"></script>
+<script src="exit.js?v=20261117e"></script>
 </head>
 <body>
 
@@ -297,7 +298,7 @@ body:has(#start:not([hidden])) header{display:none}
   </section>
 </div>
 
-<script src="words.js?v=20261117d"></script>
+<script src="words.js?v=20261117e"></script>
 <script>
 
 const UI = {
@@ -378,6 +379,7 @@ function newGame(daily){
   const T = daily ? REVEAL_DAILY.T : +document.querySelector('input[name=time]:checked').value;
   const level=document.querySelector('input[name=level]:checked').value;
   S = { T, daily, words: daily ? REVEAL_DAILY.words() : pickWords(ROUNDS, level), i:-1, score:0, streak:0, log:[] };
+  window.REVEAL_TRACK && REVEAL_TRACK.start(daily ? "daily" : "solo");
   $("lbView").hidden=true;
   window.REVEAL_DRAMA && REVEAL_DRAMA.combo(0);
   $("start").hidden=true; $("end").hidden=true; $("play").hidden=false; $("stats").hidden=false; $("exitSlot").hidden=false;
@@ -487,6 +489,7 @@ function records(got){
 function endGame(){
   $("play").hidden=true; $("end").hidden=false; $("stats").hidden=true; $("exitSlot").hidden=true;
   $("final").textContent=S.score;
+  window.REVEAL_TRACK && REVEAL_TRACK.finish(S.daily ? "daily" : "solo");
   const got=S.log.filter(l=>l.kind==="right").length;
   store.set("reveal-games", String(+(store.get("reveal-games")||0)+1));
   $("dailyEnd").hidden = !S.daily; $("rank").hidden = !!S.daily; $("bestGap").hidden = !!S.daily;
@@ -517,7 +520,8 @@ function dailyEnd(got){
   const first = !D.result();
   if(first) D.saveResult({ score:S.score, solved:got, time_ms, grid:S.grid });
   const r = D.result();
-  $("endNote").textContent = `Daily Challenge · ${D.niceDate(D.today())} · ${got} of ${D.N} solved in ${(r.time_ms/1000).toFixed(1)}s`;
+  const stk = D.streak();
+  $("endNote").textContent = `Daily Challenge · ${D.niceDate(D.today())} · ${got} of ${D.N} solved in ${(r.time_ms/1000).toFixed(1)}s` + (stk > 1 ? ` · 🔥 ${stk}-day streak` : stk === 1 ? " · Streak started. Come back tomorrow!" : "");
   countUp($("final"), S.score);
   $("grid").textContent = S.grid;
   S.title = "Daily Challenge";
@@ -570,7 +574,10 @@ function paintDaily(){
   const r = D.result(), st = D.streak();
   $("dailyDate").textContent = D.niceDate(D.today());
   $("dailyTitle").textContent = r ? `Done: ${r.score} points` : `${D.N} words`;
-  $("dailySub").textContent = (st ? `${st}-day streak · ` : "") + (r ? `See where you rank · new words in ${D.hms(D.msToReset())}` : `Easy to hard · ${D.T} s each · one try`);
+  // Streak (Lin, 17 Nov): shown up front so people come back tomorrow; before today's game it's "keep it alive".
+  $("dailySub").textContent = r
+    ? (st ? `🔥 ${st}-day streak · ` : "") + `See where you rank · new words in ${D.hms(D.msToReset())}`
+    : st ? `🔥 ${st}-day streak · play today to keep it` : `Easy to hard · ${D.T} s each · one try`;
   $("dailyBtn").classList.toggle("done", !!r);
 }
 $("dailyBtn").addEventListener("click", async ()=>{
@@ -609,7 +616,7 @@ function countUp(el, to){
   (function f(now){ const k=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-k,3); el.textContent=Math.round(to*e); if(k<1) requestAnimationFrame(f); })(t0);
 }
 const shareText = ()=>S.daily
-  ? `REVEAL Daily ${REVEAL_DAILY.niceDate(REVEAL_DAILY.today())}: ${S.score} points\n${S.grid}\nSame ${REVEAL_DAILY.N} words for everyone today. Can you beat me?`
+  ? `REVEAL Daily ${REVEAL_DAILY.niceDate(REVEAL_DAILY.today())}: ${S.score} points${REVEAL_DAILY.streak()>1 ? ` · 🔥 ${REVEAL_DAILY.streak()}-day streak` : ""}\n${S.grid}\nSame ${REVEAL_DAILY.N} words for everyone today. Can you beat me?`
   : `REVEAL. I scored ${S.score} · ${S.title}\n${S.grid}\nThink fast. Guess faster. Can you beat me?`;
 $("share").addEventListener("click",e=>REVEAL_END.share(shareText(), e.currentTarget));
 addEventListener("DOMContentLoaded", ()=>$("share").parentElement.after(REVEAL_END.bar(shareText)));
@@ -639,29 +646,40 @@ const savedTime=store.get("reveal-time-v2");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
 applyUI(); demo();
 </script>
-<script src="stage.js?v=20261117d"></script>
-<script src="drama.js?v=20261117d"></script>
-<script src="daily.js?v=20261117d"></script>
+<script src="stage.js?v=20261117e"></script>
+<script src="drama.js?v=20261117e"></script>
+<script src="daily.js?v=20261117e"></script>
 <script src="vendor/supabase-js-2.118.0.min.js"></script>
-<script src="avatars.js?v=20261117d"></script>
-<script src="auth.js?v=20261117d"></script>
-<script src="account.js?v=20261117d"></script>
+<script src="avatars.js?v=20261117e"></script>
+<script src="auth.js?v=20261117e"></script>
+<script src="account.js?v=20261117e"></script>
 <script>
 // Ranked Play button: show how many people are on the Battle Royale page right now (supabase/online.sql).
 // Read-only here: the home screen doesn't count itself as online. Stays as plain text if the SQL isn't set up.
+// Also shows the nightly Ranked Hour (daily.js) with a countdown when it's close.
 (function(){
-  const AU = window.REVEAL_AUTH, el = document.getElementById("rankedSub");
-  if(!AU || !el || !AU.state().available) return;
+  const AU = window.REVEAL_AUTH, RH = window.REVEAL_RANKED_HOUR, el = document.getElementById("rankedSub");
+  if(!el) return;
+  let live = null;
+  function paint(){
+    const hour = RH ? RH.info() : null, lbl = RH ? RH.label() : "";
+    const n = live && live.online > 0 ? live.online : 0;
+    let text;
+    if(hour && hour.live) text = n ? `${lbl} · ${n} online` : lbl;
+    else if(live && live.waiting > 0) text = `${live.waiting} in a ranked lobby now`;
+    else text = lbl || (n ? `Online Battle Royale · ${n} online now` : "Online Battle Royale · last one standing");
+    el.textContent = text;
+    document.getElementById("rankedBtn").classList.toggle("rh-live", !!(hour && hour.live));
+  }
   async function liveCount(){
     if(document.hidden) return;
-    const { data, error } = await AU.rpc("rk_activity");
-    if(error || !data || typeof data.online !== "number") return;
-    const lobby = data.waiting > 0 ? `${data.waiting} in a ranked lobby now` : "";
-    el.textContent = data.online > 0
-      ? `Online Battle Royale · ${lobby || data.online + " online now"}`
-      : "Online Battle Royale · last one standing";
+    if(AU && AU.state().available){
+      const { data, error } = await AU.rpc("rk_activity");
+      if(!error && data && typeof data.online === "number") live = data;
+    }
+    paint();
   }
-  liveCount(); setInterval(liveCount, 30000);
+  paint(); liveCount(); setInterval(liveCount, 30000); setInterval(paint, 30000);
   document.addEventListener("visibilitychange", liveCount);
 })();
 </script>
