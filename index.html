@@ -350,14 +350,18 @@ let demoTimer=0;
 function demo(){
   const w="REVEAL";
   $("demo").innerHTML=[...w].map(c=>tileHTML(c,false)).join("");
-  const tiles=[...$("demo").children]; tiles[0].classList.add("open"); tiles[1].classList.add("open");
-  const order=[2,3,4,5]; let k=0;
+  const tiles=[...$("demo").children];
+  // fresh random order every cycle: two tiles start open, the rest flip open one by one
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+  let order=[], k=0;
+  const reset=()=>{ order=shuffle(tiles.map((_,i)=>i)); tiles.forEach((el,i)=>el.classList.toggle("open", i===order[0]||i===order[1])); k=2; };
+  reset();
   clearInterval(demoTimer);
   if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   demoTimer=setInterval(()=>{
     if($("start").hidden) return;
     if(k<order.length){ tiles[order[k++]].classList.add("open"); }
-    else { tiles.forEach((el,i)=>{ if(i>1) el.classList.remove("open"); }); k=0; }
+    else { tiles.forEach(el=>el.classList.remove("open")); setTimeout(()=>{ if(!$("start").hidden) reset(); },500); }
   },1400);
 }
 
