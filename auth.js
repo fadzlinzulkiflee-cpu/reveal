@@ -47,6 +47,7 @@ window.REVEAL_AUTH = (function(){
     const changed = (user && user.id) !== (S.user && S.user.id);
     S.user = user || null;
     if(changed || !S.loaded){ await loadProfile(); }
+    if(S.user && window.REVEAL_TRACK) REVEAL_TRACK.signin(S.user.id);
     S.loaded = true; emit();
   }
 
@@ -81,11 +82,13 @@ window.REVEAL_AUTH = (function(){
     const bad = nameProblem(username); if(bad) return { ok:false, msg:bad };
     if(!window.REVEAL_AVATARS || !REVEAL_AVATARS.has(avatar)) avatar = "nova";
     const row = { username, avatar, updated_at:new Date().toISOString() };
+    const isNew = !S.profile;
     const q = S.profile
       ? sb.from("profiles").update(row).eq("id", S.user.id)
       : sb.from("profiles").insert(Object.assign({ id:S.user.id, stats:localStats() }, row));
     const { error } = await q;
     if(error) return { ok:false, msg: error.code === "23505" ? "That name is taken. Try another." : "Couldn't save right now. Try again." };
+    if(isNew && window.REVEAL_TRACK) REVEAL_TRACK.signup();
     await loadProfile(); emit();
     return { ok:true };
   }

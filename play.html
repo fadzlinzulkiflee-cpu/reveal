@@ -25,8 +25,8 @@
 <meta name="apple-mobile-web-app-title" content="REVEAL">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="party.css?v=20261117d">
-<link rel="stylesheet" href="stage.css?v=20261117d">
+<link rel="stylesheet" href="party.css?v=20261117e">
+<link rel="stylesheet" href="stage.css?v=20261117e">
 <style>
 /* Layout: one phone column; header with room + score, one card that changes with the game phase. */
 .wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px;
@@ -64,9 +64,9 @@ form.join input{width:100%}
 .standings .st{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#A9BBAC}
 .stlbl{margin:10px 0 0;text-align:left}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261117d">
-<link rel="stylesheet" href="drama.css?v=20261117d">
-<link rel="stylesheet" href="look.css?v=20261117d">
+<link rel="stylesheet" href="theme.css?v=20261117e">
+<link rel="stylesheet" href="drama.css?v=20261117e">
+<link rel="stylesheet" href="look.css?v=20261117e">
 </head>
 <body>
 <div class="wrap">
@@ -145,8 +145,9 @@ form.join input{width:100%}
 </div>
 
 <script src="vendor/peerjs-1.5.4.min.js"></script>
-<script src="net.js?v=20261117d"></script>
-<script src="exit.js?v=20261117d"></script>
+<script src="track.js?v=20261117e"></script>
+<script src="net.js?v=20261117e"></script>
+<script src="exit.js?v=20261117e"></script>
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -213,7 +214,7 @@ function connect(code, name){
 }
 
 function onMsg(m){
-  if(m.t==="welcome"){ $("me").hidden=false; $("meName").textContent=m.name; return; }
+  if(m.t==="welcome"){ $("me").hidden=false; $("meName").textContent=m.name; window.REVEAL_TRACK && REVEAL_TRACK.start("join"); return; }
   if(m.t==="result") return onResult(m);
   if(m.t==="full"){ joined=false; return joinErr(`This Royale is full (${m.max} players). Wait for the next game.`); }
   if(m.t!=="state") return;
@@ -360,8 +361,8 @@ addEventListener("DOMContentLoaded", ()=>$("shareBtn").after(REVEAL_END.bar(()=>
 $("startBtn").addEventListener("click", ()=>conn && conn.send({t:"start"}));
 $("nextBtn").addEventListener("click", ()=>conn && conn.send({t:"next"}));
 </script>
-<script src="stage.js?v=20261117d"></script>
-<script src="drama.js?v=20261117d"></script>
+<script src="stage.js?v=20261117e"></script>
+<script src="drama.js?v=20261117e"></script>
 <!-- Cloudflare Web Analytics: cookie-free visit counts --><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "ceaa5e1436764861bf9d4f2a0235b555"}'></script>
 </body>
 </html>

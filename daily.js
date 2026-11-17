@@ -2,8 +2,31 @@
 // Leaderboard storage: Supabase table `daily_scores` (see README). Only the public publishable key is used here.
 window.REVEAL_CONFIG = Object.assign({
   supabaseUrl: "https://nnvgopfuenajnioiqmdk.supabase.co",
-  supabaseKey: "sb_publishable_87f_38eIrLHXX6a3Jb71rA_kjm3WLEN"
+  supabaseKey: "sb_publishable_87f_38eIrLHXX6a3Jb71rA_kjm3WLEN",
+  // Ranked Hour (Lin, 17 Nov): every day 9–10 pm Malaysia time (13:00–14:00 UTC), so ranked players meet at the same time.
+  rankedHour: { utcHour: 13, minutes: 60 }
 }, window.REVEAL_CONFIG || {});
+
+// Ranked Hour helper: is it on now, and when is the next one (shown in the player's own time zone)?
+window.REVEAL_RANKED_HOUR = (function(){
+  const RH = window.REVEAL_CONFIG.rankedHour;
+  function startOf(d){ return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), RH.utcHour); }
+  function info(now = Date.now()){
+    const len = RH.minutes * 60000, today = startOf(new Date(now));
+    if(now >= today && now < today + len) return { live:true, endsIn: today + len - now };
+    const next = now < today ? today : today + 86400000;
+    return { live:false, startsIn: next - now, at: new Date(next) };
+  }
+  const clock = d => d.toLocaleTimeString([], { hour:"numeric", minute:"2-digit" });
+  const span = ms => { const m = Math.max(1, Math.ceil(ms/60000)); return m >= 60 ? `${Math.floor(m/60)}h ${String(m%60).padStart(2,"0")}m` : `${m} min`; };
+  // Short line for buttons: "Ranked Hour live now" / "Ranked Hour in 2h 05m" / "Ranked Hour daily at 9:00 PM"
+  function label(now){
+    const i = info(now);
+    if(i.live) return "Ranked Hour is live now";
+    return i.startsIn <= 3*3600000 ? `Ranked Hour in ${span(i.startsIn)}` : `Ranked Hour daily at ${clock(i.at)}`;
+  }
+  return { info, label, clock, span };
+})();
 
 window.REVEAL_DAILY = (function(){
   const COUNT = { easy:3, medium:4, hard:3 }, T = 20, N = COUNT.easy + COUNT.medium + COUNT.hard;   // 10 words, 20 s each (Lin)

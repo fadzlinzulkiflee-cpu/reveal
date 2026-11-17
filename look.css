@@ -343,3 +343,8 @@
 /* Exit button in the brand green (Lin) */
 :root:not(#_) .exitbtn{color:#C7F58B;border-color:rgba(199,245,139,.55);background:rgba(199,245,139,.08)}
 :root:not(#_) .exitbtn:hover,:root:not(#_) .exitbtn:focus-visible{color:#17231D;background:#C7F58B;border-color:#C7F58B}
+
+/* Ranked Hour live: a small pulsing lime dot before the Ranked Play subtitle */
+:root:not(#_) .mode.rh-live small#rankedSub::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--lime,#C7F58B);margin-right:6px;vertical-align:1px;animation:rhDot 2.4s ease-in-out infinite}
+@keyframes rhDot{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){:root:not(#_) .mode.rh-live small#rankedSub::before{animation:none}}
