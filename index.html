@@ -130,13 +130,13 @@ header{min-height:36px}
 body:has(#start:not([hidden])) header{display:none}
 .seg4 label{min-width:70px}
 </style>
-<link rel="stylesheet" href="stage.css?v=20261116zh">
+<link rel="stylesheet" href="stage.css?v=20261117a">
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
-<link rel="stylesheet" href="theme.css?v=20261116zh">
-<link rel="stylesheet" href="drama.css?v=20261116zh">
-<link rel="stylesheet" href="look.css?v=20261116zh">
+<link rel="stylesheet" href="theme.css?v=20261117a">
+<link rel="stylesheet" href="drama.css?v=20261117a">
+<link rel="stylesheet" href="look.css?v=20261117a">
 <style>#play.stage{--ring:80px}</style>
-<script src="exit.js?v=20261116zh"></script>
+<script src="exit.js?v=20261117a"></script>
 </head>
 <body>
 
@@ -169,7 +169,7 @@ body:has(#start:not([hidden])) header{display:none}
       <button class="daily-card mode m-daily" id="dailyBtn" type="button"><i class="mi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h1V3a1 1 0 0 1 1-1zM4 10v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-9H4zm4 3h3v3H8v-3z"/></svg></i><span class="mt"><b>Daily Play</b><small><span id="dailyDate"></span> · <span id="dailyTitle">10 words</span></small><small id="dailySub"></small></span></button>
       <button class="mode m-solo" id="go" type="button"><i class="mi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13.5 2 4 13.5h6.5L9 22l11-12.5h-6.7z"/></svg></i><span class="mt"><b>Solo</b><small id="goSub">Mixed · 30 s</small></span></button>
       <a class="mode m-local" href="host.html"><i class="mi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 6h14a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3zm3.3-4.7L12 4.6l3.7-3.3 1.3 1.5L13.6 6h-3.2L7 2.8z"/></svg></i><span class="mt"><b>Play Locally</b><small>One phone hosts, friends scan to join</small></span></a>
-      <a class="mode m-ranked" id="rankedBtn" href="online.html"><i class="mi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 11H5L3 7zm2 13h14v2H5z"/></svg></i><span class="mt"><b>Ranked Play <em class="badge">Beta</em></b><small>Online Battle Royale · last one standing</small></span></a>
+      <a class="mode m-ranked" id="rankedBtn" href="online.html"><i class="mi" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 11H5L3 7zm2 13h14v2H5z"/></svg></i><span class="mt"><b>Ranked Play <em class="badge">Beta</em></b><small id="rankedSub">Online Battle Royale · last one standing</small></span></a>
     </div>
     <button class="install" id="lbBtn" type="button">Today's leaderboard</button>
     <button class="install" id="install" type="button" hidden>Add REVEAL to your home screen</button>
@@ -292,7 +292,7 @@ body:has(#start:not([hidden])) header{display:none}
   </section>
 </div>
 
-<script src="words.js?v=20261116zh"></script>
+<script src="words.js?v=20261117a"></script>
 <script>
 
 const UI = {
@@ -630,13 +630,32 @@ const savedTime=store.get("reveal-time-v2");
 if(savedTime&&$("time-"+savedTime)) $("time-"+savedTime).checked=true;
 applyUI(); demo();
 </script>
-<script src="stage.js?v=20261116zh"></script>
-<script src="drama.js?v=20261116zh"></script>
-<script src="daily.js?v=20261116zh"></script>
+<script src="stage.js?v=20261117a"></script>
+<script src="drama.js?v=20261117a"></script>
+<script src="daily.js?v=20261117a"></script>
 <script src="vendor/supabase-js-2.118.0.min.js"></script>
-<script src="avatars.js?v=20261116zh"></script>
-<script src="auth.js?v=20261116zh"></script>
-<script src="account.js?v=20261116zh"></script>
+<script src="avatars.js?v=20261117a"></script>
+<script src="auth.js?v=20261117a"></script>
+<script src="account.js?v=20261117a"></script>
+<script>
+// Ranked Play button: show how many people are on the Battle Royale page right now (supabase/online.sql).
+// Read-only here: the home screen doesn't count itself as online. Stays as plain text if the SQL isn't set up.
+(function(){
+  const AU = window.REVEAL_AUTH, el = document.getElementById("rankedSub");
+  if(!AU || !el || !AU.state().available) return;
+  async function liveCount(){
+    if(document.hidden) return;
+    const { data, error } = await AU.rpc("rk_activity");
+    if(error || !data || typeof data.online !== "number") return;
+    const lobby = data.waiting > 0 ? `${data.waiting} in a ranked lobby now` : "";
+    el.textContent = data.online > 0
+      ? `Online Battle Royale · ${lobby || data.online + " online now"}`
+      : "Online Battle Royale · last one standing";
+  }
+  liveCount(); setInterval(liveCount, 30000);
+  document.addEventListener("visibilitychange", liveCount);
+})();
+</script>
 <!-- Cloudflare Web Analytics: cookie-free visit counts --><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "ceaa5e1436764861bf9d4f2a0235b555"}'></script>
 </body>
 </html>

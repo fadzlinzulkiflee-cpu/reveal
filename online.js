@@ -120,7 +120,9 @@
     show("lobby");
     $("hostNote1").hidden = !isHost;
     const humans = st.players.filter(p=>!p.bot).length;
-    $("lobbyNote").textContent = humans>1 ? `${humans} players found. Bots fill the empty seats when the match starts.` : "Waiting for more players. Bots fill the empty seats when the match starts.";
+    let note = humans>1 ? `${humans} players found. Bots fill the empty seats when the match starts.` : "Waiting for more players. Bots fill the empty seats when the match starts.";
+    if(ranked) note += humans>=3 ? " This match counts for rating." : ` ${3-humans} more signed-in player${3-humans>1?"s":""} and it counts for rating.`;
+    $("lobbyNote").textContent = note;
     const now = new Set(st.players.map(p=>p.n));
     setHTML($("bubbles"), st.players.map(p=>`<span class="bub${p.n===myName?" mine":""}${lastBubbles.has(p.n)?"":" fresh"}">${avHTML(p)}${esc(p.n)}${p.bot?' <small>BOT</small>':""}</span>`).join(""));
     lastBubbles = now;
@@ -279,6 +281,50 @@
   }
   if(AU) AU.on(paintFind);
   $("rankedBtn").addEventListener("click", ()=>find());
+
+  // ---- players online (supabase/online.sql) ----
+  // Every open page says "I'm here" about every 20 s with a random id that isn't tied to the player, and gets back
+  // how many people are on this page, how many signed-in players are waiting in a ranked lobby or playing ranked,
+  // and when the open ranked lobby starts. If the SQL hasn't been run yet the strip just stays hidden.
+  let pulseId = store.get("reveal-pulse");
+  if(!/^[a-z0-9]{10,40}$/.test(pulseId||"")){ pulseId = Array.from({length:20},()=>"abcdefghijklmnopqrstuvwxyz0123456789"[Math.random()*36|0]).join(""); store.set("reveal-pulse", pulseId); }
+  let live = null, liveStarts = 0, pulseTimer = 0, pulseTick = 0;
+  async function pulse(){
+    clearTimeout(pulseTimer);
+    pulseTimer = setTimeout(pulse, 20000);
+    if(document.hidden || !AU || !AU.state().available) return;
+    const { data, error } = await AU.rpc("rk_activity", { me:pulseId });
+    if(error || !data || typeof data.online !== "number") return;
+    live = data; liveStarts = data.starts != null ? performance.now() + data.starts*1000 : 0;
+    drawPulse();
+  }
+  function drawPulse(){
+    clearInterval(pulseTick);
+    if(!live) return;
+    $("pulse").hidden = false;
+    const n = Math.max(1, live.online);   // you're online too
+    setHTML($("plOnline"), n===1 ? "<b>1</b> player online now" : `<b>${n}</b> players online now`);
+    const sub = $("plRanked");
+    sub.hidden = !rankedOn();
+    if(sub.hidden) return;
+    const paint = ()=>{
+      const left = liveStarts ? Math.ceil((liveStarts - performance.now())/1000) : 0;
+      const w = live.waiting, pl = live.playing, parts = [];
+      if(w > 0 && left > 1){
+        parts.push(`<b>${w}</b> waiting in a ranked lobby. Next match starts in <b>${left} s</b>.`);
+        if(w >= 2) parts.push("Join now and it counts for rating.");
+      } else {
+        parts.push("No ranked lobby open right now. Join and yours starts in 20 s.");
+      }
+      if(pl > 0) parts.push(`<b>${pl}</b> playing ranked now.`);
+      setHTML(sub, parts.join(" "));
+    };
+    paint();
+    if(liveStarts) pulseTick = setInterval(paint, 1000);
+  }
+  document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) pulse(); });
+  if(AU) AU.on(()=>drawPulse());
+  pulse();
 
   async function findRanked(){
     teardown(); show("searching"); $("findErr").hidden = true;
