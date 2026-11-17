@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>REVEAL Big Screen</title>
+<title>REVEAL · Play with Friends &amp; Family</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="description" content="Play REVEAL with friends: one phone hosts, everyone scans to join.">
+<meta name="description" content="Play REVEAL with friends and family in a private room: one phone hosts and sets the rules, everyone joins with a link or code.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="REVEAL">
-<meta property="og:title" content="REVEAL · Play Locally">
-<meta property="og:description" content="Play REVEAL with friends: one phone hosts, everyone scans to join.">
+<meta property="og:title" content="REVEAL · Play with Friends &amp; Family">
+<meta property="og:description" content="Play REVEAL with friends and family in a private room: one phone hosts and sets the rules, everyone joins with a link or code.">
 <meta property="og:url" content="https://playreveal.app/host.html">
 <meta property="og:image" content="https://playreveal.app/icons/og.png">
 <meta property="og:image:width" content="1200">
@@ -25,8 +25,8 @@
 <meta name="apple-mobile-web-app-title" content="REVEAL">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="party.css?v=20261117e">
-<link rel="stylesheet" href="stage.css?v=20261117e">
+<link rel="stylesheet" href="party.css?v=20261117f">
+<link rel="stylesheet" href="stage.css?v=20261117f">
 <style>
 /* Layout: TV-first. Main stage on the left, players rail on the right; stacks on narrow screens. */
 body{font-size:clamp(16px,1.25vw,22px)}
@@ -98,7 +98,7 @@ body{font-size:clamp(16px,1.25vw,22px)}
 .alt{font-size:.85rem;color:var(--muted);margin:0}
 .alt a{color:var(--lime,#c7f58b)}
 .joinbtn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 16px;border-radius:12px;border:1px solid rgba(199,245,139,.5);color:var(--lime,#c7f58b);font-weight:700;font-size:.9rem;text-decoration:none}
-.joinbtn[hidden]{display:none}
+.joinbtn[hidden],#shareInv[hidden]{display:none}
 body.phonehost .rail{display:none}
 body.phonehost .screen{grid-template-columns:1fr}
 body.phonehost .qr{width:min(220px,62vw)}
@@ -111,9 +111,9 @@ body.phonehost .joinurl{display:none}
 .invbox .qr{width:min(240px,64vw)}
 .invbox .code{font-size:2.4rem}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261117e">
-<link rel="stylesheet" href="drama.css?v=20261117e">
-<link rel="stylesheet" href="look.css?v=20261117e">
+<link rel="stylesheet" href="theme.css?v=20261117f">
+<link rel="stylesheet" href="drama.css?v=20261117f">
+<link rel="stylesheet" href="look.css?v=20261117f">
 </head>
 <body>
 <div class="screen">
@@ -136,6 +136,7 @@ body.phonehost .joinurl{display:none}
           <div class="code" id="code">····</div>
           <a class="ghost joinbtn" href="play.html" id="joinLink" hidden>Join a friend's game with their code</a>
           <p class="joinurl" id="joinurl">Opening a room…</p>
+          <button type="button" class="ghost" id="shareInv" hidden>Send invite link</button>
           <p class="err" id="neterr" hidden></p>
         </div>
       </div>
@@ -217,18 +218,19 @@ body.phonehost .joinurl{display:none}
 <div class="exitsheet" id="invite" hidden role="dialog" aria-modal="true" aria-label="Invite players">
   <div class="exitbox invbox">
     <h2>Invite players</h2>
-    <p>Friends scan this code. Or they open playreveal.app, tap Play Locally, then “Join a friend’s game with their code”.</p>
+    <p>Send the link, or friends scan this code. They can also open playreveal.app, tap Play with Friends &amp; Family, then “Join a friend’s game with their code”.</p>
     <div class="qr" id="invQr"></div>
     <div class="code" id="invCode"></div>
+    <button type="button" class="ghost" id="invShare" style="width:100%">Send invite link</button>
     <div class="exitrow" style="width:100%"><button type="button" class="primary" id="invClose">Done</button></div>
   </div>
 </div>
 <script src="vendor/peerjs-1.5.4.min.js"></script>
 <script src="vendor/qrcode-generator-1.4.4.js"></script>
-<script src="track.js?v=20261117e"></script>
-<script src="words.js?v=20261117e"></script>
-<script src="net.js?v=20261117e"></script>
-<script src="exit.js?v=20261117e"></script>
+<script src="track.js?v=20261117f"></script>
+<script src="words.js?v=20261117f"></script>
+<script src="net.js?v=20261117f"></script>
+<script src="exit.js?v=20261117f"></script>
 <script>
 const PARTY_ROUNDS = 10, ROYALE_MAX = 12, WRONG_COST = 50, FIRST_BONUS = 25;
 const $ = id => document.getElementById(id);
@@ -269,6 +271,8 @@ function openRoom(){
     const url = new URL("play.html?room="+H.code+(NET.passthrough?"&"+NET.passthrough:""), location.href).href;
     $("code").textContent = H.code; $("roomSmall").textContent = H.code;
     $("joinurl").textContent = url;
+    H.inviteUrl = new URL("play.html?room="+H.code+"&src=friend", location.href).href;
+    $("shareInv").hidden = false;
     const qr = qrcode(0,"M"); qr.addData(url); qr.make();
     $("qr").innerHTML = qr.createSvgTag({cellSize:6, margin:2, scalable:true});
   });
@@ -618,6 +622,16 @@ function openInvite(){
   $("invite").hidden = false; $("invClose").focus({preventScroll:true});
 }
 $("invClose").addEventListener("click", ()=>{ $("invite").hidden = true; });
+// Send the room link (WhatsApp, Messages…) so friends far away can join too
+async function shareInvite(btn){
+  if(!H.inviteUrl) return;
+  const text = `Join my REVEAL room ${H.code}. One clue, a hidden word, guess fast!`;
+  try{ if(navigator.share){ await navigator.share({ text, url:H.inviteUrl }); return; } }catch(e){ if(e && e.name==="AbortError") return; }
+  try{ await navigator.clipboard.writeText(text+"\n"+H.inviteUrl); const o=btn.textContent; btn.textContent="Link copied!"; setTimeout(()=>btn.textContent=o, 2400); }
+  catch(e){ prompt("Copy this link for your friends:", H.inviteUrl); }
+}
+$("shareInv").addEventListener("click", e=>shareInvite(e.currentTarget));
+$("invShare").addEventListener("click", e=>shareInvite(e.currentTarget));
 async function exitRoom(){
   const others = playerList().filter(p=>p.online && p!==H.self).length;
   if(others || H.phase!=="lobby"){
@@ -634,8 +648,8 @@ window.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ") && doc
 
 openRoom(); renderPlayers(); lobbyState();
 </script>
-<script src="stage.js?v=20261117e"></script>
-<script src="drama.js?v=20261117e"></script>
+<script src="stage.js?v=20261117f"></script>
+<script src="drama.js?v=20261117f"></script>
 <!-- Cloudflare Web Analytics: cookie-free visit counts --><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "ceaa5e1436764861bf9d4f2a0235b555"}'></script>
 </body>
 </html>

@@ -25,8 +25,8 @@
 <meta name="apple-mobile-web-app-title" content="REVEAL">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="party.css?v=20261117e">
-<link rel="stylesheet" href="stage.css?v=20261117e">
+<link rel="stylesheet" href="party.css?v=20261117f">
+<link rel="stylesheet" href="stage.css?v=20261117f">
 <style>
 .wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px;
   padding-block:18px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -78,12 +78,6 @@ form.find input{width:100%}
 .rhline{margin:0;font-size:.9rem;color:var(--muted);line-height:1.45}.rhline[hidden]{display:none}
 .rhline b{color:var(--ink)}.rhline.live{color:var(--ink);padding:10px 14px;border-radius:12px;border:1px solid rgba(199,245,139,.45)}
 .rhline.live b{color:var(--accent,#C7F58B)}
-/* challenge a friend: private rooms */
-.friendrow{display:grid;gap:6px;border-top:1px solid var(--line,rgba(255,255,255,.12));padding-top:14px}.friendrow[hidden]{display:none}
-.friendrow p{margin:0;font-size:.85rem}
-.roombox{display:grid;gap:10px;margin-top:6px}.roombox[hidden]{display:none}
-.roomlink{margin:0;color:var(--muted);font-weight:700}.roomlink b{font-family:var(--f-display);font-size:1.4rem;letter-spacing:.12em;color:var(--accent,#C7F58B);margin-left:6px}
-.invited{margin:0;padding:10px 14px;border-radius:12px;background:var(--surface,#23372B);font-weight:700}
 /* live "players online" strip on the find screen */
 .pulse{display:grid;gap:4px;padding:12px 14px;border-radius:14px;background:var(--surface,#23372B)}.pulse[hidden]{display:none}
 .pulse p{margin:0}
@@ -94,9 +88,9 @@ form.find input{width:100%}
 @keyframes livedot{50%{opacity:.35}}
 @media (prefers-reduced-motion: reduce){.spinner{animation-duration:3s}.bub.fresh{animation:none}.pulse .dot{animation:none}}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261117e">
-<link rel="stylesheet" href="drama.css?v=20261117e">
-<link rel="stylesheet" href="look.css?v=20261117e">
+<link rel="stylesheet" href="theme.css?v=20261117f">
+<link rel="stylesheet" href="drama.css?v=20261117f">
+<link rel="stylesheet" href="look.css?v=20261117f">
 </head>
 <body>
 <div class="wrap">
@@ -128,17 +122,12 @@ form.find input{width:100%}
       <button class="primary" type="button" id="rankedBtn">Find a ranked match</button>
       <p class="muted rknote">Rated when 3 or more signed-in players are in the match. Bots fill empty seats and never change your rating.</p>
     </div>
-    <p class="invited" id="invited" hidden>A friend invited you to a private room.</p>
     <form class="find" id="findForm" autocomplete="off">
       <input type="text" id="nameIn" maxlength="14" placeholder="Your name" aria-label="Your name" autocorrect="off">
       <button class="primary" type="submit" id="findBtn">Find a match</button>
     </form>
     <p class="muted" id="guestNote" style="font-size:.85rem;margin:0">You're playing unranked as a guest. Empty seats are filled with bots (marked BOT). <a href="./">Sign in on the home screen</a> to play ranked.</p>
     <p class="err" id="findErr" hidden></p>
-    <div class="friendrow" id="friendRow">
-      <button class="ghost" type="button" id="roomBtn">Challenge a friend</button>
-      <p class="muted">Get a private room link to send your friends. Friend rooms are unranked.</p>
-    </div>
   </section>
 
   <!-- SEARCHING -->
@@ -151,14 +140,9 @@ form.find input{width:100%}
 
   <!-- LOBBY -->
   <section class="card center" id="lobby" hidden>
-    <p class="eyebrow" id="lobbyEyebrow">Match starts in</p>
+    <p class="eyebrow">Match starts in</p>
     <div class="lobbyclock" id="lobbyClock">20</div>
     <p class="muted" id="lobbyNote"></p>
-    <div class="roombox" id="roomBox" hidden>
-      <p class="roomlink"><span>Room</span> <b id="roomCode"></b></p>
-      <button class="ghost" type="button" id="roomShare">Invite friends</button>
-      <button class="primary" type="button" id="roomStart" hidden>Start the match</button>
-    </div>
     <div class="bubbles" id="bubbles"></div>
     <p class="hostnote" id="hostNote1" hidden>You're hosting this match. Keep this screen open until it ends.</p>
   </section>
@@ -213,17 +197,17 @@ form.find input{width:100%}
 </div>
 
 <script src="vendor/peerjs-1.5.4.min.js"></script>
-<script src="track.js?v=20261117e"></script>
-<script src="net.js?v=20261117e"></script>
-<script src="words.js?v=20261117e"></script>
-<script src="avatars.js?v=20261117e"></script>
-<script src="daily.js?v=20261117e"></script>
+<script src="track.js?v=20261117f"></script>
+<script src="net.js?v=20261117f"></script>
+<script src="words.js?v=20261117f"></script>
+<script src="avatars.js?v=20261117f"></script>
+<script src="daily.js?v=20261117f"></script>
 <script src="vendor/supabase-js-2.118.0.min.js"></script>
-<script src="auth.js?v=20261117e"></script>
-<script src="online.js?v=20261117e"></script>
-<script src="stage.js?v=20261117e"></script>
-<script src="drama.js?v=20261117e"></script>
-<script src="exit.js?v=20261117e"></script>
+<script src="auth.js?v=20261117f"></script>
+<script src="online.js?v=20261117f"></script>
+<script src="stage.js?v=20261117f"></script>
+<script src="drama.js?v=20261117f"></script>
+<script src="exit.js?v=20261117f"></script>
 <script>
 // Exit (Lin): back to the menu from any screen. Mid-match it asks first, because leaving counts as out.
 document.getElementById("exitSlot").appendChild(REVEAL_EXIT.button(async ()=>{
