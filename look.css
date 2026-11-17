@@ -279,6 +279,12 @@
 :root:not(#_) .ac-note{margin:0;font-size:.85rem;text-align:center}
 :root:not(#_) .gbtn{display:flex;align-items:center;justify-content:center;gap:10px;background:#F6F8F0;color:#17231D;border:0}
 :root:not(#_) .gbtn svg{width:20px;height:20px;flex:none}
+/* Signed out: a sign-in card in the middle of the home screen (replaces the top-left chip until you sign in) */
+:root:not(#_) .signcard{width:100%;display:grid;gap:10px;padding:12px 14px;border-radius:18px;background:var(--raised,#23372B);border:1px solid rgba(199,245,139,.35);text-align:left}
+:root:not(#_) .signcard[hidden]{display:none}
+:root:not(#_) .signcard p{margin:0}
+:root:not(#_) .sc-t{font:600 .9rem var(--f-body);color:var(--muted,#A9BBAC);text-align:center}
+:root:not(#_) .signcard .gbtn{width:100%;min-height:44px;padding:10px 16px;text-transform:none;letter-spacing:0;font-size:.95rem}
 :root:not(#_) .ac-name{display:flex;align-items:center;gap:2px;background:#23372B;border:1px solid rgba(246,248,240,.14);border-radius:14px;padding:0 14px}
 :root:not(#_) .ac-name:focus-within{border-color:#C7F58B}
 :root:not(#_) .ac-name span{font:700 1.1rem var(--f-body);color:#A9BBAC}
