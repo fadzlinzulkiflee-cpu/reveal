@@ -25,8 +25,8 @@
 <meta name="apple-mobile-web-app-title" content="REVEAL">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="party.css?v=20261117h">
-<link rel="stylesheet" href="stage.css?v=20261117h">
+<link rel="stylesheet" href="party.css?v=20261118a">
+<link rel="stylesheet" href="stage.css?v=20261118a">
 <style>
 /* Layout: one phone column; header with room + score, one card that changes with the game phase. */
 .wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px;
@@ -64,9 +64,9 @@ form.join input{width:100%}
 .standings .st{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#A9BBAC}
 .stlbl{margin:10px 0 0;text-align:left}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261117h">
-<link rel="stylesheet" href="drama.css?v=20261117h">
-<link rel="stylesheet" href="look.css?v=20261117h">
+<link rel="stylesheet" href="theme.css?v=20261118a">
+<link rel="stylesheet" href="drama.css?v=20261118a">
+<link rel="stylesheet" href="look.css?v=20261118a">
 </head>
 <body>
 <div class="wrap">
@@ -145,9 +145,9 @@ form.join input{width:100%}
 </div>
 
 <script src="vendor/peerjs-1.5.4.min.js"></script>
-<script src="track.js?v=20261117h"></script>
-<script src="net.js?v=20261117h"></script>
-<script src="exit.js?v=20261117h"></script>
+<script src="track.js?v=20261118a"></script>
+<script src="net.js?v=20261118a"></script>
+<script src="exit.js?v=20261118a"></script>
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -361,8 +361,8 @@ addEventListener("DOMContentLoaded", ()=>$("shareBtn").after(REVEAL_END.bar(()=>
 $("startBtn").addEventListener("click", ()=>conn && conn.send({t:"start"}));
 $("nextBtn").addEventListener("click", ()=>conn && conn.send({t:"next"}));
 </script>
-<script src="stage.js?v=20261117h"></script>
-<script src="drama.js?v=20261117h"></script>
+<script src="stage.js?v=20261118a"></script>
+<script src="drama.js?v=20261118a"></script>
 <!-- Cloudflare Web Analytics: cookie-free visit counts --><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "ceaa5e1436764861bf9d4f2a0235b555"}'></script>
 </body>
 </html>

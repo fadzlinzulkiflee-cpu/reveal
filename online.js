@@ -275,7 +275,7 @@
   function paintFind(s){
     const p = s && s.profile;
     $("rankedBox").hidden = !p; $("findForm").hidden = !!p; $("guestNote").hidden = !!p;
-    $("modeTag").textContent = p ? "Ranked" : "Unranked";
+    $("modeTag").textContent = (p ? "Ranked" : "Unranked") + (REVEAL_LANG.get()==="ms" ? " · BM" : "");
     if(p){
       $("rkName").textContent = "@" + p.username;
       $("rkRating").textContent = `Rating ${p.rating ?? 1000} · ${AU.tier(p.rating ?? 1000)}`;
@@ -344,7 +344,9 @@
     $("searchNote").textContent = "Finding a ranked match…";
     myName = AU.state().profile.username;
     const seq = ++joinSeq;
-    const { data, error } = await AU.rpc("rk_join");
+    // Bahasa Melayu players get BM lobbies and BM ranked words (supabase/bm.sql); English calls stay as before.
+    const lang = REVEAL_LANG.get();
+    const { data, error } = lang === "ms" ? await AU.rpc("rk_join", { p_lang:"ms" }) : await AU.rpc("rk_join");
     if(seq !== joinSeq){ if(data) AU.rpc("rk_leave", { m:data }); return; }   // cancelled while joining
     if(error || !data) return findErr(error ? error.message : "Couldn't reach the ranked server. Try again.");
     ranked = { mid:data, fails:0, timer:0 };

@@ -42,18 +42,22 @@ window.REVEAL_DAILY = (function(){
   // small seeded PRNG so every device picks the same words for a given date
   function seedOf(str){ let h=1779033703^str.length; for(let i=0;i<str.length;i++){ h=Math.imul(h^str.charCodeAt(i),3432918353); h=h<<13|h>>>19; } return ()=>{ h=Math.imul(h^h>>>16,2246822507); h=Math.imul(h^h>>>13,3266489909); return (h^=h>>>16)>>>0; }; }
   function rng(seed){ let a=seed(); return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
-  function words(day=today()){
-    const r = rng(seedOf("reveal-daily-"+day)), out = [];
+  // Bahasa Melayu (Lin, 18 Nov): its own 10 words a day, its own saved result, streak and leaderboard.
+  // English keeps the original keys so nobody loses today's result or streak.
+  const lang = () => window.REVEAL_LANG ? window.REVEAL_LANG.get() : "en";
+  const key = (base, day=today(), l=lang()) => "reveal-daily-" + (base ? base + "-" : "") + (l === "ms" ? "ms-" : "") + day;
+  function words(day=today(), l=lang()){
+    const r = rng(seedOf("reveal-daily-" + (l === "ms" ? "ms-" : "") + day)), out = [];
     [["easy",1],["medium",2],["hard",3]].forEach(([k,lv])=>{
-      const pool = window.WORDS.filter(w=>w[2]===lv).slice().sort((a,b)=>a[0]<b[0]?-1:1);
+      const pool = window.REVEAL_LANG.words(l).filter(w=>w[2]===lv).slice().sort((a,b)=>a[0]<b[0]?-1:1);
       for(let i=0;i<COUNT[k];i++){ const j=Math.floor(r()*pool.length); out.push(pool.splice(j,1)[0]); }
     });
     return out;
   }
 
   function device(){ let d=store.get("reveal-device"); if(!d){ d=(crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)+Date.now().toString(36)); store.set("reveal-device",d); } return d; }
-  function result(day=today()){ try{ return JSON.parse(store.get("reveal-daily-"+day)||"null"); }catch(e){ return null; } }
-  function saveResult(r, day=today()){ store.set("reveal-daily-"+day, JSON.stringify(r)); }
+  function result(day=today()){ try{ return JSON.parse(store.get(key("",day))||"null"); }catch(e){ return null; } }
+  function saveResult(r, day=today()){ store.set(key("",day), JSON.stringify(r)); }
   function streak(){
     let n=0; const d=new Date();
     if(!result(today())) d.setUTCDate(d.getUTCDate()-1);   // today not played yet: count up to yesterday
@@ -70,17 +74,18 @@ window.REVEAL_DAILY = (function(){
     if(!online()) return { ok:false, offline:true };
     // signed-in players post under their account; we keep the new row's id to highlight it on the board
     const h = Object.assign({ Prefer:"return=representation" }, auth(token));
+    row = Object.assign({ lang:lang() }, row);
     try{
       const res = await fetch(api("daily_scores?select=id"), { method:"POST", headers:headers(h), body:JSON.stringify(row) });
       if(res.status===409) return { ok:true, already:true };
-      if(res.ok){ try{ const j = await res.json(); if(j && j[0]) store.set("reveal-daily-id-"+row.day, String(j[0].id)); }catch(e){} }
+      if(res.ok){ try{ const j = await res.json(); if(j && j[0]) store.set(key("id",row.day,row.lang), String(j[0].id)); }catch(e){} }
       return { ok:res.ok, status:res.status };
     }catch(e){ return { ok:false, error:String(e) }; }
   }
   async function board(day=today(), limit=50){
     if(!online()) return null;
     try{
-      const q = `daily_scores?select=id,name,score,solved,time_ms,user_id&day=eq.${day}&order=score.desc,time_ms.asc&limit=${limit}`;
+      const q = `daily_scores?select=id,name,score,solved,time_ms,user_id&day=eq.${day}&lang=eq.${lang()}&order=score.desc,time_ms.asc&limit=${limit}`;
       const res = await fetch(api(q), { headers:headers() });
       if(!res.ok) return null;
       return await res.json();
@@ -90,7 +95,7 @@ window.REVEAL_DAILY = (function(){
   async function accountRow(uid, token, day=today()){
     if(!online() || !uid) return null;
     try{
-      const res = await fetch(api(`daily_scores?select=id,score,solved,time_ms&day=eq.${day}&user_id=eq.${uid}`), { headers:headers(auth(token)) });
+      const res = await fetch(api(`daily_scores?select=id,score,solved,time_ms&day=eq.${day}&lang=eq.${lang()}&user_id=eq.${uid}`), { headers:headers(auth(token)) });
       if(!res.ok) return null;
       const j = await res.json(); return j[0] || null;
     }catch(e){ return null; }
@@ -99,7 +104,7 @@ window.REVEAL_DAILY = (function(){
   async function claim(token, day=today()){
     if(!online() || !token) return false;
     try{
-      const res = await fetch(api("rpc/claim_daily"), { method:"POST", headers:headers(auth(token)), body:JSON.stringify({ p_day:day, p_device:device() }) });
+      const res = await fetch(api("rpc/claim_daily"), { method:"POST", headers:headers(auth(token)), body:JSON.stringify({ p_day:day, p_device:device(), p_lang:lang() }) });
       return res.ok;
     }catch(e){ return false; }
   }
@@ -107,10 +112,10 @@ window.REVEAL_DAILY = (function(){
   function renderBoard(el, rows, me){
     if(rows===null){ el.innerHTML = online() ? `<p class="lb-empty">Couldn't load the leaderboard. Check your connection.</p>` : `<p class="lb-empty">The online leaderboard opens soon.</p>`; return; }
     if(!rows.length){ el.innerHTML = `<p class="lb-empty">No scores yet today. Be the first!</p>`; return; }
-    const myId = store.get("reveal-daily-id-"+today()), uid = me && me.uid;
+    const myId = store.get(key("id")), uid = me && me.uid;
     const meIdx = rows.findIndex(r=>(uid && r.user_id===uid) || (myId && String(r.id)===myId));
     el.innerHTML = `<ol class="lb">` + rows.map((r,i)=>`<li class="${i===meIdx?"me":""}${i<3?" top":""}"><span class="pos">${i+1}</span><span class="nm">${esc(r.name)}</span><span class="sv">${r.solved}/${N}</span><span class="tm">${(r.time_ms/1000).toFixed(1)}s</span><b class="sc">${r.score}</b></li>`).join("") + `</ol>`
       + (meIdx<0 && result() ? `<p class="lb-empty">You're not in the top ${rows.length} yet.</p>` : "");
   }
-  return { T, N, today, niceDate, msToReset, hms, words, device, result, saveResult, streak, submit, board, accountRow, claim, renderBoard, online, store };
+  return { T, N, lang, key, today, niceDate, msToReset, hms, words, device, result, saveResult, streak, submit, board, accountRow, claim, renderBoard, online, store };
 })();
