@@ -112,3 +112,7 @@ end $$;
 revoke all on function public.rk_next_round(uuid) from public, anon, authenticated;
 revoke all on function public.rk_join(text) from public, anon;
 grant execute on function public.rk_join(text) to authenticated;
+
+-- 3. Words now in the public BM list (words-ms.js) leave the English ranked pool, so ranked words stay secret.
+delete from public.rk_words where lang = 'en' and word in
+  ('ROTI','SATAY','CENDOL','RAMBUTAN','LAKSA','KETUPAT','TAPIR','GAMELAN','RENDANG','HORNBILL','ORANGUTAN','BADMINTON','DURIAN','SUSHI');
