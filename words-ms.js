@@ -1,4 +1,4 @@
-// REVEAL Bahasa Melayu word list (Solo, Daily Play, Friends & Family, unranked online): [WORD, hint, level].
+// REVEAL Bahasa Melayu word list (Solo, Daily Play, Play Together, unranked online): [WORD, hint, level].
 // Hints in full Bahasa Melayu (Lin's style). Letters A–Z only (multi-word answers are joined: NASILEMAK). level 1 = Easy, 2 = Medium, 3 = Hard.
 // Ranked BM words are NOT here: like English ranked words, they live only in the database.
 window.WORDS_MS = [
