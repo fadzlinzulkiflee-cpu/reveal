@@ -25,8 +25,8 @@
 <meta name="apple-mobile-web-app-title" content="REVEAL">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="party.css?v=20261117h">
-<link rel="stylesheet" href="stage.css?v=20261117h">
+<link rel="stylesheet" href="party.css?v=20261118a">
+<link rel="stylesheet" href="stage.css?v=20261118a">
 <style>
 /* Layout: TV-first. Main stage on the left, players rail on the right; stacks on narrow screens. */
 body{font-size:clamp(16px,1.25vw,22px)}
@@ -111,9 +111,9 @@ body.phonehost .joinurl{display:none}
 .invbox .qr{width:min(240px,64vw)}
 .invbox .code{font-size:2.4rem}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261117h">
-<link rel="stylesheet" href="drama.css?v=20261117h">
-<link rel="stylesheet" href="look.css?v=20261117h">
+<link rel="stylesheet" href="theme.css?v=20261118a">
+<link rel="stylesheet" href="drama.css?v=20261118a">
+<link rel="stylesheet" href="look.css?v=20261118a">
 </head>
 <body>
 <div class="screen">
@@ -138,6 +138,13 @@ body.phonehost .joinurl{display:none}
           <p class="joinurl" id="joinurl">Opening a room…</p>
           <button type="button" class="ghost" id="shareInv" hidden>Send invite link</button>
           <p class="err" id="neterr" hidden></p>
+        </div>
+      </div>
+      <div style="display:grid;gap:8px">
+        <p class="eyebrow" id="lpK">Word language</p>
+        <div class="langseg" role="radiogroup" aria-labelledby="lpK">
+          <label><input type="radio" name="lang" id="lang-en" value="en">English</label>
+          <label><input type="radio" name="lang" id="lang-ms" value="ms">Bahasa</label>
         </div>
       </div>
       <div style="display:grid;gap:8px">
@@ -227,10 +234,11 @@ body.phonehost .joinurl{display:none}
 </div>
 <script src="vendor/peerjs-1.5.4.min.js"></script>
 <script src="vendor/qrcode-generator-1.4.4.js"></script>
-<script src="track.js?v=20261117h"></script>
-<script src="words.js?v=20261117h"></script>
-<script src="net.js?v=20261117h"></script>
-<script src="exit.js?v=20261117h"></script>
+<script src="track.js?v=20261118a"></script>
+<script src="words.js?v=20261118a"></script>
+<script src="words-ms.js?v=20261118a"></script>
+<script src="net.js?v=20261118a"></script>
+<script src="exit.js?v=20261118a"></script>
 <script>
 const PARTY_ROUNDS = 10, ROYALE_MAX = 12, WRONG_COST = 50, FIRST_BONUS = 25;
 const $ = id => document.getElementById(id);
@@ -249,6 +257,8 @@ if(PHONE){
   $("hostName").value = store.get("reveal-name") || "";
   $("joinLink").href = "play.html" + (NET.passthrough ? "?"+NET.passthrough : "");
 }
+// Word language (same choice as the home screen, remembered on this device)
+document.querySelectorAll('input[name=lang]').forEach(r=>{ r.checked = r.value === REVEAL_LANG.get(); r.addEventListener("change",()=>REVEAL_LANG.set(r.value)); });
 
 const H = { code:"", peer:null, players:new Map(), phase:"lobby", mode:"party", T:60, words:[], i:-1, cur:null, raf:0, nextId:1, self:null, selfWait:null };
 let hostToken = store.get("reveal-token"); if(!hostToken){ hostToken = Math.random().toString(36).slice(2)+Date.now().toString(36); store.set("reveal-token",hostToken); }
@@ -421,7 +431,7 @@ function startGame(){
   window.REVEAL_TRACK && REVEAL_TRACK.start("local");
   H.T = +document.querySelector('input[name=time]:checked').value;
   const level = document.querySelector('input[name=level]:checked').value;
-  H.words = pickWords(H.mode==="party" ? PARTY_ROUNDS : 40, level);
+  H.words = pickWords(H.mode==="party" ? PARTY_ROUNDS : 40, level, document.querySelector('input[name=lang]:checked').value);
   H.i = -1;
   playerList().forEach(p=>{ p.score=0; p.streak=0; p.out=!p.online; p.outRound=p.online?Infinity:-1; });
   H.startCount = activePlayers().length;
@@ -648,8 +658,8 @@ window.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ") && doc
 
 openRoom(); renderPlayers(); lobbyState();
 </script>
-<script src="stage.js?v=20261117h"></script>
-<script src="drama.js?v=20261117h"></script>
+<script src="stage.js?v=20261118a"></script>
+<script src="drama.js?v=20261118a"></script>
 <!-- Cloudflare Web Analytics: cookie-free visit counts --><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "ceaa5e1436764861bf9d4f2a0235b555"}'></script>
 </body>
 </html>

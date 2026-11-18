@@ -964,10 +964,20 @@ window.WORDS = [
 
 // Pick n words for a difficulty ("easy" | "medium" | "hard" | "mixed").
 // Words already seen on this device are skipped until every word at that level has been played.
-window.pickWords = function(n, level){
+// Word language (Lin, 18 Nov): "en" = English, "ms" = Bahasa Melayu (words-ms.js). The UI stays the same;
+// only the words and hints change. The choice is kept on this device.
+window.REVEAL_LANG = {
+  get(){ let l = null; try { l = localStorage.getItem("reveal-lang"); } catch(e) {} return l === "ms" && window.WORDS_MS ? "ms" : "en"; },
+  set(l){ try { localStorage.setItem("reveal-lang", l === "ms" ? "ms" : "en"); } catch(e) {} },
+  words(l){ return (l || this.get()) === "ms" && window.WORDS_MS ? window.WORDS_MS : window.WORDS; },
+  short(l){ return (l || this.get()) === "ms" ? "BM" : "EN"; }
+};
+
+window.pickWords = function(n, level, lang){
+  lang = lang || window.REVEAL_LANG.get();
   const lv = {easy:1, medium:2, hard:3}[level];
-  const pool = window.WORDS.filter(w => !lv || w[2] === lv);
-  const key = "reveal-seen-" + (level || "mixed");
+  const pool = window.REVEAL_LANG.words(lang).filter(w => !lv || w[2] === lv);
+  const key = "reveal-seen-" + (lang === "ms" ? "ms-" : "") + (level || "mixed");
   let seen = [];
   try { seen = JSON.parse(localStorage.getItem(key) || "[]"); } catch(e) {}
   let fresh = pool.filter(w => !seen.includes(w[0]));

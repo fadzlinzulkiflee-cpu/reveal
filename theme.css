@@ -235,3 +235,12 @@ button,.btn,.seg label{transition:transform .12s ease,background-color .2s,borde
 .menu-item.soon{opacity:.8}
 .badge{font:900 .62rem var(--f-body);font-style:normal;letter-spacing:.14em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--lime);color:#11200f}
 .soon-note{margin:0;color:var(--muted);font-size:.92rem;line-height:1.45;background:var(--raised);padding:12px 14px;border-radius:14px;text-align:left}
+
+/* Word language (Lin, 18 Nov): one English | Bahasa button. The chosen side glows softly with a gold line. */
+.langseg{--gold:#E9C46A;width:100%;max-width:340px;justify-self:center;display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--edge);border-radius:999px}
+.langseg label{position:relative;display:flex;align-items:center;justify-content:center;min-height:44px;padding:6px 14px;border-radius:999px;border:1.5px solid transparent;cursor:pointer;color:var(--muted);font:800 .98rem var(--f-body);transition:background-color .2s,color .2s,box-shadow .25s,border-color .2s}
+.langseg input{position:absolute;opacity:0;pointer-events:none}
+.langseg label:has(input:checked){color:var(--ink);background:var(--raised);border-color:var(--gold);box-shadow:0 0 14px color-mix(in srgb,var(--gold) 45%,transparent),inset 0 0 8px color-mix(in srgb,var(--gold) 18%,transparent)}
+.langseg label:has(input:focus-visible){outline:3px solid var(--lime);outline-offset:2px}
+:root[data-look="light"]:not(#_) .langseg{background:var(--field);border:2px solid var(--line)}
+.langpick{width:100%;display:grid}

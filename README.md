@@ -143,3 +143,12 @@ Test overrides: `?lobby=6&t=8&rv=2&size=8&bots=0` plus the usual `peerhost/peerp
 ## Look v3 (playful, Lilac background)
 
 `look.css` loads last on every page. All screens use the dark green background (#17231D) again (light theme rules are kept in look.css but switched off) with flat buttons, Archivo (brand, headings, big numbers) and Inter (everything else), an italic "Frame" REVEAL wordmark (Archivo 900 italic, lime corner frame, lime dot), and one colour per mode: Daily sunshine, Solo lime, Play Locally sky, Ranked grape. Coral is only for wrong answers. The TV (`host.html`, `<html data-screen="tv">`) keeps the dark green background but shares the fonts, buttons and tiles. Style board: https://claude.ai/artifact/A971zhP6tkgwJShAcZ6fxK
+
+## Bahasa Melayu
+
+Players pick **English | Bahasa** on the home screen (and on the Friends & Family host page). The choice is kept on the device. Only the words and hints change; the rest of the screen stays the same.
+
+- `words-ms.js`: the BM word list for Solo, Daily Play, Friends & Family and unranked online (hints mix English and Malay).
+- Daily Play BM has its own 10 words a day, its own result, streak and leaderboard (`daily_scores.lang`).
+- Ranked BM uses BM lobbies and BM words stored only in the database (`rk_words.lang = 'ms'`), never in this repo. One rating for both languages. Until BM ranked words are loaded, BM players are put in English lobbies.
+- Setup: run `supabase/bm.sql` in Supabase → SQL Editor before merging.
