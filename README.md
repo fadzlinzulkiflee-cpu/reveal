@@ -146,7 +146,7 @@ Test overrides: `?lobby=6&t=8&rv=2&size=8&bots=0` plus the usual `peerhost/peerp
 
 ## Bahasa Melayu
 
-Players pick **English | Bahasa** on the home screen (and on the Friends & Family host page). The choice is kept on the device. Only the words and hints change; the rest of the screen stays the same.
+Players pick **English | Bahasa** on the home screen (and on the Play Together host page). The choice is kept on the device. Only the words and hints change; the rest of the screen stays the same.
 
 - `words-ms.js`: the BM word list for Solo, Daily Play, Friends & Family and unranked online (hints mix English and Malay).
 - Daily Play BM has its own 10 words a day, its own result, streak and leaderboard (`daily_scores.lang`).
