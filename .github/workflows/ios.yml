@@ -1,0 +1,75 @@
+# REVEAL iPhone app builds on GitHub's Mac computers (no Mac needed at home).
+# - check:   every pull request that touches the app builds it for the iPhone simulator (no Apple keys needed).
+# - release: run by hand (Actions tab > "iOS app" > Run workflow). Signs the app and uploads it to
+#            App Store Connect, where it shows up in TestFlight. Needs the 4 repository secrets in docs/app-store.md.
+name: iOS app
+
+on:
+  pull_request:
+    paths: ["ios/**", "package.json", "package-lock.json", "capacitor.config.json", "*.html", "*.js", "*.css", ".github/workflows/ios.yml"]
+  workflow_dispatch:
+
+jobs:
+  check:
+    if: github.event_name == 'pull_request'
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: npm run sync
+      - name: Build for the simulator
+        run: |
+          xcodebuild -version
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -40
+          test ${PIPESTATUS[0]} -eq 0
+
+  release:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      BUNDLE_ID: app.playreveal.game
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_KEY_IDENTIFIER }}
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+      CERTIFICATE_PRIVATE_KEY: ${{ secrets.CERTIFICATE_PRIVATE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: npm run sync
+      - name: Install Codemagic CLI tools (signing + upload helpers)
+        run: pipx install codemagic-cli-tools
+      - name: Version and build number
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          BUILD=$(( ${{ github.run_number }} + 0 ))
+          sed -i '' "s/MARKETING_VERSION = [^;]*;/MARKETING_VERSION = $VERSION;/; s/CURRENT_PROJECT_VERSION = [^;]*;/CURRENT_PROJECT_VERSION = $BUILD;/" ios/App/App.xcodeproj/project.pbxproj
+          echo "Version $VERSION, build $BUILD"
+      - name: Signing (certificate + App Store profile, created on first run)
+        run: |
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_STORE --create
+          keychain add-certificates
+          xcode-project use-profiles --project ios/App/App.xcodeproj
+      - name: Build the .ipa
+        run: xcode-project build-ipa --project ios/App/App.xcodeproj --scheme App --config Release
+      - name: Upload to App Store Connect (TestFlight)
+        run: app-store-connect publish --path "$(ls build/ios/ipa/*.ipa | head -1)"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reveal-ios
+          path: |
+            build/ios/ipa/*.ipa
+            /tmp/xcodebuild_logs/*.log
+          if-no-files-found: ignore
+      - name: Clean up keychain
+        if: always()
+        run: keychain use-login || true

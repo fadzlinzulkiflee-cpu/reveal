@@ -1,0 +1,20 @@
+{
+  "name": "reveal-app",
+  "private": true,
+  "version": "1.0.0",
+  "description": "REVEAL iPhone app: the web game wrapped with Capacitor. The website itself needs no build.",
+  "scripts": {
+    "build": "node scripts/build-www.mjs",
+    "sync": "node scripts/build-www.mjs && npx cap sync ios"
+  },
+  "dependencies": {
+    "@capacitor-community/apple-sign-in": "7.1.0",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/browser": "8.0.5",
+    "@capacitor/core": "8.6.2",
+    "@capacitor/ios": "8.6.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.2"
+  }
+}

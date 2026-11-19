@@ -25,8 +25,8 @@
 <meta name="apple-mobile-web-app-title" content="REVEAL">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="party.css?v=20261118d">
-<link rel="stylesheet" href="stage.css?v=20261118d">
+<link rel="stylesheet" href="party.css?v=20261119a">
+<link rel="stylesheet" href="stage.css?v=20261119a">
 <style>
 /* Layout: TV-first. Main stage on the left, players rail on the right; stacks on narrow screens. */
 body{font-size:clamp(16px,1.25vw,22px)}
@@ -111,9 +111,9 @@ body.phonehost .joinurl{display:none}
 .invbox .qr{width:min(240px,64vw)}
 .invbox .code{font-size:2.4rem}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261118d">
-<link rel="stylesheet" href="drama.css?v=20261118d">
-<link rel="stylesheet" href="look.css?v=20261118d">
+<link rel="stylesheet" href="theme.css?v=20261119a">
+<link rel="stylesheet" href="drama.css?v=20261119a">
+<link rel="stylesheet" href="look.css?v=20261119a">
 </head>
 <body>
 <div class="screen">
@@ -232,13 +232,14 @@ body.phonehost .joinurl{display:none}
     <div class="exitrow" style="width:100%"><button type="button" class="primary" id="invClose">Done</button></div>
   </div>
 </div>
+<script src="native.js?v=20261119a"></script>
 <script src="vendor/peerjs-1.5.4.min.js"></script>
 <script src="vendor/qrcode-generator-1.4.4.js"></script>
-<script src="track.js?v=20261118d"></script>
-<script src="words.js?v=20261118d"></script>
-<script src="words-ms.js?v=20261118d"></script>
-<script src="net.js?v=20261118d"></script>
-<script src="exit.js?v=20261118d"></script>
+<script src="track.js?v=20261119a"></script>
+<script src="words.js?v=20261119a"></script>
+<script src="words-ms.js?v=20261119a"></script>
+<script src="net.js?v=20261119a"></script>
+<script src="exit.js?v=20261119a"></script>
 <script>
 const PARTY_ROUNDS = 10, ROYALE_MAX = 12, WRONG_COST = 50, FIRST_BONUS = 25;
 const $ = id => document.getElementById(id);
@@ -278,10 +279,10 @@ function openRoom(){
   H.peer = peer;
   peer.on("open", ()=>{
     $("neterr").hidden = true;
-    const url = new URL("play.html?room="+H.code+(NET.passthrough?"&"+NET.passthrough:""), location.href).href;
+    const url = REVEAL_LINK("play.html?room="+H.code+(NET.passthrough?"&"+NET.passthrough:""));
     $("code").textContent = H.code; $("roomSmall").textContent = H.code;
     $("joinurl").textContent = url;
-    H.inviteUrl = new URL("play.html?room="+H.code+"&src=friend", location.href).href;
+    H.inviteUrl = REVEAL_LINK("play.html?room="+H.code+"&src=friend");
     $("shareInv").hidden = false;
     const qr = qrcode(0,"M"); qr.addData(url); qr.make();
     $("qr").innerHTML = qr.createSvgTag({cellSize:6, margin:2, scalable:true});
@@ -658,8 +659,8 @@ window.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ") && doc
 
 openRoom(); renderPlayers(); lobbyState();
 </script>
-<script src="stage.js?v=20261118d"></script>
-<script src="drama.js?v=20261118d"></script>
+<script src="stage.js?v=20261119a"></script>
+<script src="drama.js?v=20261119a"></script>
 <!-- Cloudflare Web Analytics: cookie-free visit counts --><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "ceaa5e1436764861bf9d4f2a0235b555"}'></script>
 </body>
 </html>
