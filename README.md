@@ -148,7 +148,7 @@ Test overrides: `?lobby=6&t=8&rv=2&size=8&bots=0` plus the usual `peerhost/peerp
 
 Players pick **English | Bahasa** on the home screen (and on the Play Together host page). The choice is kept on the device. Only the words and hints change; the rest of the screen stays the same.
 
-- `words-ms.js`: the BM word list for Solo, Daily Play, Friends & Family and unranked online (hints mix English and Malay).
+- `words-ms.js`: the BM word list for Solo, Daily Play, Play Together and unranked online: trivia, peribahasa and dictionary words, all hints in Bahasa Melayu.
 - Daily Play BM has its own 10 words a day, its own result, streak and leaderboard (`daily_scores.lang`).
 - Ranked BM uses BM lobbies and BM words stored only in the database (`rk_words.lang = 'ms'`), never in this repo. One rating for both languages. Until BM ranked words are loaded, BM players are put in English lobbies.
 - Setup: run `supabase/bm.sql` in Supabase → SQL Editor before merging.
