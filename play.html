@@ -25,8 +25,8 @@
 <meta name="apple-mobile-web-app-title" content="REVEAL">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="party.css?v=20261118d">
-<link rel="stylesheet" href="stage.css?v=20261118d">
+<link rel="stylesheet" href="party.css?v=20261122a">
+<link rel="stylesheet" href="stage.css?v=20261122a">
 <style>
 /* Layout: one phone column; header with room + score, one card that changes with the game phase. */
 .wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px;
@@ -64,9 +64,9 @@ form.join input{width:100%}
 .standings .st{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#A9BBAC}
 .stlbl{margin:10px 0 0;text-align:left}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261118d">
-<link rel="stylesheet" href="drama.css?v=20261118d">
-<link rel="stylesheet" href="look.css?v=20261118d">
+<link rel="stylesheet" href="theme.css?v=20261122a">
+<link rel="stylesheet" href="drama.css?v=20261122a">
+<link rel="stylesheet" href="look.css?v=20261122a">
 </head>
 <body>
 <div class="wrap">
@@ -145,9 +145,9 @@ form.join input{width:100%}
 </div>
 
 <script src="vendor/peerjs-1.5.4.min.js"></script>
-<script src="track.js?v=20261118d"></script>
-<script src="net.js?v=20261118d"></script>
-<script src="exit.js?v=20261118d"></script>
+<script src="track.js?v=20261122a"></script>
+<script src="net.js?v=20261122a"></script>
+<script src="exit.js?v=20261122a"></script>
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -231,7 +231,7 @@ function onMsg(m){
     startPlay(); clearInterval(timer);
     $("guess").disabled=true; $("guessBtn").disabled=true;
     $("clock").textContent=st.T; $("fill").style.width="100%"; $("clock").classList.remove("low");
-    $("roundLbl").textContent = st.mode==="party" ? `Word ${st.round} of ${st.rounds}` : `Round ${st.round}`;
+    $("roundLbl").textContent = st.mode==="party" ? `Word ${st.round} of ${st.rounds}` : `Round ${st.round}${st.rounds ? ` of ${st.rounds}` : ""}`;
     REVEAL_STAGE.banner(st.showdown ? "Final showdown · first correct answer wins" : null);
     if(!st.out) REVEAL_STAGE.countdown(null);
   } else if(st.phase==="play"){
@@ -264,10 +264,10 @@ function onMsg(m){
     const pod = st.podium||[], order = [1,0,2].filter(i=>pod[i]);
     $("ppod").innerHTML = order.map(i=>`<div class="pp p${i+1}${pod[i].name===$("meName").textContent?" me":""}"><span class="av" style="--av:${pod[i].color||"#c7f58b"}">${esc((pod[i].name.trim()[0]||"?").toUpperCase())}</span><span class="pn">${esc(pod[i].name)}</span><span class="ps">${esc(pod[i].sub)}</span><div class="blk"><b>${i+1}</b></div></div>`).join("");
     const won = st.mode==="party" ? (st.rank===1 && st.score>0) : !st.out;
-    const ttl = st.mode==="party" ? (won ? "CHAMPION" : st.rank<=3 ? "ON THE PODIUM" : "CONTENDER") : (won ? "LAST ONE STANDING" : "KNOCKED OUT");
+    const ttl = st.mode==="party" ? (won ? "CHAMPION" : st.rank<=3 ? "ON THE PODIUM" : "CONTENDER") : (won ? (st.coWin ? "SURVIVOR" : "LAST ONE STANDING") : "KNOCKED OUT");
     $("myTitle").textContent = ttl;
     $("myLvl").textContent = st.mode==="party" ? "Party" : "Royale";
-    shareText = st.mode==="party" ? `REVEAL. I finished #${st.rank} with ${st.score} points · ${ttl}` : `REVEAL Royale: ${won ? "I was the last one standing!" : `I got knocked out. ${st.winner}`}`;
+    shareText = st.mode==="party" ? `REVEAL. I finished #${st.rank} with ${st.score} points · ${ttl}` : `REVEAL Royale: ${won ? (st.coWin ? "I survived all 7 rounds!" : "I was the last one standing!") : `I got knocked out. ${st.winner}`}`;
     if(won && prevPhase!=="over" && window.REVEAL_SFX) REVEAL_SFX.fanfare();
     $("overNote").textContent = st.mode==="party" ? `You finished #${st.rank} with ${st.score} points.` : (st.out ? "Better luck next Royale." : "You were still standing at the end!");
     renderStandings($("finalStandings"), st);
@@ -291,7 +291,7 @@ function startPlay(){
 }
 function updatePlay(){
   deadline = performance.now() + st.left*1000;
-  $("roundLbl").textContent = st.mode==="party" ? `Word ${st.round} of ${st.rounds}` : `Round ${st.round} · ${st.players} playing`;
+  $("roundLbl").textContent = st.mode==="party" ? `Word ${st.round} of ${st.rounds}` : `Round ${st.round}${st.rounds ? ` of ${st.rounds}` : ""} · ${st.players} playing`;
   const tiles=$("tiles").children;
   [...st.pattern].forEach((ch,i)=>{ if(ch!=="_" && tiles[i] && !tiles[i].classList.contains("open")){ tiles[i].querySelector(".b").textContent=ch; tiles[i].classList.add("open"); }});
   if(st.cooldown>0) cooldownUntil = performance.now()+st.cooldown*1000;
@@ -361,8 +361,8 @@ addEventListener("DOMContentLoaded", ()=>$("shareBtn").after(REVEAL_END.bar(()=>
 $("startBtn").addEventListener("click", ()=>conn && conn.send({t:"start"}));
 $("nextBtn").addEventListener("click", ()=>conn && conn.send({t:"next"}));
 </script>
-<script src="stage.js?v=20261118d"></script>
-<script src="drama.js?v=20261118d"></script>
+<script src="stage.js?v=20261122a"></script>
+<script src="drama.js?v=20261122a"></script>
 <!-- Cloudflare Web Analytics: cookie-free visit counts --><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "ceaa5e1436764861bf9d4f2a0235b555"}'></script>
 </body>
 </html>
