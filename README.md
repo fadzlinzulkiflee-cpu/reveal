@@ -18,14 +18,14 @@ Every game screen has an **Exit** button back to the menu. Leaving Daily Play en
 - **Language:** English, aimed at adults and families.
 - **Modes:**
   - *Solo:* chase your best score. A wrong guess costs 50 points.
-  - *Party (big screen):* everyone guesses the same word on their own phone. Every correct guess scores, faster scores more, and the first correct guess gets +25. A wrong guess costs 50 points (score never goes below 0). 10 words.
+  - *Party (big screen):* everyone guesses the same word on their own phone. Every correct guess scores, faster scores more, and the first correct guess gets +25. A wrong guess costs 50 points (score never goes below 0). 7 words.
   - *Royale (big screen, 2–12 players):* same word for everyone. A wrong guess, or not answering before time runs out, disqualifies you, and so does the slowest correct answer. The TV shows a live ranking with answer times and how many players remain. If nobody gets it, nobody is out. Last one standing wins. When two players are left it becomes a **final showdown**: the first correct answer wins.
 
 - **Level:** Easy, Medium, Hard or Mixed. Words don't repeat on a device until every word at that level has been played.
 - **Countdown:** "3, 2, 1, GO!" before every word.
 - **Streak:** +10 for each word in a row you get right, up to +50 (Solo and Party).
 - **Sound and vibration:** letter pops, a ticking last 5 seconds, right/wrong sounds; phones vibrate on right or wrong. Mute with the Sound button.
-- **Rounds:** 10 words per game, with 20, 30 (default) or 45 seconds per word.
+- **Rounds:** 7 words per game (every mode, including Royale and Ranked), with 20, 30 (default) or 45 seconds per word.
 - **Reveal:** one letter opens every `time / letters` seconds, in random order. The last letter stays hidden until time runs out.
 - **Scoring:** `50 + 100 × (time left / total time) + 15 × hidden letters`. In Solo and Party a wrong guess costs 50 points.
 - **Best score** is kept in the browser's local storage.
@@ -61,7 +61,7 @@ The everyday words and hints live in `words.js` (956 words: 313 Easy, 320 Medium
 - Palette (Lin, v2): background #17231D, lime #C7F58B, text #F6F8F0, surfaces #23372B, muted #A9BBAC.
 
 ## Daily Challenge (daily.js)
-- 10 words a day (3 Easy, 4 Medium, 3 Hard, in that order), the same for everyone. They're picked from the date (UTC) with a seeded shuffle, so no server is needed for the words.
+- 7 words a day (2 Easy, 3 Medium, 2 Hard, in that order; 10 words before 23 Nov 2026), the same for everyone. They're picked from the date (UTC) with a seeded shuffle, so no server is needed for the words.
 - 20 seconds per word, one try per device per day (one per account when signed in). A daily streak shows on the home card.
 - Online leaderboard on Supabase, table `daily_scores` (SQL below). It's ranked by score, then by fastest total time (unsolved words count as 20 s).
 - Only the public **publishable** key is in the code. Never put the secret key in this repo.
@@ -149,6 +149,6 @@ Test overrides: `?lobby=6&t=8&rv=2&size=8&bots=0` plus the usual `peerhost/peerp
 Players pick **English | Bahasa** on the home screen (and on the Play Together host page). The choice is kept on the device. Only the words and hints change; the rest of the screen stays the same.
 
 - `words-ms.js`: the BM word list for Solo, Daily Play, Play Together and unranked online: trivia, peribahasa and dictionary words, all hints in Bahasa Melayu.
-- Daily Play BM has its own 10 words a day, its own result, streak and leaderboard (`daily_scores.lang`).
+- Daily Play BM has its own 7 words a day, its own result, streak and leaderboard (`daily_scores.lang`).
 - Ranked BM uses BM lobbies and BM words stored only in the database (`rk_words.lang = 'ms'`), never in this repo. One rating for both languages. Until BM ranked words are loaded, BM players are put in English lobbies.
 - Setup: run `supabase/bm.sql` in Supabase → SQL Editor before merging.

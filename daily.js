@@ -1,4 +1,4 @@
-// REVEAL Daily Challenge: the same 10 words for everyone each day (UTC), plus an online leaderboard.
+// REVEAL Daily Challenge: the same 7 words for everyone each day (UTC), plus an online leaderboard.
 // Leaderboard storage: Supabase table `daily_scores` (see README). Only the public publishable key is used here.
 window.REVEAL_CONFIG = Object.assign({
   supabaseUrl: "https://nnvgopfuenajnioiqmdk.supabase.co",
@@ -31,7 +31,11 @@ window.REVEAL_RANKED_HOUR = (function(){
 })();
 
 window.REVEAL_DAILY = (function(){
-  const COUNT = { easy:3, medium:4, hard:3 }, T = 20, N = COUNT.easy + COUNT.medium + COUNT.hard;   // 10 words, 20 s each (Lin)
+  // 7 words, 20 s each (Lin, 22 Nov). Days before SEVEN_FROM keep their original 10 words, so a board
+  // that already has 10-word scores never mixes them with 7-word scores.
+  const SEVEN_FROM = "2026-11-23", T = 20;
+  const countFor = day => day < SEVEN_FROM ? { easy:3, medium:4, hard:3 } : { easy:2, medium:3, hard:2 };
+  const total = day => { const c = countFor(day); return c.easy + c.medium + c.hard; };
   const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}} };
 
   function today(){ return new Date().toISOString().slice(0,10); }            // UTC day, same for everyone
@@ -42,12 +46,12 @@ window.REVEAL_DAILY = (function(){
   // small seeded PRNG so every device picks the same words for a given date
   function seedOf(str){ let h=1779033703^str.length; for(let i=0;i<str.length;i++){ h=Math.imul(h^str.charCodeAt(i),3432918353); h=h<<13|h>>>19; } return ()=>{ h=Math.imul(h^h>>>16,2246822507); h=Math.imul(h^h>>>13,3266489909); return (h^=h>>>16)>>>0; }; }
   function rng(seed){ let a=seed(); return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
-  // Bahasa Melayu (Lin, 18 Nov): its own 10 words a day, its own saved result, streak and leaderboard.
+  // Bahasa Melayu (Lin, 18 Nov): its own words each day, its own saved result, streak and leaderboard.
   // English keeps the original keys so nobody loses today's result or streak.
   const lang = () => window.REVEAL_LANG ? window.REVEAL_LANG.get() : "en";
   const key = (base, day=today(), l=lang()) => "reveal-daily-" + (base ? base + "-" : "") + (l === "ms" ? "ms-" : "") + day;
   function words(day=today(), l=lang()){
-    const r = rng(seedOf("reveal-daily-" + (l === "ms" ? "ms-" : "") + day)), out = [];
+    const r = rng(seedOf("reveal-daily-" + (l === "ms" ? "ms-" : "") + day)), out = [], COUNT = countFor(day);
     [["easy",1],["medium",2],["hard",3]].forEach(([k,lv])=>{
       const pool = window.REVEAL_LANG.words(l).filter(w=>w[2]===lv).slice().sort((a,b)=>a[0]<b[0]?-1:1);
       for(let i=0;i<COUNT[k];i++){ const j=Math.floor(r()*pool.length); out.push(pool.splice(j,1)[0]); }
@@ -114,8 +118,8 @@ window.REVEAL_DAILY = (function(){
     if(!rows.length){ el.innerHTML = `<p class="lb-empty">No scores yet today. Be the first!</p>`; return; }
     const myId = store.get(key("id")), uid = me && me.uid;
     const meIdx = rows.findIndex(r=>(uid && r.user_id===uid) || (myId && String(r.id)===myId));
-    el.innerHTML = `<ol class="lb">` + rows.map((r,i)=>`<li class="${i===meIdx?"me":""}${i<3?" top":""}"><span class="pos">${i+1}</span><span class="nm">${esc(r.name)}</span><span class="sv">${r.solved}/${N}</span><span class="tm">${(r.time_ms/1000).toFixed(1)}s</span><b class="sc">${r.score}</b></li>`).join("") + `</ol>`
+    el.innerHTML = `<ol class="lb">` + rows.map((r,i)=>`<li class="${i===meIdx?"me":""}${i<3?" top":""}"><span class="pos">${i+1}</span><span class="nm">${esc(r.name)}</span><span class="sv">${r.solved}/${total(r.day||today())}</span><span class="tm">${(r.time_ms/1000).toFixed(1)}s</span><b class="sc">${r.score}</b></li>`).join("") + `</ol>`
       + (meIdx<0 && result() ? `<p class="lb-empty">You're not in the top ${rows.length} yet.</p>` : "");
   }
-  return { T, N, lang, key, today, niceDate, msToReset, hms, words, device, result, saveResult, streak, submit, board, accountRow, claim, renderBoard, online, store };
+  return { T, get N(){ return total(today()); }, total, lang, key, today, niceDate, msToReset, hms, words, device, result, saveResult, streak, submit, board, accountRow, claim, renderBoard, online, store };
 })();

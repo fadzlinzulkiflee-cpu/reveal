@@ -71,7 +71,7 @@ create or replace function public.rk_conf(k text) returns double precision langu
     when 't' then 20          -- seconds per word
     when 'countdown' then 3.4 -- 3-2-1-GO
     when 'reveal' then 4      -- pause on the answer between rounds
-    when 'rounds' then 30     -- after this many words, everyone left wins together
+    when 'rounds' then 7      -- after this many words, everyone left wins together (Lin, 22 Nov: 7 rounds)
     when 'k' then 32          -- ELO K factor
     when 'min_real' then 3    -- signed-in players needed for a rated match
   end $$;

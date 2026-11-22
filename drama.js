@@ -126,8 +126,9 @@
 // End-of-game hooks: rank title, gap to your best and a shareable score card.
 window.REVEAL_END = (function(){
   const TITLES = [
-    [0,"Warming Up"],[400,"Word Rookie"],[900,"Quick Thinker"],[1400,"Sharp Mind"],
-    [1900,"Word Hunter"],[2400,"Mind Reader"],[2900,"REVEAL Legend"]
+    // scaled for 7 words a game (Lin, 22 Nov; was 400/900/.../2900 for 10 words)
+    [0,"Warming Up"],[280,"Word Rookie"],[630,"Quick Thinker"],[980,"Sharp Mind"],
+    [1330,"Word Hunter"],[1680,"Mind Reader"],[2030,"REVEAL Legend"]
   ];
   function title(score){
     let i = 0; while(i+1 < TITLES.length && score >= TITLES[i+1][0]) i++;
