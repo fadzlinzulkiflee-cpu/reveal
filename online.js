@@ -17,6 +17,7 @@
   const BEACON = "reveal-br-v1-lobby-";      // + slot number
   const SLOTS = 4;                            // parallel lobbies if one beacon is stuck
   const LOBBY_SECS = +(q.get("lobby") || 20); // how long a lobby waits for humans
+  const ROUNDS = 7;                           // words per match, ranked and unranked (Lin, 22 Nov; server: rk_conf rounds)
   const MAX = 20, FILL = Math.min(MAX, +(q.get("size") || 10)); // bots fill the match up to FILL players
   const T = +(q.get("t") || 20);              // seconds per word
   const REVEAL_SECS = +(q.get("rv") || 4);    // pause on the answer between rounds
@@ -153,7 +154,7 @@
   }
   function updatePlay(){
     deadline = performance.now() + st.left*1000;
-    $("roundLbl").textContent = `Round ${st.round} · ${st.alive} of ${st.total} left`;
+    $("roundLbl").textContent = `Round ${st.round} of ${ROUNDS} · ${st.alive} of ${st.total} left`;
     const tiles = $("tiles").children;
     [...st.pattern].forEach((ch,i)=>{ if(ch!=="_" && tiles[i] && !tiles[i].classList.contains("open")){ tiles[i].querySelector(".b").textContent=ch; tiles[i].classList.add("open"); }});
     const locked = st.out || st.correct || st.failed;
@@ -457,7 +458,7 @@
       }
     }
     H.total = H.players.length;
-    H.words = shuffle(pickWords(60, "mixed").slice());   // unranked: everyday words (ranked words live on the server)
+    H.words = shuffle(pickWords(ROUNDS, "mixed").slice());   // unranked: everyday words (ranked words live on the server)
     H.round = 0;
     nextRound();
   }

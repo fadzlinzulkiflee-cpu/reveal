@@ -25,8 +25,8 @@
 <meta name="apple-mobile-web-app-title" content="REVEAL">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,700;0,800;0,900;1,800;1,900&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="party.css?v=20261119a">
-<link rel="stylesheet" href="stage.css?v=20261119a">
+<link rel="stylesheet" href="party.css?v=20261124a">
+<link rel="stylesheet" href="stage.css?v=20261124a">
 <style>
 /* Layout: TV-first. Main stage on the left, players rail on the right; stacks on narrow screens. */
 body{font-size:clamp(16px,1.25vw,22px)}
@@ -111,9 +111,9 @@ body.phonehost .joinurl{display:none}
 .invbox .qr{width:min(240px,64vw)}
 .invbox .code{font-size:2.4rem}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261119a">
-<link rel="stylesheet" href="drama.css?v=20261119a">
-<link rel="stylesheet" href="look.css?v=20261119a">
+<link rel="stylesheet" href="theme.css?v=20261124a">
+<link rel="stylesheet" href="drama.css?v=20261124a">
+<link rel="stylesheet" href="look.css?v=20261124a">
 </head>
 <body>
 <div class="screen">
@@ -150,8 +150,8 @@ body.phonehost .joinurl{display:none}
       <div style="display:grid;gap:8px">
         <p class="eyebrow">Mode</p>
         <div class="seg">
-          <label><input type="radio" name="mode" id="mode-party" value="party" checked>Party<small>10 words. Everyone scores, fastest scores most.</small></label>
-          <label><input type="radio" name="mode" id="mode-royale" value="royale">Royale<small>Up to 12 players. Wrong, out of time, or slowest correct: you're out. Last one standing wins.</small></label>
+          <label><input type="radio" name="mode" id="mode-party" value="party" checked>Party<small>7 words. Everyone scores, fastest scores most.</small></label>
+          <label><input type="radio" name="mode" id="mode-royale" value="royale">Royale<small>Up to 12 players, 7 rounds. Wrong, out of time, or slowest correct: you're out. Last one standing wins.</small></label>
         </div>
       </div>
       <div style="display:grid;gap:8px">
@@ -232,16 +232,16 @@ body.phonehost .joinurl{display:none}
     <div class="exitrow" style="width:100%"><button type="button" class="primary" id="invClose">Done</button></div>
   </div>
 </div>
-<script src="native.js?v=20261119a"></script>
+<script src="native.js?v=20261124a"></script>
 <script src="vendor/peerjs-1.5.4.min.js"></script>
 <script src="vendor/qrcode-generator-1.4.4.js"></script>
-<script src="track.js?v=20261119a"></script>
-<script src="words.js?v=20261119a"></script>
-<script src="words-ms.js?v=20261119a"></script>
-<script src="net.js?v=20261119a"></script>
-<script src="exit.js?v=20261119a"></script>
+<script src="track.js?v=20261124a"></script>
+<script src="words.js?v=20261124a"></script>
+<script src="words-ms.js?v=20261124a"></script>
+<script src="net.js?v=20261124a"></script>
+<script src="exit.js?v=20261124a"></script>
 <script>
-const PARTY_ROUNDS = 10, ROYALE_MAX = 12, WRONG_COST = 50, FIRST_BONUS = 25;
+const ROUNDS = 7, ROYALE_MAX = 12, WRONG_COST = 50, FIRST_BONUS = 25;
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const shuffle = a => {a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -353,15 +353,15 @@ function rankOf(p){ const sorted = playerList().slice().sort((a,b)=>b.score-a.sc
 function syncPlayer(p){
   const base = { t:"state", phase:H.phase, mode:H.mode, vip:!!p.vip, score:p.score, out:!!p.out, players:playerList().filter(x=>x.online).length, screen:PHONE?"phone":"tv" };
   if(H.phase==="countdown"){
-    Object.assign(base, { round:H.i+1, rounds:H.mode==="party"?H.words.length:0, hint:H.cur.hint, len:H.cur.n, T:H.T, showdown:!!H.cur.showdown });
+    Object.assign(base, { round:H.i+1, rounds:H.words.length, hint:H.cur.hint, len:H.cur.n, T:H.T, showdown:!!H.cur.showdown });
   } else if(H.phase==="play"){
     const c=H.cur;
-    Object.assign(base, { round:H.i+1, rounds:H.mode==="party"?H.words.length:0, hint:c.hint, pattern:pattern(), left:timeLeft(), T:H.T,
+    Object.assign(base, { round:H.i+1, rounds:H.words.length, hint:c.hint, pattern:pattern(), left:timeLeft(), T:H.T,
       correct:p.rd.correct, failed:p.rd.failed, cooldown:Math.max(0,(p.rd.cooldownUntil-performance.now())/1000), showdown:!!c.showdown });
   } else if(H.phase==="reveal"){
     Object.assign(base, { word:H.cur.word, got:p.rd.correct, pts:p.rd.pts, rank:rankOf(p), eliminated:!!p.rd.eliminatedNow, last:!!H.finished, note:H.note||"", standings:standings(p) });
   } else if(H.phase==="over"){
-    Object.assign(base, { winner:H.winnerText, rank:rankOf(p), podium:H.podium||[], standings:standings(p) });
+    Object.assign(base, { winner:H.winnerText, coWin: H.mode==="royale" && playerList().filter(x=>!x.out).length>1, rank:rankOf(p), podium:H.podium||[], standings:standings(p) });
   }
   send(p, base);
 }
@@ -432,7 +432,7 @@ function startGame(){
   window.REVEAL_TRACK && REVEAL_TRACK.start("local");
   H.T = +document.querySelector('input[name=time]:checked').value;
   const level = document.querySelector('input[name=level]:checked').value;
-  H.words = pickWords(H.mode==="party" ? PARTY_ROUNDS : 40, level, document.querySelector('input[name=lang]:checked').value);
+  H.words = pickWords(ROUNDS, level, document.querySelector('input[name=lang]:checked').value);
   H.i = -1;
   playerList().forEach(p=>{ p.score=0; p.streak=0; p.out=!p.online; p.outRound=p.online?Infinity:-1; });
   H.startCount = activePlayers().length;
@@ -451,7 +451,7 @@ function nextRound(){
   $("tiles").innerHTML = [...word].map(c=>`<div class="t"><div class="in"><div class="f"></div><div class="b">${c}</div></div></div>`).join("");
   $("hint").textContent = hint;
   $("msg").textContent = ""; $("msg").className="msg";
-  $("roundLbl").textContent = H.mode==="party" ? `Word ${H.i+1} of ${H.words.length}` : `Round ${H.i+1} · ${activePlayers().length} / ${H.startCount} remaining`;
+  $("roundLbl").textContent = H.mode==="party" ? `Word ${H.i+1} of ${H.words.length}` : `Round ${H.i+1} of ${H.words.length} · ${activePlayers().length} / ${H.startCount} remaining`;
   $("clock").textContent=H.T; $("fill").style.width="100%"; $("clock").classList.remove("low"); $("next").textContent="";
   REVEAL_STAGE.banner(showdown ? "Final showdown · first correct answer wins" : null);
   show("play"); renderPlayers(); syncAll();
@@ -543,7 +543,7 @@ function endRound(){
   REVEAL_STAGE.banner(null);
   $("answer").textContent = c.word;
   $("revealNote").textContent = note;
-  const finished = H.mode==="royale" ? activePlayers().length<=1 : H.i+1>=H.words.length;
+  const finished = (H.mode==="royale" && activePlayers().length<=1) || H.i+1>=H.words.length;
   $("nextBtn").textContent = finished ? "See the winner" : "Next word";
   H.finished = finished;
   show("reveal"); renderPlayers(); syncAll();
@@ -575,12 +575,13 @@ function gameOver(){
   const ranked = H.mode==="royale"
     ? playerList().filter(p=>p.outRound!==-1).sort((a,b)=>(b.outRound-a.outRound))
     : playerList().slice().sort((a,b)=>b.score-a.score);
+  const survivors = H.mode==="royale" ? playerList().filter(p=>!p.out).length : 0;
   const top3 = ranked.slice(0,3);
   const slots = [1,0,2].filter(i=>top3[i]);   // 2nd, 1st, 3rd
   $("podium").innerHTML = slots.map(i=>{ const p=top3[i];
-    const sub = H.mode==="royale" ? (i===0 ? "Last one standing" : `Out in round ${p.outRound+1}`) : `${p.score} pts`;
+    const sub = H.mode==="royale" ? (p.outRound===Infinity ? (survivors>1 ? "Survived" : "Last one standing") : `Out in round ${p.outRound+1}`) : `${p.score} pts`;
     return `<div class="pod p${i+1}"><span class="pn">${esc(p.name)}</span><span class="ps">${sub}</span><div class="block"><b>${i+1}</b></div></div>`; }).join("");
-  H.podium = top3.map((p,i)=>({ name:p.name, sub: H.mode==="royale" ? (i===0 ? "Last one standing" : `Out in round ${p.outRound+1}`) : `${p.score} pts`, color:avColor(p.name) }));
+  H.podium = top3.map((p,i)=>({ name:p.name, sub: H.mode==="royale" ? (p.outRound===Infinity ? (survivors>1 ? "Survived" : "Last one standing") : `Out in round ${p.outRound+1}`) : `${p.score} pts`, color:avColor(p.name) }));
   show("over"); renderPlayers(); syncAll();
   setTimeout(()=>{ REVEAL_SFX && REVEAL_SFX.fanfare(); celebrate(); }, 150);
 }
@@ -659,8 +660,8 @@ window.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ") && doc
 
 openRoom(); renderPlayers(); lobbyState();
 </script>
-<script src="stage.js?v=20261119a"></script>
-<script src="drama.js?v=20261119a"></script>
+<script src="stage.js?v=20261124a"></script>
+<script src="drama.js?v=20261124a"></script>
 <!-- Cloudflare Web Analytics: cookie-free visit counts --><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "ceaa5e1436764861bf9d4f2a0235b555"}'></script>
 </body>
 </html>
