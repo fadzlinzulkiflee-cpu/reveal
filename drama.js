@@ -135,7 +135,7 @@ window.REVEAL_END = (function(){
     const next = TITLES[i+1];
     return { name:TITLES[i][1], level:i+1, of:TITLES.length, next: next ? { name:next[1], need:next[0]-score } : null };
   }
-  function link(){ return location.href.replace(/[?#].*$/,"").replace(/(host|play|online)\.html$/,"") + "?src=share"; }
+  function link(){ return (window.REVEAL_NATIVE ? window.REVEAL_SITE : location.href.replace(/[?#].*$/,"").replace(/(host|play|online)\.html$/,"")) + "?src=share"; }
   async function share(text, btn){
     const url = link();
     const full = text + "\n" + url;

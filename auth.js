@@ -1,12 +1,14 @@
-// REVEAL accounts: Google sign-in through Supabase Auth, plus a public profile (unique player name + avatar)
+// REVEAL accounts: Google (and Apple) sign-in through Supabase Auth, plus a public profile (unique player name + avatar)
 // and personal records saved to the account. Guests never need this: every mode except ranked works signed out.
 // Only the public publishable key is used (from REVEAL_CONFIG in daily.js). Database setup: supabase/accounts.sql.
 window.REVEAL_AUTH = (function(){
   const C = window.REVEAL_CONFIG || {};
   const listeners = [];
   const S = { user:null, profile:null, loaded:false };
+  const NATIVE = !!window.REVEAL_NATIVE;               // inside the iPhone app (native.js)
+  const APP_RETURN = "app.playreveal.game://auth";      // the app's own link: Safari sends Google sign-in back here
   const sb = (window.supabase && C.supabaseUrl && C.supabaseKey)
-    ? window.supabase.createClient(C.supabaseUrl, C.supabaseKey, { auth:{ flowType:"pkce", persistSession:true, autoRefreshToken:true, detectSessionInUrl:true, storageKey:"reveal-auth" } })
+    ? window.supabase.createClient(C.supabaseUrl, C.supabaseKey, { auth:{ flowType:"pkce", persistSession:true, autoRefreshToken:true, detectSessionInUrl:!NATIVE, storageKey:"reveal-auth" } })
     : null;
 
   // Player names: 3 to 14 characters, lowercase letters, numbers and underscore. Same rule in the database.
@@ -62,10 +64,64 @@ window.REVEAL_AUTH = (function(){
     if(/[?&](code|error)=/.test(location.search)){ history.replaceState(null, "", location.pathname + location.hash); }
   })();
 
-  async function signIn(){
+  // provider: "google" (default) or "apple". Resolves { ok, msg, done }: done = finished here, so the button can come back.
+  async function signIn(provider){
+    provider = provider === "apple" ? "apple" : "google";
     if(!sb) return { ok:false, msg:"Sign-in isn't available right now." };
-    const { error } = await sb.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: location.origin + location.pathname } });
+    if(NATIVE) return provider === "apple" ? appleInApp() : browserInApp(provider);
+    const { error } = await sb.auth.signInWithOAuth({ provider, options:{ redirectTo: location.origin + location.pathname } });
     return error ? { ok:false, msg:error.message } : { ok:true };
+  }
+
+  // ---- iPhone app ----
+  // Google does not allow sign-in inside an app's web view, so it opens in Safari (in-app sheet) and
+  // comes back through app.playreveal.game://auth?code=..., which we swap for a session (PKCE).
+  const P = () => (window.Capacitor && window.Capacitor.Plugins) || {};
+  let pending = null;                                     // resolver of the sign-in that is waiting for Safari
+  function finish(res){ if(pending){ const f = pending; pending = null; f(Object.assign({ done:true }, res)); } }
+  async function browserInApp(provider){
+    const { Browser } = P();
+    if(!Browser) return { ok:false, msg:"Sign-in isn't available right now." };
+    const { data, error } = await sb.auth.signInWithOAuth({ provider, options:{ redirectTo: APP_RETURN, skipBrowserRedirect:true } });
+    if(error || !data || !data.url) return { ok:false, msg:(error && error.message) || "Sign-in isn't available right now." };
+    finish({ ok:false, msg:"" });
+    const wait = new Promise(r=>{ pending = r; });
+    try{ await Browser.open({ url:data.url, presentationStyle:"popover" }); }catch(e){ finish({ ok:false, msg:"Couldn't open sign-in." }); }
+    return wait;
+  }
+  async function returned(url){
+    if(!String(url||"").startsWith("app.playreveal.game://")) return;
+    try{ await P().Browser.close(); }catch(e){}
+    let q;
+    try{ const u = new URL(url); q = new URLSearchParams(u.search || u.hash.replace(/^#/,"")); }catch(e){ q = new URLSearchParams(); }
+    const code = q.get("code");
+    if(!code){ finish({ ok:false, msg: q.get("error_description") ? "Sign-in was cancelled." : "" }); return; }
+    const { data, error } = await sb.auth.exchangeCodeForSession(code);
+    if(error){ finish({ ok:false, msg:error.message }); return; }
+    await refresh(data && data.session && data.session.user);
+    finish({ ok:true });
+  }
+  if(NATIVE && sb){
+    const { App, Browser } = P();
+    if(App) App.addListener("appUrlOpen", e=>returned(e && e.url));
+    if(Browser) Browser.addListener("browserFinished", ()=>setTimeout(()=>finish({ ok:false, msg:"" }), 800));   // closed without signing in
+  }
+
+  // Sign in with Apple: the iPhone's own Apple sheet, then Supabase checks Apple's token (nonce = replay guard).
+  async function appleInApp(){
+    const A = P().SignInWithApple;
+    if(!A) return { ok:false, msg:"Sign in with Apple isn't available right now." };
+    const raw = Array.from(crypto.getRandomValues(new Uint8Array(24)), b=>b.toString(16).padStart(2,"0")).join("");
+    const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw))), b=>b.toString(16).padStart(2,"0")).join("");
+    let res;
+    try{ res = await A.authorize({ clientId:"app.playreveal.game", redirectURI:"https://playreveal.app/", scopes:"email name", nonce:hash }); }
+    catch(e){ return { ok:false, msg:"", done:true }; }          // cancelled
+    const token = res && res.response && res.response.identityToken;
+    if(!token) return { ok:false, msg:"Sign in with Apple didn't finish.", done:true };
+    const { data, error } = await sb.auth.signInWithIdToken({ provider:"apple", token, nonce:raw });
+    if(error) return { ok:false, msg:error.message, done:true };
+    await refresh(data && data.user);
+    return { ok:true, done:true };
   }
   async function signOut(){ if(sb) await sb.auth.signOut(); S.user = null; S.profile = null; emit(); }
 

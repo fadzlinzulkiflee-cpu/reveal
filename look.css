@@ -279,6 +279,9 @@
 :root:not(#_) .ac-note{margin:0;font-size:.85rem;text-align:center}
 :root:not(#_) .gbtn{display:flex;align-items:center;justify-content:center;gap:10px;background:#F6F8F0;color:#17231D;border:0}
 :root:not(#_) .gbtn svg{width:20px;height:20px;flex:none}
+/* Sign in with Apple: iPhone app only (html.native from native.js); same size and look as the Google button */
+:root:not(#_) .applebtn{display:none}
+:root.native:not(#_) .applebtn{display:flex}
 /* Signed out: a sign-in card in the middle of the home screen (replaces the top-left chip until you sign in) */
 :root:not(#_) .signcard{width:100%;display:grid;gap:10px;padding:12px 14px;border-radius:18px;background:var(--raised,#23372B);border:1px solid rgba(199,245,139,.35);text-align:left}
 :root:not(#_) .signcard[hidden]{display:none}

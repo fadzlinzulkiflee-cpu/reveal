@@ -88,16 +88,20 @@
     close();
   });
   dlg.addEventListener("close", ()=>{ editing = false; });
-  $("acGoogle").addEventListener("click", async ()=>{
-    $("acGoogle").disabled = true; $("acErr").hidden = true;
-    const res = await A.signIn();
-    if(!res.ok){ $("acGoogle").disabled = false; $("acErr").textContent = res.msg; $("acErr").hidden = false; }
-  });
-  if($("signCardBtn")) $("signCardBtn").addEventListener("click", async ()=>{
-    const b = $("signCardBtn"); b.disabled = true; $("signCardErr").hidden = true;
-    const res = await A.signIn();
-    if(!res.ok){ b.disabled = false; $("signCardErr").textContent = res.msg; $("signCardErr").hidden = false; }
-  });
+  // Google on web and app; Apple buttons show only in the iPhone app (look.css .applebtn)
+  function signBtn(id, provider, errId){
+    if(!$(id)) return;
+    $(id).addEventListener("click", async ()=>{
+      const b = $(id); b.disabled = true; $(errId).hidden = true;
+      const res = await A.signIn(provider);
+      if(!res.ok || res.done) b.disabled = false;
+      if(!res.ok && res.msg){ $(errId).textContent = res.msg; $(errId).hidden = false; }
+    });
+  }
+  signBtn("acGoogle", "google", "acErr");
+  signBtn("acApple", "apple", "acErr");
+  signBtn("signCardBtn", "google", "signCardErr");
+  signBtn("signCardApple", "apple", "signCardErr");
   $("acEditBtn").addEventListener("click", startEdit);
   $("acOutBtn").addEventListener("click", async ()=>{ await A.signOut(); close(); });
   // Delete my account: a second, explicit step inside the sheet

@@ -16,6 +16,7 @@ window.REVEAL_TRACK = (function(){
     const q = new URLSearchParams(location.search);
     const tag = clean(q.get("src") || q.get("utm_source") || q.get("ref"));
     if(tag) return tag;
+    if(window.REVEAL_NATIVE) return "ios-app";            // the iPhone app (native.js)
     const ua = navigator.userAgent || "";
     if(/Barcelona/i.test(ua)) return "threads";        // Threads in-app browser
     if(/Instagram/i.test(ua)) return "instagram";
