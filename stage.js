@@ -106,11 +106,30 @@
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let ctx = null, muted = false;
   try { muted = silent || localStorage.getItem("reveal-muted") === "1"; } catch(e) {}
-  const unlock = () => { if(!ctx){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(ctx && ctx.state==="suspended") ctx.resume(); };
-  ["pointerdown","keydown","touchstart"].forEach(e=>addEventListener(e, unlock, {passive:true}));
+  // Audio unlock. iPhone (Safari and the app) only lets sound start inside a real tap, and it counts
+  // touchend/click, not touchstart. So we try on every kind of tap, in the capture phase (before the
+  // game's own click handlers make their first beep), and play one silent sample to wake the speaker.
+  // iPhone also mutes web sound when the ring/silent switch is on; audioSession "playback" (iOS 17+)
+  // lets the game be heard anyway. Players turn sound off with the game's own Sound switch.
+  let primed = false;
+  const unlock = () => {
+    if(muted) return;
+    try{ if(navigator.audioSession && navigator.audioSession.type !== "playback") navigator.audioSession.type = "playback"; }catch(e){}
+    if(ctx && ctx.state === "closed") { ctx = null; primed = false; }
+    if(!ctx){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return; } }
+    if(ctx.state !== "running"){ try{ const r = ctx.resume(); r && r.catch && r.catch(()=>{}); }catch(e){} }
+    if(!primed){
+      try{ const s = ctx.createBufferSource(); s.buffer = ctx.createBuffer(1, 1, 22050); s.connect(ctx.destination); s.start(0); primed = true; }catch(e){}
+    }
+  };
+  ["pointerdown","pointerup","touchend","mousedown","click","keydown"].forEach(e=>addEventListener(e, unlock, {capture:true, passive:true}));
+  // after a phone call, Siri or switching apps the sound is paused ("interrupted"): wake it on return
+  const wake = () => { if(ctx && ctx.state !== "running" && ctx.state !== "closed" && document.visibilityState === "visible"){ try{ const r = ctx.resume(); r && r.catch && r.catch(()=>{}); }catch(e){} } };
+  document.addEventListener("visibilitychange", wake); addEventListener("pageshow", wake); addEventListener("focus", wake);
 
   function tone(freq, dur, type="sine", vol=.18, when=0, slideTo=0){
     if(muted || !ctx) return;
+    if(ctx.state !== "running") wake();
     const t0 = ctx.currentTime + when, o = ctx.createOscillator(), g = ctx.createGain();
     o.type = type; o.frequency.setValueAtTime(freq, t0);
     if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0+dur);
@@ -173,7 +192,7 @@
   const mb = document.createElement("button");
   mb.type="button"; mb.className="mute"; mb.setAttribute("aria-label","Sound on or off");
   const paint = () => { mb.textContent = muted ? "Sound off" : "Sound on"; mb.setAttribute("aria-pressed", String(!muted)); };
-  mb.addEventListener("click", ()=>{ muted=!muted; try{ localStorage.setItem("reveal-muted", muted?"1":"0"); }catch(e){} unlock(); paint(); });
+  mb.addEventListener("click", ()=>{ muted=!muted; try{ localStorage.setItem("reveal-muted", muted?"1":"0"); }catch(e){} unlock(); paint(); if(!muted) SFX.pop(); });
   paint(); if(!silent) stage.appendChild(mb);
   addEventListener("reveal-settings", ()=>{ try{ muted = silent || localStorage.getItem("reveal-muted") === "1"; }catch(e){} readVibe(); paint(); });
   addEventListener("storage", e=>{ if(e.key==="reveal-muted"||e.key==="reveal-vibe") dispatchEvent(new Event("reveal-settings")); });
