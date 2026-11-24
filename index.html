@@ -351,7 +351,7 @@ document.querySelectorAll('input[name=lang]').forEach(r=>{
 });
 // add to home screen
 let installEvt = null;
-const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone || window.REVEAL_NATIVE;   // the iPhone app is already installed
 addEventListener("beforeinstallprompt", e=>{ e.preventDefault(); installEvt = e; if(!standalone) $("install").hidden = false; });
 if(!standalone && /iphone|ipad|ipod/i.test(navigator.userAgent)) $("install").hidden = false;
 $("install").addEventListener("click", async ()=>{
