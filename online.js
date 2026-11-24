@@ -34,6 +34,8 @@
     ? `<span class="av pic${cls}" title="${esc(p.n)}${p.bot?" (bot)":""}">${AVS.svg(p.a)}</span>`
     : `<span class="av${cls}" style="--av:${avColor(p.n)}" title="${esc(p.n)}${p.bot?" (bot)":""}">${initial(p.n)}</span>`;
   const BOT_NAMES = ["Nova","Pixel","Echo","Blaze","Juno","Orbit","Maple","Comet","Indigo","Rook","Sable","Kiwi","Atlas","Ember","Quill","Zephyr","Pepper","Lumen","Vega","Mochi","Sprout","Cobalt","Dune","Fable"];
+  // Names typed by other guests: the host also checks them, so a rude name never reaches the other players
+  const okName = n => (n && (!window.REVEAL_AUTH || !REVEAL_AUTH.nickOk || REVEAL_AUTH.nickOk(n))) ? n : "";
   const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 
   let token = store.get("reveal-token"); if(!token){ token = Math.random().toString(36).slice(2)+Date.now().toString(36); store.set("reveal-token",token); }
@@ -208,6 +210,8 @@
     e.preventDefault();
     const name = $("nameIn").value.trim().replace(/\s+/g," ");
     if(!name) return findErr("Enter your name so others know who's winning.");
+    // Strangers see this name, so the same rude-word check as the Daily leaderboard (auth.js nickOk)
+    if(window.REVEAL_AUTH && REVEAL_AUTH.nickOk && !REVEAL_AUTH.nickOk(name)) return findErr("Please pick a different name.");
     store.set("reveal-name", name); myName = name;
     find();
   });
@@ -417,7 +421,7 @@
         if(!H) return;
         if(m && m.t==="hello"){
           if(H.phase!=="lobby" || H.players.length>=MAX){ try{ c.send({t:"full"}); }catch(e){} return; }
-          const p = { id:H.nextId++, name:uniqueName(String(m.name||"Player").slice(0,14)), bot:false, conn:c, out:false, av: okAv(m.av) ? m.av : null };
+          const p = { id:H.nextId++, name:uniqueName(okName(String(m.name||"Player").trim().slice(0,14)) || "Player"), bot:false, conn:c, out:false, av: okAv(m.av) ? m.av : null };
           H.players.push(p);
           c.send({t:"welcome", name:p.name});
           c.on("close", ()=>{ p.gone = true; if(H && H.phase==="lobby"){ H.players = H.players.filter(x=>x!==p); syncAll(); } else if(H) checkRoundEnd(); });

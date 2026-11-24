@@ -278,6 +278,9 @@
 :root:not(#_) .ac-pane .lead{margin:0;color:#A9BBAC;font-weight:500}
 :root:not(#_) .ac-note{margin:0;font-size:.85rem;text-align:center}
 :root:not(#_) .gbtn{display:flex;align-items:center;justify-content:center;gap:10px;background:#F6F8F0;color:#17231D;border:0}
+/* sign-in buttons stay white (beats button.primary lime): Google and Apple both ask for white or black buttons */
+:root:not(#_) button.primary.gbtn{--c:#F6F8F0;--d:#d9ddd2;background:#F6F8F0;color:#17231D}
+:root:not(#_) button.primary.applebtn{--c:#FFFFFF;--d:#d9d9d9;background:#FFFFFF;color:#000000}
 :root:not(#_) .gbtn svg{width:20px;height:20px;flex:none}
 /* Sign in with Apple: iPhone app only (html.native from native.js); same size and look as the Google button */
 :root:not(#_) .applebtn{display:none}
