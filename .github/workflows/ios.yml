@@ -69,10 +69,21 @@ jobs:
           BUILD=$(( ${{ github.run_number }} + 0 ))
           sed -i '' "s/MARKETING_VERSION = [^;]*;/MARKETING_VERSION = $VERSION;/; s/CURRENT_PROJECT_VERSION = [^;]*;/CURRENT_PROJECT_VERSION = $BUILD;/" ios/App/App.xcodeproj/project.pbxproj
           echo "Version $VERSION, build $BUILD"
+      - name: Check and tidy the certificate key (Windows line endings, OpenSSH format)
+        run: |
+          umask 077; K="$RUNNER_TEMP/cert_key"
+          printf '%s\n' "$CERTIFICATE_PRIVATE_KEY" | tr -d '\r' | sed '/^[[:space:]]*$/d' > "$K"
+          if grep -q '^ssh-rsa ' "$K"; then echo "::error::CERTIFICATE_PRIVATE_KEY holds the .pub file. Paste reveal_cert_key (the file WITHOUT .pub)."; exit 1; fi
+          if grep -q 'ENCRYPTED' "$K"; then echo "::error::The certificate key has a passphrase. Make it again and press Enter twice (no passphrase)."; exit 1; fi
+          if grep -q 'BEGIN OPENSSH PRIVATE KEY' "$K"; then ssh-keygen -p -m PEM -N "" -P "" -f "$K" >/dev/null && echo "Converted OpenSSH key to PEM"; fi
+          if ! openssl pkey -in "$K" -noout 2>/dev/null; then echo "::error::CERTIFICATE_PRIVATE_KEY is not a readable private key. Copy the whole reveal_cert_key file again, including the BEGIN and END lines."; exit 1; fi
+          echo "Certificate key OK"
+          { echo "CERT_KEY_CLEAN<<KEYEOF"; cat "$K"; echo "KEYEOF"; } >> "$GITHUB_ENV"
+          rm -f "$K"
       - name: Signing (certificate + App Store profile, created on first run)
         run: |
           keychain initialize
-          app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_STORE --create
+          app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_STORE --create --certificate-key @env:CERT_KEY_CLEAN
           keychain add-certificates
           xcode-project use-profiles --project ios/App/App.xcodeproj
       - name: Build the .ipa
