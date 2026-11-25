@@ -1,7 +1,7 @@
 {
   "name": "reveal-app",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "REVEAL iPhone app: the web game wrapped with Capacitor. The website itself needs no build.",
   "scripts": {
     "build": "node scripts/build-www.mjs",
